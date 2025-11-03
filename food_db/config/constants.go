@@ -7,4 +7,5 @@ const (
 	Base_url             string = "https://vickypham.com/recipes-finder/?_cuisine=vietnamese&_courses=%s&query-0-page=%d"
 	Recipe_url_template  string = "https://vickypham.com/blog/"
 	Course_delim         string = "---- "
+	Ingredients_filename string = "all_ingredients.yikes"
 )

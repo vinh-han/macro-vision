@@ -17,19 +17,20 @@ type Dish struct {
 	FullRecipe  string
 	Source      string
 	Description string
+	DateCreated time.Time
 }
 
 type DishIngredient struct {
-	DishID       string
-	IngredientID string
-	Amount       string
+	DishID       int64
+	IngredientID int64
+	Amount       float64
 	Unit         string
 }
 
 type Ingredient struct {
 	ID          int64
 	Name        string
-	Description string
+	DateCreated time.Time
 }
 
 type IngredientMacro struct {
@@ -48,4 +49,9 @@ type Session struct {
 	Token       string
 	ExpiresAt   time.Time
 	DateCreated time.Time
+}
+
+type UserInfo struct {
+	PasswordHash string
+	DateCreated  time.Time
 }

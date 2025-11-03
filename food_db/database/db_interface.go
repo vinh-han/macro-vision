@@ -28,10 +28,10 @@ type DB_Connection struct {
 }
 
 var (
-	db_connections        map[string]*DB_Connection = make(map[string]*DB_Connection)
-	db_mutex              sync.Mutex
-	session_db_connection *DB_Connection
-	recipe_db_connection  *DB_Connection
+	db_connections map[string]*DB_Connection = make(map[string]*DB_Connection)
+	db_mutex       sync.Mutex
+	session_db     *DB_Connection
+	Recipe_db      *DB_Connection
 )
 
 // load the schemas into variables
@@ -62,14 +62,14 @@ func create_recipe_db() error {
 	ctx := context.Background()
 	var db_path string = config.Env.DB_PATH + config.Env.RECIPE_DB_NAME
 	db, err := sql.Open("sqlite3", db_path)
-	if err == nil {
+	if err != nil {
 		return fmt.Errorf("%w: db_path%s: %v", custom_errors.RecipeDbInitFailed, db_path, err)
 	}
 	if _, err := db.ExecContext(ctx, recipes_db_ddl); err != nil {
 		return fmt.Errorf("%w: db_path%s: %v", custom_errors.RecipeDbInitFailed, db_path, err)
 	}
 	queries := New(db)
-	recipe_db_connection = &DB_Connection{
+	Recipe_db = &DB_Connection{
 		Db:      db,
 		Queries: queries,
 	}
@@ -89,7 +89,7 @@ func create_session_db() error {
 	}
 
 	queries := New(db)
-	session_db_connection = &DB_Connection{
+	session_db = &DB_Connection{
 		Db:      db,
 		Queries: queries,
 	}
@@ -97,7 +97,7 @@ func create_session_db() error {
 }
 
 func CloseSessionDb() {
-	session_db_connection.Db.Close()
+	session_db.Db.Close()
 }
 
 // GetSessionFromToken checks if the session is expired in the db and retrive the session if not
@@ -105,10 +105,10 @@ func CloseSessionDb() {
 // Errors:
 //   - SessionExpired - the session has been expired
 func GetSessionFromToken(ctx context.Context, session_token string) (*Session, error) {
-	if session_db_connection == nil {
+	if session_db == nil {
 		return nil, custom_errors.SessionDbNotInitialized
 	}
-	queries := session_db_connection.Queries
+	queries := session_db.Queries
 
 	session, err := queries.Get_session(ctx, session_token)
 	if err != nil {
@@ -176,7 +176,7 @@ func generate_session_token() (string, error) {
 }
 
 func Remove_Session(ctx context.Context, session_token string) error {
-	err := session_db_connection.Queries.Remove_session(ctx, session_token)
+	err := session_db.Queries.Remove_session(ctx, session_token)
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func CreateSession(ctx context.Context, username string) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	session, err := session_db_connection.Queries.Insert_session(ctx, Insert_sessionParams{
+	session, err := session_db.Queries.Insert_session(ctx, Insert_sessionParams{
 		Username:    username,
 		Token:       token,
 		ExpiresAt:   time.Now().Add(token_expiration_hr * time.Hour),

@@ -4,6 +4,7 @@ import (
 	"log"
 	database "macro_vision/database"
 	env_parser "macro_vision/env_parser"
+	processor "macro_vision/processor"
 	scraper "macro_vision/scraper"
 )
 
@@ -24,6 +25,10 @@ func main() {
 	}
 
 	err = scraper.Scrape()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = processor.Process_recipes()
 	if err != nil {
 		log.Fatal(err)
 	}

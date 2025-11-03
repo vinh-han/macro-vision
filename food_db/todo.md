@@ -1,6 +1,3 @@
-- [ ] scrape the data for fud
-    - [ ] at least 25 items
-- [ ] make the ingredient name converter
-- [ ] finalize db schema
-- [ ] scrape for macro dictionary
-- [ ] make the api
+- [ ] change to postgres
+- [ ] add uuid
+- [ ] change to jwt

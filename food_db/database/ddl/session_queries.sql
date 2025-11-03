@@ -14,4 +14,3 @@ delete from sessions
 where token = ?
 ;
 
-
