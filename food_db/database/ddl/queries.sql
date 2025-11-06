@@ -1,0 +1,105 @@
+-- ============ DB INFO
+-- name: GetInfo :one
+select *
+from db_info
+;
+
+-- name: UpdateInfo :exec
+INSERT INTO db_info (version, last_scraped)
+VALUES ($1, $2)
+ON CONFLICT (version)
+DO UPDATE SET
+    version = EXCLUDED.version,
+    last_scraped = EXCLUDED.last_scraped;
+
+-- ============ Main_dishes
+-- name: Get_all_dishes :many
+select *
+from dishes
+;
+
+-- name: Insert_dish :one
+INSERT INTO dishes(
+	dish_id,
+	dish_name, 
+	course,
+	alt_name,
+	full_recipe,
+	source,
+	description,
+	date_created
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING dish_id;
+
+-- ============ Ingredients
+-- name: Upsert_ingredient :one
+INSERT INTO ingredients(
+    ingredient_id, ingredient_name, date_created
+)
+VALUES ($1, $2, $3)
+ON CONFLICT (ingredient_name) DO NOTHING
+RETURNING ingredient_id;
+
+-- name: Insert_dish_ingredients :exec
+INSERT INTO dish_ingredients(
+	dish_id,
+	ingredient_id,
+	amount,
+	unit
+)
+VALUES ($1, $2, $3, $4);
+
+-- ----SESSION-----
+-- name: Get_session :one
+select *
+from sessions
+where token = $1
+;
+
+-- name: Insert_session :exec
+INSERT INTO sessions(
+	session_id,
+	user_id,
+	token,
+	expires_at,
+	date_created
+)
+VALUES ($1, $2, $3, $4, $5);
+
+-- name: Remove_session :exec
+delete from sessions
+where token = $1
+;
+
+-- name: Get_token :one
+select token
+from sessions
+where session_id = $1
+;
+
+-- ----users-----
+-- name: Get_user_from_name :one
+select *
+from users
+where username = $1
+;
+
+-- name: Get_user_from_id :one
+select *
+from users
+where user_id = $1
+;
+
+-- name: Insert_user :one
+INSERT INTO users(
+	user_id,
+	username,
+	display_name,
+	email,
+	password_hash,
+	date_created
+)
+VALUES ($1, $2, $3, $4, $5, $6)
+returning user_id;
+

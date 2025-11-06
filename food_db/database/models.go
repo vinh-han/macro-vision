@@ -7,11 +7,18 @@ package database
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
+type DbInfo struct {
+	Version     uuid.UUID
+	LastScraped time.Time
+}
+
 type Dish struct {
-	ID          int64
-	Name        string
+	DishID      uuid.UUID
+	DishName    string
 	Course      string
 	AltName     sql.NullString
 	FullRecipe  string
@@ -21,37 +28,50 @@ type Dish struct {
 }
 
 type DishIngredient struct {
-	DishID       int64
-	IngredientID int64
-	Amount       float64
+	DishID       uuid.UUID
+	IngredientID uuid.UUID
+	Amount       float32
 	Unit         string
 }
 
-type Ingredient struct {
-	ID          int64
-	Name        string
+type Favorite struct {
+	UserID      uuid.UUID
+	DishID      uuid.UUID
 	DateCreated time.Time
 }
 
-type IngredientMacro struct {
-	IngredientID int64
-	PerGrams     float64
-	Calories     float64
-	Protein      float64
-	Fat          float64
-	Carbs        float64
-	Fiber        float64
+type Ingredient struct {
+	IngredientID   uuid.UUID
+	IngredientName string
+	DateCreated    time.Time
+}
+
+type MealCard struct {
+	CardID      uuid.UUID
+	UserID      uuid.UUID
+	Title       string
+	MealDate    time.Time
+	DateCreated time.Time
+}
+
+type MealCardsDish struct {
+	CardID uuid.UUID
+	DishID uuid.UUID
 }
 
 type Session struct {
-	ID          int64
-	Username    string
+	SessionID   uuid.UUID
+	UserID      uuid.UUID
 	Token       string
 	ExpiresAt   time.Time
 	DateCreated time.Time
 }
 
-type UserInfo struct {
+type User struct {
+	UserID       uuid.UUID
+	Username     string
+	DisplayName  string
+	Email        string
 	PasswordHash string
 	DateCreated  time.Time
 }

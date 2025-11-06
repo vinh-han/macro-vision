@@ -7,14 +7,320 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
 )
 
-const test = `-- name: test :exec
-select id, name, course, alt_name, full_recipe, source, description
+const getInfo = `-- name: GetInfo :one
+select version, last_scraped
+from db_info
+`
+
+// ============ DB INFO
+func (q *Queries) GetInfo(ctx context.Context) (DbInfo, error) {
+	row := q.db.QueryRowContext(ctx, getInfo)
+	var i DbInfo
+	err := row.Scan(&i.Version, &i.LastScraped)
+	return i, err
+}
+
+const get_all_dishes = `-- name: Get_all_dishes :many
+select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created
 from dishes
 `
 
-func (q *Queries) test(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, test)
+// ============ Main_dishes
+func (q *Queries) Get_all_dishes(ctx context.Context) ([]Dish, error) {
+	rows, err := q.db.QueryContext(ctx, get_all_dishes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Dish
+	for rows.Next() {
+		var i Dish
+		if err := rows.Scan(
+			&i.DishID,
+			&i.DishName,
+			&i.Course,
+			&i.AltName,
+			&i.FullRecipe,
+			&i.Source,
+			&i.Description,
+			&i.DateCreated,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const get_session = `-- name: Get_session :one
+select session_id, user_id, token, expires_at, date_created
+from sessions
+where token = $1
+`
+
+// ----SESSION-----
+func (q *Queries) Get_session(ctx context.Context, token string) (Session, error) {
+	row := q.db.QueryRowContext(ctx, get_session, token)
+	var i Session
+	err := row.Scan(
+		&i.SessionID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.DateCreated,
+	)
+	return i, err
+}
+
+const get_token = `-- name: Get_token :one
+select token
+from sessions
+where session_id = $1
+`
+
+func (q *Queries) Get_token(ctx context.Context, sessionID uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, get_token, sessionID)
+	var token string
+	err := row.Scan(&token)
+	return token, err
+}
+
+const get_user_from_id = `-- name: Get_user_from_id :one
+select user_id, username, display_name, email, password_hash, date_created
+from users
+where user_id = $1
+`
+
+func (q *Queries) Get_user_from_id(ctx context.Context, userID uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, get_user_from_id, userID)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.DisplayName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateCreated,
+	)
+	return i, err
+}
+
+const get_user_from_name = `-- name: Get_user_from_name :one
+select user_id, username, display_name, email, password_hash, date_created
+from users
+where username = $1
+`
+
+// ----users-----
+func (q *Queries) Get_user_from_name(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, get_user_from_name, username)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.DisplayName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateCreated,
+	)
+	return i, err
+}
+
+const insert_dish = `-- name: Insert_dish :one
+INSERT INTO dishes(
+	dish_id,
+	dish_name, 
+	course,
+	alt_name,
+	full_recipe,
+	source,
+	description,
+	date_created
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING dish_id
+`
+
+type Insert_dishParams struct {
+	DishID      uuid.UUID
+	DishName    string
+	Course      string
+	AltName     sql.NullString
+	FullRecipe  string
+	Source      string
+	Description string
+	DateCreated time.Time
+}
+
+func (q *Queries) Insert_dish(ctx context.Context, arg Insert_dishParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, insert_dish,
+		arg.DishID,
+		arg.DishName,
+		arg.Course,
+		arg.AltName,
+		arg.FullRecipe,
+		arg.Source,
+		arg.Description,
+		arg.DateCreated,
+	)
+	var dish_id uuid.UUID
+	err := row.Scan(&dish_id)
+	return dish_id, err
+}
+
+const insert_dish_ingredients = `-- name: Insert_dish_ingredients :exec
+INSERT INTO dish_ingredients(
+	dish_id,
+	ingredient_id,
+	amount,
+	unit
+)
+VALUES ($1, $2, $3, $4)
+`
+
+type Insert_dish_ingredientsParams struct {
+	DishID       uuid.UUID
+	IngredientID uuid.UUID
+	Amount       float32
+	Unit         string
+}
+
+func (q *Queries) Insert_dish_ingredients(ctx context.Context, arg Insert_dish_ingredientsParams) error {
+	_, err := q.db.ExecContext(ctx, insert_dish_ingredients,
+		arg.DishID,
+		arg.IngredientID,
+		arg.Amount,
+		arg.Unit,
+	)
 	return err
+}
+
+const insert_session = `-- name: Insert_session :exec
+INSERT INTO sessions(
+	session_id,
+	user_id,
+	token,
+	expires_at,
+	date_created
+)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type Insert_sessionParams struct {
+	SessionID   uuid.UUID
+	UserID      uuid.UUID
+	Token       string
+	ExpiresAt   time.Time
+	DateCreated time.Time
+}
+
+func (q *Queries) Insert_session(ctx context.Context, arg Insert_sessionParams) error {
+	_, err := q.db.ExecContext(ctx, insert_session,
+		arg.SessionID,
+		arg.UserID,
+		arg.Token,
+		arg.ExpiresAt,
+		arg.DateCreated,
+	)
+	return err
+}
+
+const insert_user = `-- name: Insert_user :one
+INSERT INTO users(
+	user_id,
+	username,
+	display_name,
+	email,
+	password_hash,
+	date_created
+)
+VALUES ($1, $2, $3, $4, $5, $6)
+returning user_id
+`
+
+type Insert_userParams struct {
+	UserID       uuid.UUID
+	Username     string
+	DisplayName  string
+	Email        string
+	PasswordHash string
+	DateCreated  time.Time
+}
+
+func (q *Queries) Insert_user(ctx context.Context, arg Insert_userParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, insert_user,
+		arg.UserID,
+		arg.Username,
+		arg.DisplayName,
+		arg.Email,
+		arg.PasswordHash,
+		arg.DateCreated,
+	)
+	var user_id uuid.UUID
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const remove_session = `-- name: Remove_session :exec
+delete from sessions
+where token = $1
+`
+
+func (q *Queries) Remove_session(ctx context.Context, token string) error {
+	_, err := q.db.ExecContext(ctx, remove_session, token)
+	return err
+}
+
+const updateInfo = `-- name: UpdateInfo :exec
+INSERT INTO db_info (version, last_scraped)
+VALUES ($1, $2)
+ON CONFLICT (version)
+DO UPDATE SET
+    version = EXCLUDED.version,
+    last_scraped = EXCLUDED.last_scraped
+`
+
+type UpdateInfoParams struct {
+	Version     uuid.UUID
+	LastScraped time.Time
+}
+
+func (q *Queries) UpdateInfo(ctx context.Context, arg UpdateInfoParams) error {
+	_, err := q.db.ExecContext(ctx, updateInfo, arg.Version, arg.LastScraped)
+	return err
+}
+
+const upsert_ingredient = `-- name: Upsert_ingredient :one
+INSERT INTO ingredients(
+    ingredient_id, ingredient_name, date_created
+)
+VALUES ($1, $2, $3)
+ON CONFLICT (ingredient_name) DO NOTHING
+RETURNING ingredient_id
+`
+
+type Upsert_ingredientParams struct {
+	IngredientID   uuid.UUID
+	IngredientName string
+	DateCreated    time.Time
+}
+
+// ============ Ingredients
+func (q *Queries) Upsert_ingredient(ctx context.Context, arg Upsert_ingredientParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, upsert_ingredient, arg.IngredientID, arg.IngredientName, arg.DateCreated)
+	var ingredient_id uuid.UUID
+	err := row.Scan(&ingredient_id)
+	return ingredient_id, err
 }

@@ -20,12 +20,20 @@ import (
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/google/uuid"
 )
 
 var alt_name_regex = regexp.MustCompile(`^(.*?)\s*\((.*?)\)\s*$`)
 
 func Process_recipes() error {
 	var mainfile_path string = filepath.Join(config.Env.LINKS_FOLDER + config.Mainfile_name)
+	err := database.DB.Queries.UpdateInfo(context.Background(), database.UpdateInfoParams{
+		Version:     uuid.Max,
+		LastScraped: time.Now(),
+	})
+	if err != nil {
+		return err
+	}
 	data, err := os.ReadFile(mainfile_path)
 	if err != nil {
 		return err
@@ -41,11 +49,11 @@ func Process_recipes() error {
 		if err != nil {
 			return fmt.Errorf("%w\n link:%s\n err:%v", custom_errors.GetPageFailed, link, err)
 		}
-		defer res.Body.Close()
 		doc, err := goquery.NewDocumentFromReader(res.Body)
 		if err != nil {
 			return fmt.Errorf("%w\n link:%s\n err:%v", custom_errors.DocumentGenerationFailed, link, err)
 		}
+		res.Body.Close()
 		err = parse_dish(link, doc, course)
 		if err != nil {
 			return err
@@ -78,7 +86,7 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 		main_name, alt_name := parse_alt_name(s.Text())
 		// main_name should only be en, alt can be either
 		if has_vietnamese_unicode(main_name) {
-			dish.Name = alt_name
+			dish.DishName = alt_name
 			dish.AltName = sql.NullString{
 				String: main_name,
 				Valid:  true,
@@ -87,21 +95,21 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 		}
 		if has_vietnamese_unicode(alt_name) {
 			clean_alt_name := strip_unicode(alt_name)
-			dish.Name = main_name
+			dish.DishName = main_name
 			dish.AltName = sql.NullString{
 				String: clean_alt_name,
 				Valid:  true,
 			}
 			return
 		}
-		dish.Name = main_name
+		dish.DishName = main_name
 		dish.AltName = sql.NullString{
 			String: alt_name,
 			Valid:  alt_name != "",
 		}
 	})
 	// TEMP: ignoring non-compliant dishes
-	if dish.Name == "" {
+	if dish.DishName == "" {
 		return nil
 	}
 	doc.Find("div.tasty-recipes-ingredients").Each(func(i int, s *goquery.Selection) {
@@ -161,8 +169,9 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 		return err
 	}
 
-	dish_id, err := database.Recipe_db.Queries.Insert_dish(context.Background(), database.Insert_dishParams{
-		Name:        dish.Name,
+	dish_id, err := database.DB.Queries.Insert_dish(context.Background(), database.Insert_dishParams{
+		DishID:      uuid.New(),
+		DishName:    dish.DishName,
 		Course:      dish.Course,
 		Source:      dish.Source,
 		AltName:     dish.AltName,
@@ -177,9 +186,10 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 		if ingredient.Name == "" {
 			continue
 		}
-		ingredient_id, err := database.Recipe_db.Queries.Upsert_ingredient(context.Background(), database.Upsert_ingredientParams{
-			Name:        ingredient.Name,
-			DateCreated: dish.DateCreated,
+		ingredient_id, err := database.DB.Queries.Upsert_ingredient(context.Background(), database.Upsert_ingredientParams{
+			IngredientID:   uuid.New(),
+			IngredientName: ingredient.Name,
+			DateCreated:    dish.DateCreated,
 		})
 		if err == sql.ErrNoRows {
 			continue
@@ -187,10 +197,10 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 		if err != nil {
 			return err
 		}
-		err = database.Recipe_db.Queries.Insert_dish_ingredients(context.Background(), database.Insert_dish_ingredientsParams{
+		err = database.DB.Queries.Insert_dish_ingredients(context.Background(), database.Insert_dish_ingredientsParams{
 			DishID:       dish_id,
 			IngredientID: ingredient_id,
-			Amount:       ingredient.Amount,
+			Amount:       float32(ingredient.Amount),
 			Unit:         ingredient.Unit,
 		})
 	}

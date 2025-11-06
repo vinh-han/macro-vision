@@ -8,18 +8,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io/fs"
 	config "macro_vision/config"
 	custom_errors "macro_vision/custom_errors"
-	"os"
-	"regexp"
-	"sync"
 	"time"
+
+	"github.com/google/uuid"
 
 	"golang.org/x/crypto/bcrypt"
 
-	_ "github.com/mattn/go-sqlite3"
-	// _ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
 )
 
 type DB_Connection struct {
@@ -27,77 +24,44 @@ type DB_Connection struct {
 	Queries *Queries
 }
 
-var (
-	db_connections map[string]*DB_Connection = make(map[string]*DB_Connection)
-	db_mutex       sync.Mutex
-	session_db     *DB_Connection
-	Recipe_db      *DB_Connection
-)
+var DB *DB_Connection
 
 // load the schemas into variables
+//
+//go:embed ddl/schema.sql
+var db_ddl string
 
-//go:embed ddl/sessions_schema.sql
-var session_db_ddl string
-
-//go:embed ddl/users_schema.sql
-var user_db_ddl string
-
-//go:embed ddl/recipes_schema.sql
-var recipes_db_ddl string
-
-func InitDbs() error {
-	var err error
-	err = create_recipe_db()
-	if err != nil {
-		return err
-	}
-	err = create_session_db()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func create_recipe_db() error {
+func InitDB() error {
 	ctx := context.Background()
-	var db_path string = config.Env.DB_PATH + config.Env.RECIPE_DB_NAME
-	db, err := sql.Open("sqlite3", db_path)
+	var connection_string string = fmt.Sprintf(
+		"postgres://%s:%s@database:%s/%s?sslmode=disable",
+		config.Env.POSTGRES_USER,
+		config.Env.POSTGRES_PASSWORD,
+		config.Env.POSTGRES_PORT,
+		config.Env.POSTGRES_DB,
+	)
+	db, err := sql.Open("postgres", connection_string)
 	if err != nil {
-		return fmt.Errorf("%w: db_path%s: %v", custom_errors.RecipeDbInitFailed, db_path, err)
+		return fmt.Errorf("%w: connection_string:%s.\n %v", custom_errors.DbInitFailed, connection_string, err)
 	}
-	if _, err := db.ExecContext(ctx, recipes_db_ddl); err != nil {
-		return fmt.Errorf("%w: db_path%s: %v", custom_errors.RecipeDbInitFailed, db_path, err)
+	if err := db.PingContext(ctx); err != nil {
+		return fmt.Errorf("%w: unable to reach DB at %s. %v", custom_errors.DbInitFailed, connection_string, err)
 	}
+
+	if _, err := db.ExecContext(ctx, db_ddl); err != nil {
+		return fmt.Errorf("%w: connection_string:%s.\n %v", custom_errors.DbInitFailed, connection_string, err)
+	}
+
 	queries := New(db)
-	Recipe_db = &DB_Connection{
+	DB = &DB_Connection{
 		Db:      db,
 		Queries: queries,
 	}
 	return nil
 }
 
-func create_session_db() error {
-	ctx := context.Background()
-	var db_path string = config.Env.DB_PATH + config.Env.SESSIONS_DB_NAME
-	db, err := sql.Open("sqlite3", db_path)
-	if err != nil {
-		return fmt.Errorf("%w: db_path%s: %v", custom_errors.SessionDbInitFailed, db_path, err)
-	}
-
-	if _, err := db.ExecContext(ctx, session_db_ddl); err != nil {
-		return fmt.Errorf("%w: db_path%s: %v", custom_errors.SessionDbInitFailed, db_path, err)
-	}
-
-	queries := New(db)
-	session_db = &DB_Connection{
-		Db:      db,
-		Queries: queries,
-	}
-	return nil
-}
-
-func CloseSessionDb() {
-	session_db.Db.Close()
+func CloseDB() {
+	DB.Db.Close()
 }
 
 // GetSessionFromToken checks if the session is expired in the db and retrive the session if not
@@ -105,10 +69,10 @@ func CloseSessionDb() {
 // Errors:
 //   - SessionExpired - the session has been expired
 func GetSessionFromToken(ctx context.Context, session_token string) (*Session, error) {
-	if session_db == nil {
-		return nil, custom_errors.SessionDbNotInitialized
+	if DB == nil {
+		return nil, custom_errors.DbNotInit
 	}
-	queries := session_db.Queries
+	queries := DB.Queries
 
 	session, err := queries.Get_session(ctx, session_token)
 	if err != nil {
@@ -125,48 +89,99 @@ func GetSessionFromToken(ctx context.Context, session_token string) (*Session, e
 	return &session, nil
 }
 
-var banned_regex *regexp.Regexp = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
-
-func is_valid_username(username string) bool {
-	return banned_regex.Match([]byte(username))
+type CreateUserParam struct {
+	Username    string
+	DisplayName string
+	Email       string
+	Password    string
 }
 
-// returns the user_db object from uuid
+// CreateUser returns a token if the user is new
+//
+// # This func creates a session and user in the db
 //
 // Errors:
-//   - UserNotFound - uuid not found in fs
-func GetDB(username string) (*DB_Connection, error) {
-	db_mutex.Lock()
-	defer db_mutex.Unlock()
-
-	// return pre exisiting connection if exists
-	if connection, ok := db_connections[username]; ok {
-		return connection, nil
+//   - DbNotInit
+//   - UserNotFound
+//   - InvalidCredentials
+//   - TokenGenFailed
+func CreateUser(ctx context.Context, user CreateUserParam) (token string, err error) {
+	if DB == nil {
+		return "", custom_errors.DbNotInit
 	}
-
-	// check if the user is in db dir
-	var user_db_path string = config.Env.DB_PATH + username + ".sqlite"
-	if _, err := os.Stat(user_db_path); errors.Is(err, fs.ErrNotExist) {
-		return nil, custom_errors.UserNotFound
+	if len(user.Password) > 71 {
+		return "", custom_errors.PasswordTooLong
 	}
-
-	db, err := sql.Open("sqlite3", user_db_path)
+	queries := DB.Queries
+	_, err = queries.Get_user_from_name(ctx, user.Username)
+	if err == nil {
+		return "", fmt.Errorf("%w, username: %s", custom_errors.UserExists, user.Username)
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return "", err
+	}
+	password_hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	queries := New(db)
-	user_db := &DB_Connection{
-		Db:      db,
-		Queries: queries,
+	user_id, err := queries.Insert_user(ctx, Insert_userParams{
+		UserID:       uuid.New(),
+		Username:     user.Username,
+		DisplayName:  user.DisplayName,
+		Email:        user.Email,
+		PasswordHash: string(password_hash),
+		DateCreated:  time.Now(),
+	})
+	if err != nil {
+		return "", err
 	}
 
-	db_connections[username] = user_db
-
-	return db_connections[username], nil
+	token, err = create_session(ctx, user_id)
+	if err != nil {
+		return "", err
+	}
+	return token, err
 }
 
-// makes a random 256 bit opaque token
+type AuthenticateUserParam struct {
+	Username string
+	Password string
+}
+
+// AuthenticateUser returns a token if the user is alr in db
+//
+// # This func creates a session in the db if the user exists
+//
+// Errors:
+//   - DbNotInit
+//   - UserNotFound
+//   - InvalidCredentials
+//   - TokenGenFailed
+func AuthenticateUser(ctx context.Context, user AuthenticateUserParam) (token string, err error) {
+	if DB == nil {
+		return "", custom_errors.DbNotInit
+	}
+	queries := DB.Queries
+	user_db, err := queries.Get_user_from_name(ctx, user.Username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("%w: username '%s' not found", custom_errors.UserNotFound, user.Username)
+		}
+		return "", err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user_db.PasswordHash), []byte(user.Password))
+	if err != nil {
+		return "", custom_errors.InvalidCredentials
+	}
+	token, err = create_session(ctx, user_db.UserID)
+	if err != nil {
+		return "", fmt.Errorf("%w: failed to create session for user '%s'", custom_errors.TokenGenFailed, user.Username)
+	}
+	return token, nil
+}
+
+// generate_session_token generates a random 256 bit opaque token
 func generate_session_token() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -176,74 +191,31 @@ func generate_session_token() (string, error) {
 }
 
 func Remove_Session(ctx context.Context, session_token string) error {
-	err := session_db.Queries.Remove_session(ctx, session_token)
+	err := DB.Queries.Remove_session(ctx, session_token)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func CreateSession(ctx context.Context, username string) (*Session, error) {
-	token, err := generate_session_token()
+func create_session(ctx context.Context, user_id uuid.UUID) (token string, err error) {
+	token, err = generate_session_token()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	token_expiration_hr, err := time.ParseDuration(config.Env.TOKEN_EXPIRATION)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("%w, user_id:%s", custom_errors.TokenGenFailed, user_id)
 	}
-	session, err := session_db.Queries.Insert_session(ctx, Insert_sessionParams{
-		Username:    username,
+	err = DB.Queries.Insert_session(ctx, Insert_sessionParams{
+		SessionID:   uuid.New(),
+		UserID:      user_id,
 		Token:       token,
 		ExpiresAt:   time.Now().Add(token_expiration_hr * time.Hour),
 		DateCreated: time.Now(),
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &session, nil
-}
-
-func CreateDB(ctx context.Context, username string, password string) error {
-	// check if main db dir exists, if not create it
-	if _, err := os.Stat(config.Env.DB_PATH); errors.Is(err, fs.ErrNotExist) {
-		os.Mkdir(config.Env.DB_PATH, os.ModePerm)
-	}
-
-	if is_valid_username(username) {
-		return custom_errors.InvalidUsername
-	}
-	var user_db_path string = config.Env.DB_PATH + username + ".sqlite"
-
-	db, err := sql.Open("sqlite3", user_db_path)
-	if err != nil {
-		return err
-	}
-
-	if _, err := db.ExecContext(ctx, user_db_ddl); err != nil {
-		return err
-	}
-
-	password_hash, err := bcrypt.GenerateFromPassword([]byte(password), 4)
-	if err != nil {
-		return err
-	}
-
-	queries := New(db)
-	err = queries.Insert_user_info(ctx, Insert_user_infoParams{
-		PasswordHash: string(password_hash),
-		DateCreated:  time.Now(),
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func CheckUserExists(username string) error {
-	if _, err := os.Stat(config.Env.DB_PATH + username + ".sqlite"); err == nil {
-		return custom_errors.UserDbExists
-	}
-	return nil
+	return token, nil
 }
