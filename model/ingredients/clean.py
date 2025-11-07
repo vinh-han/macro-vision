@@ -10,7 +10,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from utils.logger import setup_logger
 
-LOGGER = setup_logger(__name__, "ingredients_list.log")
+LOGGER = setup_logger(__name__, "ingredients_clean.log")
 
 def load_models() -> Tuple[spacy.Language, SentenceTransformer]:
     LOGGER.info("Loading spaCy model...")
@@ -43,8 +43,8 @@ def root_match(base: str, item: str) -> bool:
 
 def clean(
     input_file: Optional[str] = "raw/99_clean_ingredients.wowa",
-    output_file: Optional[str] = "out/cleaned_ingredients.txt",
-    log_file: Optional[str] = "out/merge_log.txt",
+    output_file: Optional[str] = "out/clean/cleaned_ingredients.txt",
+    log_file: Optional[str] = "out/clean/merge_log.txt",
     threshold: Optional[float] = 0.78
 ) -> None:
     try:
@@ -80,14 +80,14 @@ def clean(
             if ing in used:
                 continue
 
-            group: List[str] = [ing]
-            sims: np.ndarray = cosine_similarity(
+            group = [ing]
+            sims = cosine_similarity(
                 [embeddings[i]],
                 embeddings
             )[0]
 
             for j, sim in enumerate(sims):
-                candidate: str = lemmatized[j]
+                candidate = lemmatized[j]
                 if j != i and candidate not in used:
                     if sim >= threshold or root_match(ing, candidate):
                         group.append(candidate)
