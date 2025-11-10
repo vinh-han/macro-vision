@@ -1,9 +1,8 @@
-FROM node:22.21.1-alpine3.21 AS dev
-WORKDIR /app
+FROM node:22.21.1-alpine3.21 AS main
+WORKDIR /frontend
 COPY package.json package-lock.json ./
 RUN npm install
-COPY . .
+COPY .env .
 EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host"]
-
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

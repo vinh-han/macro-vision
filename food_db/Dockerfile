@@ -8,8 +8,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go build -v -o backend.exe .
 
 FROM alpine:3.22 AS base
+WORKDIR /backend
 COPY .env .
-COPY  ./links/ ./links/
 COPY --from=builder /app/backend.exe /usr/local/bin/backend
 
 CMD [ "backend" ]

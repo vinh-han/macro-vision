@@ -1,28 +1,21 @@
 services:
     frontend:
-        build: ${PWD}/frontend/
+        build: ./frontend/
         container_name: frontend
         ports:
             - ${FRONTEND_PORT}:5173
-        depends_on:
-            backend:
-                condition: service_started
         develop:
             watch:
-                - action: sync+restart
-                  path: ${PWD}/frontend
-                  #initial_sync: true
-                  target: /app/
-                  ignore:
-                      - node_modules/
                 - action: rebuild
-                  path: ${PWD}/frontend/Dockerfile
+                  path: ./frontend/package.json
                 - action: rebuild
-                  path: ${PWD}/docker-compose.yml
+                  path: ./frontend/vite.config.js
                 - action: rebuild
-                  path: ${PWD}/frontend/package.json
+                  path: ./frontend/eslint.config.js
+        volumes:
+          - ./frontend/:/frontend/
     backend:
-        build: ${PWD}/food_db/
+        build: ./food_db/
         container_name: backend
         ports:
             - ${BACKEND_PORT}:8000
@@ -32,14 +25,13 @@ services:
             interval: 2s
             timeout: 5s
             retries: 10
+        volumes:
+            - ./food_db/links:/backend/links:ro
         develop:
             watch:
                 - action: rebuild
-                  path: ${PWD}/food_db
-                - action: rebuild
-                  path: ${PWD}/food_db/Dockerfile
-                - action: rebuild
-                  path: ${PWD}/docker-compose.yml
+                  path: ./food_db
+                  ignore: ./food_db/links
         depends_on:
             database:
                 condition: service_healthy
@@ -51,7 +43,7 @@ services:
             interval: 2s
             timeout: 1s
             retries: 5
-            start_period: 5s
+            start_period: 1s
         volumes:
             - postgres_data:/var/lib/postgresql
     adminer:
