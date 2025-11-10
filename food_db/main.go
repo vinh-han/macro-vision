@@ -23,7 +23,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("a;lskdjf")
 	err = database.InitDB()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -33,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	info, err := database.DB.Queries.GetInfo(context.Background())
+	_, err = database.DB.Queries.GetInfo(context.Background())
 	if err == sql.ErrNoRows {
 		err = processor.Process_recipes()
 		if err != nil {
@@ -42,12 +41,6 @@ func main() {
 	}
 	if err != nil {
 		log.Fatal(err)
-	}
-	if time.Since(info.LastScraped) > time.Hour*24 {
-		err = processor.Process_recipes()
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 	for true {
 		time.Sleep(time.Second * 10)

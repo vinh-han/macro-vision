@@ -145,28 +145,3 @@ func normalize_tokens(name string) string {
 	// name = strings.ReplaceAll(name, "-", " ")
 	return name
 }
-
-var stopWords map[string]bool = map[string]bool{
-	"package":     true,
-	"half":        true,
-	"split":       true,
-	"inch":        true,
-	"-inch":       true,
-	"cup":         true,
-	"tablespoon":  true,
-	"teaspoon":    true,
-	"lb":          true,
-	"oz":          true,
-	"bunch":       true,
-	"bundle":      true,
-	"handful":     true,
-	"room":        true,
-	"temperature": true,
-	"amount":      true,
-	"air":         true,
-	"fryer":       true,
-	"piece":       true,
-	"pinch":       true,
-	"fry":         true,
-	"blender":     true,
-}
