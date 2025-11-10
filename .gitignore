@@ -248,5 +248,4 @@ go.work.sum
 *.sqlite
 
 # links
-*.wow
 *.cmo
