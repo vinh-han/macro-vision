@@ -11,7 +11,7 @@ services:
             watch:
                 - action: sync+restart
                   path: ${PWD}/frontend
-                  initial_sync: true
+                  #initial_sync: true
                   target: /app/
                   ignore:
                       - node_modules/

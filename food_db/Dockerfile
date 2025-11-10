@@ -9,7 +9,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM alpine:3.22 AS base
 COPY .env .
-COPY --exclude=*.go ./links/ ./links/
+COPY  ./links/ ./links/
 COPY --from=builder /app/backend.exe /usr/local/bin/backend
 
 CMD [ "backend" ]
