@@ -31,7 +31,8 @@ services:
             watch:
                 - action: rebuild
                   path: ./food_db
-                  ignore: ./food_db/links
+                  ignore:
+                    - ./food_db/links
         depends_on:
             database:
                 condition: service_healthy
