@@ -4,7 +4,7 @@ import { RouterProvider } from 'react-router';
 import router from './Router';
 // Chakra UI 
 import { ChakraProvider } from '@chakra-ui/react';
-import { system } from "@chakra-ui/react/preset"; // stupid bug
+import { system } from "./theme";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

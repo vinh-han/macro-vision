@@ -8,6 +8,7 @@ import AppLayout from './layouts/AppLayout';
 import Guide from './pages/guide/Guide';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+
 // import app pages 
 import HomePage from './pages/app/Homepage';
 import SearchPage from './pages/app/SearchPage';
@@ -25,7 +26,6 @@ export const router = createBrowserRouter(
             {/* Public routes (no navbar) */}
             <Route element={<PublicLayout />}>
                 <Route index element={<Guide/>} />
-                <Route path='guide' element={<Guide />} />
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<Signup />} />
             </Route>

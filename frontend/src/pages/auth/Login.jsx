@@ -1,9 +1,11 @@
-
+import { Box, Text } from '@chakra-ui/react'
 
 export default function Login() {
     return (
-        <div>
-            <h1>Login Page</h1>
-        </div>
+        <Box background="crimsonred.500" width="100%" height="100vh" color="white">
+            <Text textStyle={[ "sm", "md", "lg", "xl" ]}>
+                Hii~
+            </Text>
+        </Box>
     )
 }
