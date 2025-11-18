@@ -5,8 +5,8 @@ from pathlib import Path
 from utils.config import settings
 
 LOG_LEVEL = getattr(logging, settings.log_level.upper(), logging.INFO)
-FILE_FORMATTER = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-CONSOLE_FORMATTER = logging.Formatter("%(message)s")
+FILE_FORMATTER = logging.Formatter("[ %(levelname)s ] %(message)s - %(asctime)s")
+CONSOLE_FORMATTER = logging.Formatter("[ %(levelname)s ] %(message)s")
 
 def setup_logger(name: str, log_file: str) -> logging.Logger:
     log_file_path = Path(settings.log_dir) / log_file

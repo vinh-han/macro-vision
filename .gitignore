@@ -1,5 +1,12 @@
 # Project specific
 logs/
+model/dataset/imgs
+model/dataset/labels
+model/dataset/pretrained
+model/dataset/visualizations
+model/dataset/train
+model/dataset/val
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

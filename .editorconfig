@@ -1,0 +1,29 @@
+# .editorconfig
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = lf              # Consistent LF endings (Unix style)
+insert_final_newline = true   # Adds newline at EOF
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Settings for Python
+[*.{py}]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# For YAML, Markdown
+[*.{yml,yaml,md}]
+indent_size = 2
+trim_trailing_whitespace = false  # Avoid stripping intentional spaces in Markdown
+
+# For Makefiles — tabs are required
+[Makefile]
+indent_style = tab

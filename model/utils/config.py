@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     model_deployment_name: str = "extractor-mini"
     embedding_deployment_name: str = "embeddings"
 
+    ingredients_list_path: str = './ingredients/out/classes.txt'
+
+    @property
+    def ingredients_list(self) -> str:
+        return Path(self.ingredients_list_path).read_text(encoding="utf-8").splitlines()
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

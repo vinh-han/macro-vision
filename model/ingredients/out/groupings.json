@@ -1,0 +1,816 @@
+{
+    "agar agar powder": [
+        "agar agar powder"
+    ],
+    "alsa powder": [
+        "alsa powder"
+    ],
+    "annatto oil": [
+        "annatto oil"
+    ],
+    "bamboo shoot": [
+        "bamboo shoot",
+        "package bamboo"
+    ],
+    "banana": [
+        "banana"
+    ],
+    "banana blossom": [
+        "banana blossom"
+    ],
+    "banana leaf": [
+        "banana leaf"
+    ],
+    "basil": [
+        "thai basil"
+    ],
+    "bean sprout": [
+        "bean",
+        "bean sprout",
+        "cabbage basil bean sprout",
+        "culantro basil bean sprout",
+        "package bean sprout",
+        "split bean"
+    ],
+    "beef ball": [
+        "beef ball"
+    ],
+    "beef bone": [
+        "beef bone",
+        "beef soup bone"
+    ],
+    "beef chuck rib": [
+        "beef chuck rib"
+    ],
+    "beef jerky": [
+        "beef jerky",
+        "spicy beef jerky"
+    ],
+    "beef neck bone": [
+        "beef neck bone"
+    ],
+    "beef rib": [
+        "beef rib",
+        "meaty beef rib"
+    ],
+    "beef sirloin": [
+        "beef sirlion",
+        "beef sirloin"
+    ],
+    "beef steak": [
+        "beef steak"
+    ],
+    "beef stock": [
+        "meat beef bone stock",
+        "quoc beef soup base"
+    ],
+    "beef tendon": [
+        "beef tendon"
+    ],
+    "bell pepper": [
+        "bell pepper",
+        "bell pepper squash",
+        "ground pepper",
+        "orange bell pepper"
+    ],
+    "blood cake": [
+        "blood cake",
+        "pork blood cake"
+    ],
+    "bok choy": [
+        "bok choy",
+        "vegetable bok choy sugar snap pea"
+    ],
+    "boneless beef shank": [
+        "boneless beef shank"
+    ],
+    "boneless pork shank": [
+        "boneless pork shank"
+    ],
+    "bouillon powder": [
+        "barbecue char mix",
+        "bouillon powder",
+        "bun bo hue premix"
+    ],
+    "broccoli": [
+        "broccoli"
+    ],
+    "brown sugar": [
+        "brown sugar"
+    ],
+    "butter": [
+        "butter"
+    ],
+    "cabbage": [
+        "cabbage",
+        "celery"
+    ],
+    "calamari": [
+        "calamari"
+    ],
+    "cardamom pod": [
+        "cardamom pod"
+    ],
+    "carrot": [
+        "carrot",
+        "vegetable"
+    ],
+    "catfish": [
+        "catfish"
+    ],
+    "cellophane noodle": [
+        "thread vermicelli cellophane noodle"
+    ],
+    "cuttlefish": [
+        "piece cuttlefish"
+    ],
+    "cherry tomato": [
+        "cherry tomato",
+        "handful cherry tomato",
+        "ripe tomato"
+    ],
+    "chicken": [
+        "chicken"
+    ],
+    "chicken bone": [
+        "chicken bone"
+    ],
+    "chicken bone broth": [
+        "carton chicken stock",
+        "chicken bone broth"
+    ],
+    "chicken bouillon powder": [
+        "chicken bouillon powder",
+        "chicken bouillon powder mushroom powder",
+        "chicken bouillon powdermsg",
+        "chicken bouillon powdermushroom powder",
+        "chickenmushroom bouillon powder",
+        "tablespoon chicken stock powder"
+    ],
+    "chicken breast": [
+        "chicken breast"
+    ],
+    "chicken thigh": [
+        "chicken thigh",
+        "skinless boneless chicken thigh"
+    ],
+    "chicken wing": [
+        "chicken wing"
+    ],
+    "chili": [
+        "chili",
+        "chili pepper",
+        "thai chili pepper"
+    ],
+    "chili oil": [
+        "chili oil"
+    ],
+    "chili sauce": [
+        "chili sauce",
+        "lime pepper salt sauce",
+        "sweet spicy chili sauce"
+    ],
+    "chive": [
+        "bunch chive"
+    ],
+    "choice beef bone": [
+        "choice beef bone"
+    ],
+    "choy sum": [
+        "choy sum"
+    ],
+    "cilantro": [
+        "bunch cilantro",
+        "bundle cilantro",
+        "cilantro",
+        "cilantro basil rice paddy herb",
+        "cilantro onion",
+        "handful cilantro thai basil"
+    ],
+    "cinnamon": [
+        "cinnamon",
+        "saigon cinnamon"
+    ],
+    "coarse sea salt": [
+        "coarse sea salt"
+    ],
+    "coca cola": [
+        "coca cola"
+    ],
+    "coconut": [
+        "coconut"
+    ],
+    "coconut milk": [
+        "coconut milk",
+        "vanilla coffee cream"
+    ],
+    "coconut soda": [
+        "coco rico coconut soda",
+        "coconut sauce dessert",
+        "coconut soda"
+    ],
+    "coconut water": [
+        "coconut water",
+        "room temperature water",
+        "spray bottle water"
+    ],
+    "cooking oil": [
+        "cook oil",
+        "oil",
+        "oil fry",
+        "tablespoon oil"
+    ],
+    "coriander seed": [
+        "coriander",
+        "coriander leaf",
+        "coriander mint",
+        "coriander seed"
+    ],
+    "corn kernel": [
+        "corn kernel"
+    ],
+    "corn starch": [
+        "corn starch",
+        "corn starch tablespoon water"
+    ],
+    "cornstarch": [
+        "cornstarch"
+    ],
+    "crab meat": [
+        "crab meat",
+        "lump crab meat"
+    ],
+    "crab spice": [
+        "crab spice"
+    ],
+    "cucumber": [
+        "chayote",
+        "cucumber"
+    ],
+    "culantro": [
+        "culantro"
+    ],
+    "daikon": [
+        "carrot daikons",
+        "cup daikon carrot",
+        "daikon",
+        "daikon carrot"
+    ],
+    "ear taro stalk": [
+        "ear taro stalk"
+    ],
+    "egg": [
+        "egg"
+    ],
+    "egg noodle": [
+        "egg noodle",
+        "gel food",
+        "noodle",
+        "package egg noodle",
+        "thread noodle"
+    ],
+    "egg roll wrapper": [
+        "egg roll",
+        "egg roll spring roll",
+        "eggroll lumpia wrapper"
+    ],
+    "egg white": [
+        "egg white"
+    ],
+    "egg yolk": [
+        "beat egg",
+        "egg yolk"
+    ],
+    "enoki mushroom": [
+        "enoki mushroom"
+    ],
+    "eye round beef steak": [
+        "eye round beef steak"
+    ],
+    "fennel seed": [
+        "fennel seed"
+    ],
+    "fish": [
+        "fish"
+    ],
+    "fish ball": [
+        "fish ball"
+    ],
+    "fish fillet": [
+        "fillet"
+    ],
+    "fish sauce": [
+        "bean sauce",
+        "fish sauce sauce",
+        "la giang",
+        "teaspoon fish sauce"
+    ],
+    "flour": [
+        "flour",
+        "pastry brush"
+    ],
+    "free-range chicken": [
+        "free-range chicken"
+    ],
+    "gac fruit paste": [
+        "gac fruit paste"
+    ],
+    "garlic": [
+        "clove garlic",
+        "garlic",
+        "garlic clove",
+        "head garlic"
+    ],
+    "ginger": [
+        "-inch ginger",
+        "chunk ginger",
+        "ginger",
+        "herb",
+        "inch ginger",
+        "knob ginger",
+        "piece ginger"
+    ],
+    "ground beef": [
+        "ground beef",
+        "ground pork"
+    ],
+    "half and half": [
+        "half half"
+    ],
+    "ham": [
+        "ham"
+    ],
+    "head lettuce": [
+        "half head cauliflower",
+        "head lettuce",
+        "leafy lettuce herb",
+        "lettuce herb"
+    ],
+    "head mustard green": [
+        "bunch mustard green",
+        "head mustard green"
+    ],
+    "hoisin sauce": [
+        "hoisin sauce"
+    ],
+    "honey": [
+        "honey",
+        "honey mix"
+    ],
+    "ice": [
+        "bowl ice water",
+        "ice"
+    ],
+    "ice cube": [
+        "ice cube"
+    ],
+    "jackfruit": [
+        "jackfruit"
+    ],
+    "jalapeno": [
+        "jalapeno",
+        "multicolor jalapeno"
+    ],
+    "jasmine rice": [
+        "jasmine rice"
+    ],
+    "jicama": [
+        "half cup jicama"
+    ],
+    "kabocha squash": [
+        "kabocha squash"
+    ],
+    "ketchup": [
+        "ketchup"
+    ],
+    "ladyfinger banana": [
+        "ladyfinger banana"
+    ],
+    "leaf": [
+        "leaf"
+    ],
+    "lemon": [
+        "lemon",
+        "lemon bay leaf",
+        "lemon lime",
+        "lime lemon"
+    ],
+    "lemon juice": [
+        "juice half lemon",
+        "lemon juice"
+    ],
+    "lemongrass": [
+        "lemongrass",
+        "stalk lemongrass"
+    ],
+    "lettuce": [
+        "lettuce"
+    ],
+    "lime": [
+        "lime"
+    ],
+    "lime juice": [
+        "lime juice"
+    ],
+    "lime wedge": [
+        "lime wedge"
+    ],
+    "longan": [
+        "longan"
+    ],
+    "lotus seed": [
+        "lotus root brine",
+        "lotus seed"
+    ],
+    "madras curry powder": [
+        "madras curry powder"
+    ],
+    "magenta leaf stem": [
+        "magenta leaf stem"
+    ],
+    "malabar spinach": [
+        "malabar spinach"
+    ],
+    "mango": [
+        "mango"
+    ],
+    "milk": [
+        "bag milk"
+    ],
+    "mint": [
+        "mint leaf"
+    ],
+    "miso paste": [
+        "miso paste"
+    ],
+    "msg": [
+        "msg"
+    ],
+    "mung bean": [
+        "bag banh mix",
+        "mung bean",
+        "split mung bean"
+    ],
+    "mung bean starch": [
+        "mung bean starch"
+    ],
+    "mushroom": [
+        "chicken mushroom",
+        "chickenmushroom",
+        "mushroom"
+    ],
+    "mustard green": [
+        "mustard green"
+    ],
+    "nori": [
+        "nori"
+    ],
+    "okra": [
+        "okra"
+    ],
+    "onion": [
+        "half onion",
+        "medium onion",
+        "onion",
+        "onion powder",
+        "sprig onion",
+        "stalk onion"
+    ],
+    "opo squash": [
+        "opo squash"
+    ],
+    "oxtail": [
+        "oxtail"
+    ],
+    "oyster sauce": [
+        "oyster sauce"
+    ],
+    "pandan extract": [
+        "pandan extract",
+        "pandan gel extract",
+        "vanilla extract"
+    ],
+    "pandan leaf": [
+        "bunch pandan leaf",
+        "pandan leaf",
+        "thai basil leaf"
+    ],
+    "papaya": [
+        "medium papaya",
+        "papaya"
+    ],
+    "paprika": [
+        "paprika"
+    ],
+    "peanut": [
+        "peanut"
+    ],
+    "pennywort": [
+        "pennywort leaf stem"
+    ],
+    "pepper": [
+        "dash ground pepper",
+        "pepper",
+        "pepper flake",
+        "pinch ground pepper"
+    ],
+    "pho spice": [
+        "pho spice",
+        "pho spice tea bag",
+        "pho spice tea packet"
+    ],
+    "pineapple": [
+        "pineapple"
+    ],
+    "pineapple juice": [
+        "pineapple juice"
+    ],
+    "pompano": [
+        "pompano fish"
+    ],
+    "pork": [
+        "barbecue pork",
+        "bbq pork",
+        "pork",
+        "pork sausage",
+        "pork skin",
+        "salt pork"
+    ],
+    "pork bone": [
+        "pork bone"
+    ],
+    "pork ear": [
+        "pork ear"
+    ],
+    "pork fat": [
+        "pork fat"
+    ],
+    "pork heart": [
+        "pork heart"
+    ],
+    "pork hock": [
+        "pork hock chunk"
+    ],
+    "pork kidney": [
+        "pork kidney",
+        "pork organ kidney liver"
+    ],
+    "pork knuckle": [
+        "pork knuckle"
+    ],
+    "pork neck": [
+        "pork neck bone",
+        "pork neckbones"
+    ],
+    "pork rib": [
+        "pork rib"
+    ],
+    "pork shank bone marrow": [
+        "pork shank bone marrow"
+    ],
+    "pork shoulder": [
+        "pork shoulder"
+    ],
+    "pork snout": [
+        "pork snout"
+    ],
+    "pork stock": [
+        "chicken mushroom pork stock powder",
+        "cup pork stock",
+        "stock"
+    ],
+    "pork tongue": [
+        "pork tongue"
+    ],
+    "potato": [
+        "potato"
+    ],
+    "potato starch": [
+        "potato ricer hole",
+        "potato starch"
+    ],
+    "prawn": [
+        "prawn"
+    ],
+    "purple cabbage": [
+        "purple cabbage"
+    ],
+    "quail": [
+        "quail"
+    ],
+    "quail egg": [
+        "quail egg"
+    ],
+    "radish": [
+        "radish"
+    ],
+    "ramen noodle": [
+        "package ramen noodle"
+    ],
+    "rice": [
+        "rice",
+        "rice-cooker cup rice grain"
+    ],
+    "rice cracker": [
+        "sesame cracker",
+        "sesame rice cracker"
+    ],
+    "rice flour": [
+        "rice flour",
+        "rice grain",
+        "rice powder",
+        "xua banh xeo flour mix"
+    ],
+    "rice noodle": [
+        "package oz rice noodle",
+        "package rice noodle",
+        "quang rice noodle",
+        "rice noodle"
+    ],
+    "rice paper": [
+        "paper",
+        "rice paper"
+    ],
+    "rice vermicelli": [
+        "medium rice vermicelli noodle",
+        "rice vermicelli",
+        "rice vermicelli noodle",
+        "thread vermicelli noodle"
+    ],
+    "rice vinegar": [
+        "rice vinegar"
+    ],
+    "rock sugar": [
+        "rock sugar",
+        "sugarrock sugar"
+    ],
+    "salt": [
+        "salt"
+    ],
+    "sausage": [
+        "sausage"
+    ],
+    "scallion": [
+        "bundle onion scallion",
+        "onion scallion",
+        "scallion",
+        "scallion oil",
+        "scallion onion"
+    ],
+    "scallop": [
+        "scallop"
+    ],
+    "sea salt": [
+        "pinch salt",
+        "salt clean",
+        "sea salt",
+        "teaspoon sea salt",
+        "teaspooon salt"
+    ],
+    "seaweed": [
+        "sheet seaweed"
+    ],
+    "sesame oil": [
+        "sesame oil"
+    ],
+    "sesame seed": [
+        "palm seed",
+        "sesame seed"
+    ],
+    "shallot": [
+        "oilshallot oil",
+        "shallot",
+        "shallot oil",
+        "shallot shallot oil",
+        "tablespoon shallot"
+    ],
+    "shiitake mushroom": [
+        "shiitake mushroom",
+        "shiitake mushroom stock"
+    ],
+    "shrimp": [
+        "shrimp"
+    ],
+    "shrimp head": [
+        "shrimp head",
+        "shrimp prawn head"
+    ],
+    "shrimp paste": [
+        "package banh premix",
+        "shrimp paste",
+        "shrimp sauce"
+    ],
+    "shrimp chips": [
+        "shrimp chip"
+    ],
+    "soda": [
+        "soda"
+    ],
+    "soy sauce": [
+        "milk sauce",
+        "sauce",
+        "sodium soy sauce",
+        "soy cook sauce",
+        "soy sauce",
+        "teaspoon msg"
+    ],
+    "spearmint": [
+        "spearmint leaf"
+    ],
+    "spring roll wrapper": [
+        "spring roll wrapper",
+        "tyj spring roll pastry wrapper"
+    ],
+    "sprouts": [
+        "sprig"
+    ],
+    "squid": [
+        "squid"
+    ],
+    "sriracha sauce": [
+        "salt lime pepper dip sauce",
+        "sriracha chili sauce",
+        "sriracha sauce"
+    ],
+    "star anise": [
+        "star anise"
+    ],
+    "steak": [
+        "steak",
+        "steamer"
+    ],
+    "sugar": [
+        "cane sugar",
+        "sugapalm sugar",
+        "sugar",
+        "teaspoon sugar"
+    ],
+    "sweet potato": [
+        "sweet potato"
+    ],
+    "tamarind powder": [
+        "spice powder",
+        "tamarind powder"
+    ],
+    "tamarind pulp": [
+        "seedless tamarind pulp",
+        "tamarind powdertamarind pulp",
+        "tamarind pulp"
+    ],
+    "tapioca ball": [
+        "tapioca ball"
+    ],
+    "tapioca flour": [
+        "tapioca flour"
+    ],
+    "tapioca starch": [
+        "tapioca starch",
+        "tapioca starch tablespoon water"
+    ],
+    "taro stem": [
+        "taro stem"
+    ],
+    "tofu": [
+        "package tofu",
+        "tofu cube"
+    ],
+    "tomato": [
+        "tomato"
+    ],
+    "vinegar": [
+        "vinegar"
+    ],
+    "water chestnut": [
+        "can water chestnut",
+        "water chestnut"
+    ],
+    "water spinach": [
+        "water spinach"
+    ],
+    "watercress": [
+        "bunch watercress",
+        "watercress"
+    ],
+    "wheat flour": [
+        "wheat flour"
+    ],
+    "wine": [
+        "water",
+        "wine"
+    ],
+    "winter melon": [
+        "medium bitter melon",
+        "winter melon"
+    ],
+    "wonton": [
+        "shrimp pork wonton",
+        "shrimp pork wontons",
+        "wonton wrapper"
+    ],
+    "wood ear mushroom": [
+        "wood ear mushroom"
+    ],
+    "yeast": [
+        "yeast"
+    ]
+}
