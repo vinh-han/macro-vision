@@ -1,8 +1,10 @@
+import random
+from pathlib import Path
+from typing import List, Optional, Tuple
+
 import cv2
 import numpy as np
-from pathlib import Path
-import random
-from typing import Optional, List, Tuple
+
 
 class YOLOVisualizer:
     def __init__(
@@ -31,9 +33,9 @@ class YOLOVisualizer:
                         import ast
                         names_str = line.split(':', 1)[1].strip()
                         return ast.literal_eval(names_str)
-        
+
         return []
-    
+
     # Convert yolo format to pixel coordinates
     def yolo_to_bounding_box(
         self,
@@ -44,35 +46,35 @@ class YOLOVisualizer:
         img_width: int,
         img_height: int
     ) -> Tuple[int, int, int, int]:
-        
+
         x1 = int((x_center - width / 2) * img_width)
         y1 = int((y_center - height / 2) * img_height)
         x2 = int((x_center + width / 2) * img_width)
         y2 = int((y_center + height / 2) * img_height)
 
         return x1, y1, x2, y2
-    
+
     # Viz labels on an image
     def visualize_image(
-        self, 
+        self,
         image_path: Path,
         label_path: Path,
         window_name: str = "YOLO Labels"
     ) -> np.ndarray:
-        
+
         # read image
         img = cv2.imread(str(image_path))
         if img is None:
             print(f"Fialed to read {image_path}")
             return None
-        
+
         h, w = img.shape[:2]
 
         # read labels
         if not label_path.exists():
             print(f"No label file for {image_path.name}")
             return img
-        
+
         with open(label_path) as f:
             for line in f:
                 parts = line.strip().split()
@@ -117,12 +119,12 @@ class YOLOVisualizer:
                     (255, 255, 255),
                     2
                 )
-        
+
         return img
-    
+
     # Viz random samples from dataset
     def visualize_dataset(
-        self, 
+        self,
         split: str = "train",
         num_samples: int = 5,
         save_output: bool = False,
@@ -134,14 +136,14 @@ class YOLOVisualizer:
         if not images_dir.exists():
             print(f"Images directory not found {images_dir}")
             return
-        
+
         # get all image
         image_files = list(images_dir.glob("*.*"))
 
         if not image_files:
             print(f"No images found in {images_dir}")
-            return 
-        
+            return
+
         sample_size = min(num_samples, len(image_files))
         sampled_images = random.sample(image_files, sample_size)
 
@@ -197,7 +199,7 @@ def main():
         help='Dir to YOLO dataset'
     )
     parser.add_argument(
-        '--split', 
+        '--split',
         default='train',
         choices=['train', 'val', 'test']
     )

@@ -24,8 +24,10 @@
     "basil": [
         "thai basil"
     ],
+    "bean": [
+        "bean"
+    ],
     "bean sprout": [
-        "bean",
         "bean sprout",
         "cabbage basil bean sprout",
         "culantro basil bean sprout",
@@ -33,6 +35,7 @@
         "split bean"
     ],
     "beef ball": [
+        "barbecue char mix",
         "beef ball"
     ],
     "beef bone": [
@@ -88,7 +91,6 @@
         "boneless pork shank"
     ],
     "bouillon powder": [
-        "barbecue char mix",
         "bouillon powder",
         "bun bo hue premix"
     ],
@@ -102,8 +104,7 @@
         "butter"
     ],
     "cabbage": [
-        "cabbage",
-        "celery"
+        "cabbage"
     ],
     "calamari": [
         "calamari"
@@ -118,8 +119,14 @@
     "catfish": [
         "catfish"
     ],
+    "cauliflower": [
+        "half head cauliflower"
+    ],
     "cellophane noodle": [
         "thread vermicelli cellophane noodle"
+    ],
+    "celery": [
+        "celery"
     ],
     "cuttlefish": [
         "piece cuttlefish"
@@ -157,13 +164,13 @@
     "chicken wing": [
         "chicken wing"
     ],
-    "chili": [
+    "chili oil": [
+        "chili oil"
+    ],
+    "chili pepper": [
         "chili",
         "chili pepper",
         "thai chili pepper"
-    ],
-    "chili oil": [
-        "chili oil"
     ],
     "chili sauce": [
         "chili sauce",
@@ -191,9 +198,6 @@
         "cinnamon",
         "saigon cinnamon"
     ],
-    "coarse sea salt": [
-        "coarse sea salt"
-    ],
     "coca cola": [
         "coca cola"
     ],
@@ -201,8 +205,7 @@
         "coconut"
     ],
     "coconut milk": [
-        "coconut milk",
-        "vanilla coffee cream"
+        "coconut milk"
     ],
     "coconut soda": [
         "coco rico coconut soda",
@@ -220,7 +223,7 @@
         "oil fry",
         "tablespoon oil"
     ],
-    "coriander seed": [
+    "coriander": [
         "coriander",
         "coriander leaf",
         "coriander mint",
@@ -231,17 +234,13 @@
     ],
     "corn starch": [
         "corn starch",
-        "corn starch tablespoon water"
-    ],
-    "cornstarch": [
+        "corn starch tablespoon water",
         "cornstarch"
     ],
     "crab meat": [
         "crab meat",
+        "crab spice",
         "lump crab meat"
-    ],
-    "crab spice": [
-        "crab spice"
     ],
     "cucumber": [
         "chayote",
@@ -331,7 +330,9 @@
         "piece ginger"
     ],
     "ground beef": [
-        "ground beef",
+        "ground beef"
+    ],
+    "ground pork": [
         "ground pork"
     ],
     "half and half": [
@@ -341,7 +342,6 @@
         "ham"
     ],
     "head lettuce": [
-        "half head cauliflower",
         "head lettuce",
         "leafy lettuce herb",
         "lettuce herb"
@@ -357,11 +357,9 @@
         "honey",
         "honey mix"
     ],
-    "ice": [
-        "bowl ice water",
-        "ice"
-    ],
     "ice cube": [
+        "bowl ice water",
+        "ice",
         "ice cube"
     ],
     "jackfruit": [
@@ -444,7 +442,8 @@
         "miso paste"
     ],
     "msg": [
-        "msg"
+        "msg",
+        "teaspoon msg"
     ],
     "mung bean": [
         "bag banh mix",
@@ -487,8 +486,7 @@
     ],
     "pandan extract": [
         "pandan extract",
-        "pandan gel extract",
-        "vanilla extract"
+        "pandan gel extract"
     ],
     "pandan leaf": [
         "bunch pandan leaf",
@@ -661,6 +659,7 @@
         "scallop"
     ],
     "sea salt": [
+        "coarse sea salt",
         "pinch salt",
         "salt clean",
         "sea salt",
@@ -711,8 +710,7 @@
         "sauce",
         "sodium soy sauce",
         "soy cook sauce",
-        "soy sauce",
-        "teaspoon msg"
+        "soy sauce"
     ],
     "spearmint": [
         "spearmint leaf"
@@ -776,6 +774,10 @@
     ],
     "tomato": [
         "tomato"
+    ],
+    "vanilla extract": [
+        "vanilla coffee cream",
+        "vanilla extract"
     ],
     "vinegar": [
         "vinegar"

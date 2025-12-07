@@ -1,7 +1,7 @@
 import asyncio
 
 from ingredients.classes import ClassGenerator
-from ingredients.grouping import IngredientGrouper
+from ingredients.grouping import Grouper
 from utils.logger import setup_logger
 
 
@@ -16,7 +16,7 @@ async def main():
     logger.info(f"[ OK ] Generated {len(classes)} classes")
 
     logger.info("[ RUN ]  Grouping raw ingredients to classes...")
-    grouper = IngredientGrouper()
+    grouper = Grouper()
     groupings = await grouper.group_ingredients(save=True)
     logger.info(f"[ OK ] Grouped ingredients to {len(groupings)} classes")
 

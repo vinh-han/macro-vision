@@ -6,6 +6,7 @@ banana
 banana blossom
 banana leaf
 basil
+bean
 bean sprout
 beef ball
 beef bone
@@ -32,7 +33,9 @@ calamari
 cardamom pod
 carrot
 catfish
+cauliflower
 cellophane noodle
+celery
 cuttlefish
 char siu
 cherry tomato
@@ -43,25 +46,23 @@ chicken bouillon powder
 chicken breast
 chicken thigh
 chicken wing
-chili
 chili oil
+chili pepper
 chili sauce
 chive
 choice beef bone
 choy sum
 cilantro
 cinnamon
-coarse sea salt
 coca cola
 coconut
 coconut milk
 coconut soda
 coconut water
 cooking oil
-coriander seed
+coriander
 corn kernel
 corn starch
-cornstarch
 crab meat
 cucumber
 culantro
@@ -85,13 +86,13 @@ gac fruit paste
 garlic
 ginger
 ground beef
+ground pork
 half and half
 ham
 head lettuce
 head mustard green
 hoisin sauce
 honey
-ice
 ice cube
 jackfruit
 jalapeno
@@ -206,6 +207,7 @@ tapioca starch
 taro stem
 tofu
 tomato
+vanilla extract
 vinegar
 water chestnut
 water spinach
