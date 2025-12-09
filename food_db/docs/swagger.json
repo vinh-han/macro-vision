@@ -6,10 +6,8 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "127.0.0.1:8000",
-    "basePath": "/v1",
     "paths": {
-        "/login": {
+        "/auth/login": {
             "post": {
                 "description": "Verify user’s login credentials (username and password), then generate a session and return the session token back to user",
                 "consumes": [
@@ -19,7 +17,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "/auth"
                 ],
                 "summary": "login",
                 "parameters": [
@@ -61,7 +59,7 @@
                 }
             }
         },
-        "/signup": {
+        "/auth/signup": {
             "post": {
                 "description": "Receive the sign up information, validate username (check if it exists), password (has to be lower than 71 byte for bcrypt hashing), and email (correct format). Then generate the session and return the token to the user (auto login)",
                 "consumes": [
@@ -71,7 +69,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "/auth"
                 ],
                 "summary": "signup",
                 "parameters": [
