@@ -16,8 +16,8 @@ func GetPage(url string) (*http.Response, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MaxVersion:         tls.VersionTLS12,
-				MinVersion:         tls.VersionTLS12,
+				MaxVersion: tls.VersionTLS12,
+				MinVersion: tls.VersionTLS12,
 			},
 		},
 	}

@@ -16,7 +16,7 @@ class Grouper:
         self.client = AzureOpenAI(
             api_key=settings.azure_openai_api_key,
             api_version=settings.azure_openai_api_version,
-            azure_endpoint=settings.azure_openai_endpoint
+            azure_endpoint=settings.azure_openai_endpoint,
         )
 
         self.raw_ingredients_path = Path("ingredients/raw/ingredients.txt")
@@ -27,10 +27,10 @@ class Grouper:
         self.logger = setup_logger(__name__, "ingredients/grouping.log")
 
     def _load_ingredients(self) -> List[str]:
-        with open(self.raw_ingredients_path, 'r', encoding='utf-8') as f:
+        with open(self.raw_ingredients_path, "r", encoding="utf-8") as f:
             raw = [line.strip() for line in f if line.strip()]
 
-        with open(self.removed_ingredients_path, 'r', encoding='utf-8') as f:
+        with open(self.removed_ingredients_path, "r", encoding="utf-8") as f:
             removed = set(line.strip() for line in f if line.strip())
 
         cleaned = [ing for ing in raw if ing not in removed]
@@ -38,13 +38,11 @@ class Grouper:
         return cleaned
 
     def _load_classes(self) -> List[str]:
-        with open(self.classes_path, 'r', encoding='utf-8') as f:
+        with open(self.classes_path, "r", encoding="utf-8") as f:
             return [line.strip() for line in f if line.strip()]
 
     async def _get_embeddings(
-        self,
-        texts: List[str],
-        batch_size: Optional[int] = 100
+        self, texts: List[str], batch_size: Optional[int] = 100
     ) -> np.ndarray:
         # init result var
         embeddings = []
@@ -52,12 +50,13 @@ class Grouper:
         for i in range(0, len(texts), batch_size):
             # get current batch
             batch = texts[i : i + batch_size]
-            self.logger.info(f"[ RUN ]  Getting embeddings for batch {i//batch_size + 1}/{(len(texts) + batch_size - 1)//batch_size}")
+            self.logger.info(
+                f"[ RUN ]  Getting embeddings for batch {i//batch_size + 1}/{(len(texts) + batch_size - 1)//batch_size}"
+            )
 
             # use azure client to generate embeddings
             response = self.client.embeddings.create(
-                input=batch,
-                model=settings.embedding_deployment_name
+                input=batch, model=settings.embedding_deployment_name
             )
 
             # put the batch's embeddings into the result var
@@ -67,7 +66,9 @@ class Grouper:
         return np.array(embeddings)
 
     async def group_ingredients(self, save: bool = True) -> Dict[str, List[str]]:
-        self.logger.info("[ RUN ] Grouping raw ingredients to classes using embeddings...")
+        self.logger.info(
+            "[ RUN ] Grouping raw ingredients to classes using embeddings..."
+        )
 
         # loading ingredients and classes
         ingredients = self._load_ingredients()
@@ -87,10 +88,7 @@ class Grouper:
         # calculate cosine similarity between ingredient and class embeddings
         # get back a similarity matrix
         self.logger.info("[ RUN ] Computing similarity matrix...")
-        similarity_matrix = cosine_similarity(
-            ingredient_embeddings,
-            class_embeddings
-        )
+        similarity_matrix = cosine_similarity(ingredient_embeddings, class_embeddings)
 
         # init a dict for groupings
         groupings = {cls: [] for cls in classes}
@@ -121,17 +119,21 @@ class Grouper:
             else:
                 groupings[best_class].append(ingredient)
 
-            self.logger.info(f"[ OK ] Grouped '{ingredient}' → '{best_class}' (similarity: {best_similarity:.3f})")
+            self.logger.info(
+                f"[ OK ] Grouped '{ingredient}' → '{best_class}' (similarity: {best_similarity:.3f})"
+            )
 
         # reformat a lil
         groupings = {cls: ings for cls, ings in groupings.items() if ings}
 
-        self.logger.info(f"[ OK ] Grouped {len(ingredients)} ingredients into {len(groupings)} classes")
+        self.logger.info(
+            f"[ OK ] Grouped {len(ingredients)} ingredients into {len(groupings)} classes"
+        )
 
         # then save
         if save:
             json_file = self.output_dir / "groupings.json"
-            with open(json_file, 'w', encoding='utf-8') as f:
+            with open(json_file, "w", encoding="utf-8") as f:
                 json.dump(groupings, f, indent=4, ensure_ascii=False)
 
             self.logger.info(f"[ OK ] Saved groupings to {json_file}")

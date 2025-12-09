@@ -1,0 +1,114 @@
+basePath: /v1
+definitions:
+  auth.LoginParam:
+    properties:
+      password:
+        example: "11111"
+        type: string
+      username:
+        example: ranto
+        type: string
+    type: object
+  auth.LoginResponse:
+    properties:
+      token:
+        example: f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac
+        type: string
+    type: object
+  auth.SignupParam:
+    properties:
+      display_name:
+        example: phantom
+        type: string
+      email:
+        example: ranto@example.com
+        type: string
+      password:
+        example: "1233445"
+        type: string
+      username:
+        example: ranto
+        type: string
+    type: object
+  auth.SignupResponse:
+    properties:
+      token:
+        example: f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac
+        type: string
+    type: object
+host: 127.0.0.1:8000
+info:
+  contact: {}
+  description: API for Macro_vision
+  title: Macro_vision backend
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Verify user’s login credentials (username and password), then generate
+        a session and return the session token back to user
+      parameters:
+      - description: login parameters
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ok
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "404":
+          description: User not found in db
+          schema:
+            type: string
+        "409":
+          description: Invalid Credentials
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: login
+      tags:
+      - auth
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Receive the sign up information, validate username (check if it
+        exists), password (has to be lower than 71 byte for bcrypt hashing), and email
+        (correct format). Then generate the session and return the token to the user
+        (auto login)
+      parameters:
+      - description: signup parameters
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.SignupParam'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Account Created
+          schema:
+            $ref: '#/definitions/auth.SignupResponse'
+        "409":
+          description: Password too long (over 71 bytes)
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: signup
+      tags:
+      - auth
+swagger: "2.0"

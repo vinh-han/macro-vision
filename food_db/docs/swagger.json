@@ -1,0 +1,165 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for Macro_vision",
+        "title": "Macro_vision backend",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "127.0.0.1:8000",
+    "basePath": "/v1",
+    "paths": {
+        "/login": {
+            "post": {
+                "description": "Verify user’s login credentials (username and password), then generate a session and return the session token back to user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "login",
+                "parameters": [
+                    {
+                        "description": "login parameters",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found in db",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Invalid Credentials",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/signup": {
+            "post": {
+                "description": "Receive the sign up information, validate username (check if it exists), password (has to be lower than 71 byte for bcrypt hashing), and email (correct format). Then generate the session and return the token to the user (auto login)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "signup",
+                "parameters": [
+                    {
+                        "description": "signup parameters",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.SignupParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Account Created",
+                        "schema": {
+                            "$ref": "#/definitions/auth.SignupResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Password too long (over 71 bytes)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "auth.LoginParam": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "11111"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "ranto"
+                }
+            }
+        },
+        "auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
+                }
+            }
+        },
+        "auth.SignupParam": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string",
+                    "example": "phantom"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ranto@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "1233445"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "ranto"
+                }
+            }
+        },
+        "auth.SignupResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
+                }
+            }
+        }
+    }
+}

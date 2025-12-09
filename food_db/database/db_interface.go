@@ -6,15 +6,12 @@ import (
 	"database/sql"
 	_ "embed"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	config "macro_vision/config"
 	custom_errors "macro_vision/custom_errors"
 	"time"
 
 	"github.com/google/uuid"
-
-	"golang.org/x/crypto/bcrypt"
 
 	_ "github.com/lib/pq"
 )
@@ -89,98 +86,6 @@ func GetSessionFromToken(ctx context.Context, session_token string) (*Session, e
 	return &session, nil
 }
 
-type CreateUserParam struct {
-	Username    string
-	DisplayName string
-	Email       string
-	Password    string
-}
-
-// CreateUser returns a token if the user is new
-//
-// # This func creates a session and user in the db
-//
-// Errors:
-//   - DbNotInit
-//   - UserNotFound
-//   - InvalidCredentials
-//   - TokenGenFailed
-func CreateUser(ctx context.Context, user CreateUserParam) (token string, err error) {
-	if DB == nil {
-		return "", custom_errors.DbNotInit
-	}
-	if len(user.Password) > 71 {
-		return "", custom_errors.PasswordTooLong
-	}
-	queries := DB.Queries
-	_, err = queries.Get_user_from_name(ctx, user.Username)
-	if err == nil {
-		return "", fmt.Errorf("%w, username: %s", custom_errors.UserExists, user.Username)
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return "", err
-	}
-	password_hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-
-	user_id, err := queries.Insert_user(ctx, Insert_userParams{
-		UserID:       uuid.New(),
-		Username:     user.Username,
-		DisplayName:  user.DisplayName,
-		Email:        user.Email,
-		PasswordHash: string(password_hash),
-		DateCreated:  time.Now(),
-	})
-	if err != nil {
-		return "", err
-	}
-
-	token, err = create_session(ctx, user_id)
-	if err != nil {
-		return "", err
-	}
-	return token, err
-}
-
-type AuthenticateUserParam struct {
-	Username string
-	Password string
-}
-
-// AuthenticateUser returns a token if the user is alr in db
-//
-// # This func creates a session in the db if the user exists
-//
-// Errors:
-//   - DbNotInit
-//   - UserNotFound
-//   - InvalidCredentials
-//   - TokenGenFailed
-func AuthenticateUser(ctx context.Context, user AuthenticateUserParam) (token string, err error) {
-	if DB == nil {
-		return "", custom_errors.DbNotInit
-	}
-	queries := DB.Queries
-	user_db, err := queries.Get_user_from_name(ctx, user.Username)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", fmt.Errorf("%w: username '%s' not found", custom_errors.UserNotFound, user.Username)
-		}
-		return "", err
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(user_db.PasswordHash), []byte(user.Password))
-	if err != nil {
-		return "", custom_errors.InvalidCredentials
-	}
-	token, err = create_session(ctx, user_db.UserID)
-	if err != nil {
-		return "", fmt.Errorf("%w: failed to create session for user '%s'", custom_errors.TokenGenFailed, user.Username)
-	}
-	return token, nil
-}
-
 // generate_session_token generates a random 256 bit opaque token
 func generate_session_token() (string, error) {
 	b := make([]byte, 32)
@@ -198,7 +103,7 @@ func Remove_Session(ctx context.Context, session_token string) error {
 	return nil
 }
 
-func create_session(ctx context.Context, user_id uuid.UUID) (token string, err error) {
+func Create_session(ctx context.Context, user_id uuid.UUID) (token string, err error) {
 	token, err = generate_session_token()
 	if err != nil {
 		return "", err

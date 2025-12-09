@@ -1,50 +1,73 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"log"
-	database "macro_vision/database"
+	config "macro_vision/config"
+	docs "macro_vision/docs"
 	env_parser "macro_vision/env_parser"
-	processor "macro_vision/processor"
-	scraper "macro_vision/scraper"
-	"time"
+	handlers "macro_vision/handlers"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 const (
 	env_path string = "./.env"
 )
 
+//	@title			Macro_vision backend
+//	@version		1.0
+//	@description	API for Macro_vision
+
 func main() {
 	var err error
-
 	err = env_parser.LoadConfig(env_path)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = database.InitDB()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	err = scraper.Scrape()
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	_, err = database.DB.Queries.GetInfo(context.Background())
-	if err == sql.ErrNoRows {
-		err = processor.Process_recipes()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	for true {
-		time.Sleep(time.Second * 10)
-		fmt.Println("===============================================================================================================")
-		time.Sleep(time.Second * 10)
-	}
+	docs.SwaggerInfo.Host = "127.0.0.1:" + config.Env.BACKEND_PORT
+	docs.SwaggerInfo.BasePath = config.App.BasePath
+
+	e := echo.New()
+	// doc path
+	e.GET(config.App.DocPath+"/*", echoSwagger.WrapHandler)
+	fmt.Println(config.App.DocPath + "/*")
+	e.GET("/", func(c echo.Context) error {
+		return c.Redirect(http.StatusSeeOther, config.App.DocPath+"/")
+	})
+
+	api := e.Group(config.App.BasePath)
+	handlers.AuthRouter(api)
+	fmt.Printf("\n==================================\n")
+	fmt.Printf("\nAccess the Docs via domain root (http://<domain>:<port>/)\n")
+	fmt.Printf("\n==================================\n")
+	e.Logger.Fatal(e.Start(":" + config.Env.BACKEND_PORT))
 }
+
+//err = database.InitDB()
+//if err != nil {
+//	log.Fatal(err.Error())
+//}
+//err = scraper.Scrape()
+//if err != nil {
+//	log.Fatal(err)
+//}
+
+//_, err = database.DB.Queries.GetInfo(context.Background())
+//if err == sql.ErrNoRows {
+//	err = processor.Process_recipes()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//}
+//if err != nil {
+//	log.Fatal(err)
+//}
+//for true {
+//	time.Sleep(time.Second * 10)
+//	fmt.Println("===============================================================================================================")
+//	time.Sleep(time.Second * 10)
+//}

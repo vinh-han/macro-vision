@@ -1,5 +1,17 @@
 package config
 
+type AppConfig struct {
+	BasePath string
+	DocPath  string
+}
+
+type AuthConfig struct {
+	AuthGroup    string
+	LoginPath    string
+	RegisterPath string
+	LogoutPath   string
+}
+
 const (
 	Links_file_extension string = ".cmo"
 	Mainfile_name        string = "all_recipe_links.wow"
@@ -9,3 +21,15 @@ const (
 	Course_delim         string = "---- "
 	Ingredients_filename string = "all_ingredients.yikes"
 )
+
+var Auth AuthConfig = AuthConfig{
+	AuthGroup:    "/auth",
+	LoginPath:    "/login",
+	RegisterPath: "/signup",
+	LogoutPath:   "/logout",
+}
+
+var App AppConfig = AppConfig{
+	BasePath: "/v1",
+	DocPath:  "/docs",
+}
