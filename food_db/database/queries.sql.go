@@ -154,14 +154,14 @@ RETURNING dish_id
 `
 
 type Insert_dishParams struct {
-	DishID      uuid.UUID
-	DishName    string
-	Course      string
-	AltName     sql.NullString
-	FullRecipe  string
-	Source      string
-	Description string
-	DateCreated time.Time
+	DishID      uuid.UUID      `json:"dish_id"`
+	DishName    string         `json:"dish_name"`
+	Course      string         `json:"course"`
+	AltName     sql.NullString `json:"alt_name"`
+	FullRecipe  string         `json:"full_recipe"`
+	Source      string         `json:"source"`
+	Description string         `json:"description"`
+	DateCreated time.Time      `json:"date_created"`
 }
 
 func (q *Queries) Insert_dish(ctx context.Context, arg Insert_dishParams) (uuid.UUID, error) {
@@ -191,10 +191,10 @@ VALUES ($1, $2, $3, $4)
 `
 
 type Insert_dish_ingredientsParams struct {
-	DishID       uuid.UUID
-	IngredientID uuid.UUID
-	Amount       float32
-	Unit         string
+	DishID       uuid.UUID `json:"dish_id"`
+	IngredientID uuid.UUID `json:"ingredient_id"`
+	Amount       float32   `json:"amount"`
+	Unit         string    `json:"unit"`
 }
 
 func (q *Queries) Insert_dish_ingredients(ctx context.Context, arg Insert_dish_ingredientsParams) error {
@@ -219,11 +219,11 @@ VALUES ($1, $2, $3, $4, $5)
 `
 
 type Insert_sessionParams struct {
-	SessionID   uuid.UUID
-	UserID      uuid.UUID
-	Token       string
-	ExpiresAt   time.Time
-	DateCreated time.Time
+	SessionID   uuid.UUID `json:"session_id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Token       string    `json:"token"`
+	ExpiresAt   time.Time `json:"expires_at"`
+	DateCreated time.Time `json:"date_created"`
 }
 
 func (q *Queries) Insert_session(ctx context.Context, arg Insert_sessionParams) error {
@@ -251,12 +251,12 @@ returning user_id
 `
 
 type Insert_userParams struct {
-	UserID       uuid.UUID
-	Username     string
-	DisplayName  string
-	Email        string
-	PasswordHash string
-	DateCreated  time.Time
+	UserID       uuid.UUID `json:"user_id"`
+	Username     string    `json:"username"`
+	DisplayName  string    `json:"display_name"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"password_hash"`
+	DateCreated  time.Time `json:"date_created"`
 }
 
 func (q *Queries) Insert_user(ctx context.Context, arg Insert_userParams) (uuid.UUID, error) {
@@ -293,8 +293,8 @@ DO UPDATE SET
 `
 
 type UpdateInfoParams struct {
-	Version     uuid.UUID
-	LastScraped time.Time
+	Version     uuid.UUID `json:"version"`
+	LastScraped time.Time `json:"last_scraped"`
 }
 
 func (q *Queries) UpdateInfo(ctx context.Context, arg UpdateInfoParams) error {
@@ -312,9 +312,9 @@ RETURNING ingredient_id
 `
 
 type Upsert_ingredientParams struct {
-	IngredientID   uuid.UUID
-	IngredientName string
-	DateCreated    time.Time
+	IngredientID   uuid.UUID `json:"ingredient_id"`
+	IngredientName string    `json:"ingredient_name"`
+	DateCreated    time.Time `json:"date_created"`
 }
 
 // ============ Ingredients

@@ -12,66 +12,66 @@ import (
 )
 
 type DbInfo struct {
-	Version     uuid.UUID
-	LastScraped time.Time
+	Version     uuid.UUID `json:"version"`
+	LastScraped time.Time `json:"last_scraped"`
 }
 
 type Dish struct {
-	DishID      uuid.UUID
-	DishName    string
-	Course      string
-	AltName     sql.NullString
-	FullRecipe  string
-	Source      string
-	Description string
-	DateCreated time.Time
+	DishID      uuid.UUID      `json:"dish_id"`
+	DishName    string         `json:"dish_name"`
+	Course      string         `json:"course"`
+	AltName     sql.NullString `json:"alt_name"`
+	FullRecipe  string         `json:"full_recipe"`
+	Source      string         `json:"source"`
+	Description string         `json:"description"`
+	DateCreated time.Time      `json:"date_created"`
 }
 
 type DishIngredient struct {
-	DishID       uuid.UUID
-	IngredientID uuid.UUID
-	Amount       float32
-	Unit         string
+	DishID       uuid.UUID `json:"dish_id"`
+	IngredientID uuid.UUID `json:"ingredient_id"`
+	Amount       float32   `json:"amount"`
+	Unit         string    `json:"unit"`
 }
 
 type Favorite struct {
-	UserID      uuid.UUID
-	DishID      uuid.UUID
-	DateCreated time.Time
+	UserID      uuid.UUID `json:"user_id"`
+	DishID      uuid.UUID `json:"dish_id"`
+	DateCreated time.Time `json:"date_created"`
 }
 
 type Ingredient struct {
-	IngredientID   uuid.UUID
-	IngredientName string
-	DateCreated    time.Time
+	IngredientID   uuid.UUID `json:"ingredient_id"`
+	IngredientName string    `json:"ingredient_name"`
+	DateCreated    time.Time `json:"date_created"`
 }
 
 type MealCard struct {
-	CardID      uuid.UUID
-	UserID      uuid.UUID
-	Title       string
-	MealDate    time.Time
-	DateCreated time.Time
+	CardID      uuid.UUID `json:"card_id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Title       string    `json:"title"`
+	MealDate    time.Time `json:"meal_date"`
+	DateCreated time.Time `json:"date_created"`
 }
 
 type MealCardsDish struct {
-	CardID uuid.UUID
-	DishID uuid.UUID
+	CardID uuid.UUID `json:"card_id"`
+	DishID uuid.UUID `json:"dish_id"`
 }
 
 type Session struct {
-	SessionID   uuid.UUID
-	UserID      uuid.UUID
-	Token       string
-	ExpiresAt   time.Time
-	DateCreated time.Time
+	SessionID   uuid.UUID `json:"session_id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Token       string    `json:"token"`
+	ExpiresAt   time.Time `json:"expires_at"`
+	DateCreated time.Time `json:"date_created"`
 }
 
 type User struct {
-	UserID       uuid.UUID
-	Username     string
-	DisplayName  string
-	Email        string
-	PasswordHash string
-	DateCreated  time.Time
+	UserID       uuid.UUID `json:"user_id"`
+	Username     string    `json:"username"`
+	DisplayName  string    `json:"display_name"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"password_hash"`
+	DateCreated  time.Time `json:"date_created"`
 }
