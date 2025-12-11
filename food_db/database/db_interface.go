@@ -65,6 +65,7 @@ func CloseDB() {
 //
 // Errors:
 //   - SessionExpired - the session has been expired
+//   - SessionNotFound - no sessions with the token
 func GetSessionFromToken(ctx context.Context, session_token string) (*Session, error) {
 	if DB == nil {
 		return nil, custom_errors.DbNotInit
@@ -72,6 +73,9 @@ func GetSessionFromToken(ctx context.Context, session_token string) (*Session, e
 	queries := DB.Queries
 
 	session, err := queries.Get_session(ctx, session_token)
+	if err == sql.ErrNoRows {
+		return nil, custom_errors.SessionNotFound
+	}
 	if err != nil {
 		return nil, err
 	}

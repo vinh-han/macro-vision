@@ -76,6 +76,26 @@ paths:
       summary: login
       tags:
       - /auth
+  /auth/logout:
+    get:
+      consumes:
+      - application/json
+      description: Verify the received token and perform session clean up.
+      parameters:
+      - description: 256bit random token
+        example: f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e
+        in: header
+        name: Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: logout
+      tags:
+      - /auth
   /auth/signup:
     post:
       consumes:

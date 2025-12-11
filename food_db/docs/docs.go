@@ -67,6 +67,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "get": {
+                "description": "Verify the received token and perform session clean up.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/auth"
+                ],
+                "summary": "logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e",
+                        "description": "256bit random token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/auth/signup": {
             "post": {
                 "description": "Receive the sign up information, validate username (check if it exists), password (has to be lower than 71 byte for bcrypt hashing), and email (correct format). Then generate the session and return the token to the user (auto login)",

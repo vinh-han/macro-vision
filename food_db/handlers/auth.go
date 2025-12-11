@@ -5,6 +5,7 @@ import (
 	custom_errors "macro_vision/custom_errors"
 	auth_service "macro_vision/services/auth"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,6 +14,7 @@ func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup)
 	group.POST(config.Auth.LoginPath, login)
 	group.GET(config.Auth.RegisterPath, signup)
+	group.GET(config.Auth.LogoutPath, signup)
 	return nil
 }
 
@@ -80,4 +82,32 @@ func signup(c echo.Context) (err error) {
 		return err
 	}
 	return c.JSON(http.StatusOK, token)
+}
+
+// Removes the user auth token and log them out
+//
+//	@Summary					logout
+//	@Description				Verify the received token and perform session clean up.
+//	@Tags						/auth
+//	@Accept						json
+//	@Produce					json
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						Token	header	string	true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
+//	@Router						/auth/logout [get]
+//	@Success					204
+func logout(c echo.Context) (err error) {
+	auth := c.Request().Header.Get("Authorization")
+	if auth == "" {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	parts := strings.SplitN(auth, " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid auth header format")
+	}
+
+	token := parts[1]
+	err = auth_service.Logout(c.Request().Context(), token)
+	// ignoring errors
+	return c.NoContent(http.StatusNoContent)
 }

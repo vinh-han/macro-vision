@@ -110,3 +110,12 @@ func Signup(ctx context.Context, user SignupParam) (token string, err error) {
 	}
 	return token, err
 }
+
+func Logout(ctx context.Context, token string) (err error) {
+	err = database.DB.Queries.Remove_session(ctx, token)
+	// ignoring some errors since this is logout
+	if err != nil {
+		return err
+	}
+	return nil
+}

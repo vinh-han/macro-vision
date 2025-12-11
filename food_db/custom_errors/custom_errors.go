@@ -18,6 +18,7 @@ var (
 	InvalidCredentials        = errors.New("Invalid username or password")
 	PasswordTooLong           = errors.New("This password exceeds the limit!")
 	SessionExpired            = errors.New("This session has expired, please log in again.")
+	SessionNotFound           = errors.New("Session not found in db.")
 	EnvEmpty                  = errors.New("env var has not been initialized.")
 	LinkSaveFailed            = errors.New("failed when saving a course.")
 	TokenGenFailed            = errors.New("token generation failed")
