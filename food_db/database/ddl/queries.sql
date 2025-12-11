@@ -21,7 +21,7 @@ from dishes
 -- name: Insert_dish :one
 INSERT INTO dishes(
 	dish_id,
-	dish_name, 
+	dish_name,
 	course,
 	alt_name,
 	full_recipe,
@@ -79,6 +79,13 @@ where session_id = $1
 ;
 
 -- ----users-----
+-- name: Get_user_from_token :one
+select users.*
+from sessions
+join users on users.user_id = sessions.user_id
+where sessions.token = $1
+and sessions.expires_at > NOW();
+
 -- name: Get_user_from_name :one
 select *
 from users
@@ -102,4 +109,11 @@ INSERT INTO users(
 )
 VALUES ($1, $2, $3, $4, $5, $6)
 returning user_id;
+
+-- name: Edit_user :one
+update users
+set display_name=$2, email=$3
+where user_id=$1
+returning display_name, email;
+
 

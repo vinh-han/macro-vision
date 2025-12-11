@@ -134,6 +134,121 @@
                     }
                 }
             }
+        },
+        "/users/user-info": {
+            "get": {
+                "description": "Get the user id from the received session token, then query and return with the corresponding user’s information (except password)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/users"
+                ],
+                "summary": "get_info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e",
+                        "description": "256bit random token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.GetUserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "no auth token found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Get the user id from the received session token, then query and return with the corresponding user’s information (except password)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/users"
+                ],
+                "summary": "edit_info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e",
+                        "description": "256bit random token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "new info",
+                        "name": "Input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.EditUserParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.EditUserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "no auth token found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -186,6 +301,47 @@
                 "token": {
                     "type": "string",
                     "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
+                }
+            }
+        },
+        "handlers.EditUserResponse": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string",
+                    "example": "phantom_1234"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ranto@example.com"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "ranto"
+                }
+            }
+        },
+        "users.EditUserParam": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string",
+                    "example": "phantom_1234"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ranto@example.com"
                 }
             }
         }

@@ -35,6 +35,34 @@ definitions:
         example: f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac
         type: string
     type: object
+  handlers.EditUserResponse:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+    type: object
+  handlers.GetUserResponse:
+    properties:
+      display_name:
+        example: phantom_1234
+        type: string
+      email:
+        example: ranto@example.com
+        type: string
+      username:
+        example: ranto
+        type: string
+    type: object
+  users.EditUserParam:
+    properties:
+      display_name:
+        example: phantom_1234
+        type: string
+      email:
+        example: ranto@example.com
+        type: string
+    type: object
 info:
   contact: {}
   description: API for Macro_vision
@@ -129,4 +157,83 @@ paths:
       summary: signup
       tags:
       - /auth
+  /users/user-info:
+    get:
+      consumes:
+      - application/json
+      description: Get the user id from the received session token, then query and
+        return with the corresponding user’s information (except password)
+      parameters:
+      - description: 256bit random token
+        example: f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e
+        in: header
+        name: Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ok
+          schema:
+            $ref: '#/definitions/handlers.GetUserResponse'
+        "401":
+          description: no auth token found
+          schema:
+            type: string
+        "403":
+          description: Invalid token
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: get_info
+      tags:
+      - /users
+    put:
+      consumes:
+      - application/json
+      description: Get the user id from the received session token, then query and
+        return with the corresponding user’s information (except password)
+      parameters:
+      - description: 256bit random token
+        example: f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e
+        in: header
+        name: Token
+        required: true
+        type: string
+      - description: new info
+        in: body
+        name: Input
+        required: true
+        schema:
+          $ref: '#/definitions/users.EditUserParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ok
+          schema:
+            $ref: '#/definitions/handlers.EditUserResponse'
+        "401":
+          description: no auth token found
+          schema:
+            type: string
+        "403":
+          description: Invalid token
+          schema:
+            type: string
+        "409":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: edit_info
+      tags:
+      - /users
 swagger: "2.0"

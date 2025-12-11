@@ -61,35 +61,6 @@ func CloseDB() {
 	DB.Db.Close()
 }
 
-// GetSessionFromToken checks if the session is expired in the db and retrive the session if not
-//
-// Errors:
-//   - SessionExpired - the session has been expired
-//   - SessionNotFound - no sessions with the token
-func GetSessionFromToken(ctx context.Context, session_token string) (*Session, error) {
-	if DB == nil {
-		return nil, custom_errors.DbNotInit
-	}
-	queries := DB.Queries
-
-	session, err := queries.Get_session(ctx, session_token)
-	if err == sql.ErrNoRows {
-		return nil, custom_errors.SessionNotFound
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if time.Now().After(session.ExpiresAt) {
-		err = queries.Remove_session(ctx, session_token)
-		if err != nil {
-			return nil, err
-		}
-		return nil, custom_errors.SessionExpired
-	}
-	return &session, nil
-}
-
 // generate_session_token generates a random 256 bit opaque token
 func generate_session_token() (string, error) {
 	b := make([]byte, 32)

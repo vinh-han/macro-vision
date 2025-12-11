@@ -10,11 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// TODO: some refactoring might be needed
 func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup)
 	group.POST(config.Auth.LoginPath, login)
 	group.GET(config.Auth.RegisterPath, signup)
-	group.GET(config.Auth.LogoutPath, signup)
+	group.GET(config.Auth.LogoutPath, logout)
 	return nil
 }
 

@@ -13,6 +13,31 @@ import (
 	"github.com/google/uuid"
 )
 
+const edit_user = `-- name: Edit_user :one
+update users
+set display_name=$2, email=$3
+where user_id=$1
+returning display_name, email
+`
+
+type Edit_userParams struct {
+	UserID      uuid.UUID `json:"user_id"`
+	DisplayName string    `json:"display_name"`
+	Email       string    `json:"email"`
+}
+
+type Edit_userRow struct {
+	DisplayName string `json:"display_name"`
+	Email       string `json:"email"`
+}
+
+func (q *Queries) Edit_user(ctx context.Context, arg Edit_userParams) (Edit_userRow, error) {
+	row := q.db.QueryRowContext(ctx, edit_user, arg.UserID, arg.DisplayName, arg.Email)
+	var i Edit_userRow
+	err := row.Scan(&i.DisplayName, &i.Email)
+	return i, err
+}
+
 const getInfo = `-- name: GetInfo :one
 select version, last_scraped
 from db_info
@@ -123,9 +148,31 @@ from users
 where username = $1
 `
 
-// ----users-----
 func (q *Queries) Get_user_from_name(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, get_user_from_name, username)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.DisplayName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateCreated,
+	)
+	return i, err
+}
+
+const get_user_from_token = `-- name: Get_user_from_token :one
+select users.user_id, users.username, users.display_name, users.email, users.password_hash, users.date_created
+from sessions
+join users on users.user_id = sessions.user_id
+where sessions.token = $1
+and sessions.expires_at > NOW()
+`
+
+// ----users-----
+func (q *Queries) Get_user_from_token(ctx context.Context, token string) (User, error) {
+	row := q.db.QueryRowContext(ctx, get_user_from_token, token)
 	var i User
 	err := row.Scan(
 		&i.UserID,
@@ -141,7 +188,7 @@ func (q *Queries) Get_user_from_name(ctx context.Context, username string) (User
 const insert_dish = `-- name: Insert_dish :one
 INSERT INTO dishes(
 	dish_id,
-	dish_name, 
+	dish_name,
 	course,
 	alt_name,
 	full_recipe,
