@@ -143,7 +143,184 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/user-info": {
+        "/users/favorites": {
+            "get": {
+                "description": "Get the user id from the received session token, then query and return the list of user’s favorite dishes.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/users/favorites"
+                ],
+                "summary": "get_info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "256bit random token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Favorites"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "no auth token found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/favorites/{dish_id}": {
+            "delete": {
+                "description": "Extract the user session from the provided token, validate the dish ID (UUIDv4),\nthen remove the dish from the user’s favorites list.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/users/favorites"
+                ],
+                "summary": "remove_favorite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "256-bit random session token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "UUIDv4 dish identifier",
+                        "name": "dish_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "removed dish id",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RemoveFavoriteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "no auth token found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Extract the user session from the provided token, validate the dish ID (UUIDv4),\nthen insert the dish into the user’s favorites list.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/users/favorites"
+                ],
+                "summary": "add_favorite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "256-bit random session token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "UUIDv4 dish identifier",
+                        "name": "dish_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Added to favorites",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "no auth token found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/information": {
             "get": {
                 "description": "Get the user id from the received session token, then query and return with the corresponding user’s information (except password)",
                 "consumes": [
@@ -153,7 +330,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users"
+                    "/users/information"
                 ],
                 "summary": "get_info",
                 "parameters": [
@@ -193,7 +370,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
+            "patch": {
                 "description": "Get the user id from the received session token, then query and return with the corresponding user’s information (except password)",
                 "consumes": [
                     "application/json"
@@ -202,13 +379,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users"
+                    "/users/information"
                 ],
                 "summary": "edit_info",
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e",
                         "description": "256bit random token",
                         "name": "Token",
                         "in": "header",
@@ -231,6 +407,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.EditUserResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "401": {
                         "description": "no auth token found",
                         "schema": {
@@ -243,8 +425,64 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "409": {
-                        "description": "Invalid input",
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password": {
+            "patch": {
+                "description": "Extracts the user session from the provided token, validates the request body,\nthen updates the user's password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/users/password"
+                ],
+                "summary": "change_password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "256-bit random session token",
+                        "name": "Token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "New password payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.ChangePasswordParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid Body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "No auth token found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid token",
                         "schema": {
                             "type": "string"
                         }
@@ -316,9 +554,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "display_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "phantom_1234"
                 },
                 "email": {
+                    "type": "string",
+                    "example": "ranto@example.com"
+                }
+            }
+        },
+        "handlers.Favorites": {
+            "type": "object",
+            "properties": {
+                "dish_id": {
+                    "type": "string"
+                },
+                "dish_name": {
                     "type": "string"
                 }
             }
@@ -337,6 +588,26 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "ranto"
+                }
+            }
+        },
+        "handlers.RemoveFavoriteResponse": {
+            "type": "object",
+            "properties": {
+                "dish_id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "users.ChangePasswordParam": {
+            "type": "object",
+            "properties": {
+                "current_password": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
                 }
             }
         },

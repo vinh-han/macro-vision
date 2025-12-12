@@ -38,8 +38,17 @@ definitions:
   handlers.EditUserResponse:
     properties:
       display_name:
+        example: phantom_1234
         type: string
       email:
+        example: ranto@example.com
+        type: string
+    type: object
+  handlers.Favorites:
+    properties:
+      dish_id:
+        type: string
+      dish_name:
         type: string
     type: object
   handlers.GetUserResponse:
@@ -52,6 +61,19 @@ definitions:
         type: string
       username:
         example: ranto
+        type: string
+    type: object
+  handlers.RemoveFavoriteResponse:
+    properties:
+      dish_id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  users.ChangePasswordParam:
+    properties:
+      current_password:
+        type: string
+      new_password:
         type: string
     type: object
   users.EditUserParam:
@@ -157,7 +179,130 @@ paths:
       summary: signup
       tags:
       - /auth
-  /users/user-info:
+  /users/favorites:
+    get:
+      consumes:
+      - application/json
+      description: Get the user id from the received session token, then query and
+        return the list of user’s favorite dishes.
+      parameters:
+      - description: 256bit random token
+        in: header
+        name: Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ok
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Favorites'
+            type: array
+        "401":
+          description: no auth token found
+          schema:
+            type: string
+        "403":
+          description: Invalid token
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: get_info
+      tags:
+      - /users/favorites
+  /users/favorites/{dish_id}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        Extract the user session from the provided token, validate the dish ID (UUIDv4),
+        then remove the dish from the user’s favorites list.
+      parameters:
+      - description: 256-bit random session token
+        in: header
+        name: Token
+        required: true
+        type: string
+      - description: UUIDv4 dish identifier
+        in: path
+        name: dish_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: removed dish id
+          schema:
+            $ref: '#/definitions/handlers.RemoveFavoriteResponse'
+        "400":
+          description: Invalid id
+          schema:
+            type: string
+        "401":
+          description: no auth token found
+          schema:
+            type: string
+        "403":
+          description: Invalid token
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: remove_favorite
+      tags:
+      - /users/favorites
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Extract the user session from the provided token, validate the dish ID (UUIDv4),
+        then insert the dish into the user’s favorites list.
+      parameters:
+      - description: 256-bit random session token
+        in: header
+        name: Token
+        required: true
+        type: string
+      - description: UUIDv4 dish identifier
+        in: path
+        name: dish_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Added to favorites
+          schema:
+            type: string
+        "400":
+          description: Invalid id
+          schema:
+            type: string
+        "401":
+          description: no auth token found
+          schema:
+            type: string
+        "403":
+          description: Invalid token
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: add_favorite
+      tags:
+      - /users/favorites
+  /users/information:
     get:
       consumes:
       - application/json
@@ -191,15 +336,14 @@ paths:
             type: string
       summary: get_info
       tags:
-      - /users
-    put:
+      - /users/information
+    patch:
       consumes:
       - application/json
       description: Get the user id from the received session token, then query and
         return with the corresponding user’s information (except password)
       parameters:
       - description: 256bit random token
-        example: f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e
         in: header
         name: Token
         required: true
@@ -217,6 +361,10 @@ paths:
           description: Ok
           schema:
             $ref: '#/definitions/handlers.EditUserResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
         "401":
           description: no auth token found
           schema:
@@ -225,15 +373,54 @@ paths:
           description: Invalid token
           schema:
             type: string
-        "409":
-          description: Invalid input
-          schema:
-            type: string
         "500":
           description: Server Error
           schema:
             type: string
       summary: edit_info
       tags:
-      - /users
+      - /users/information
+  /users/password:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Extracts the user session from the provided token, validates the request body,
+        then updates the user's password.
+      parameters:
+      - description: 256-bit random session token
+        in: header
+        name: Token
+        required: true
+        type: string
+      - description: New password payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/users.ChangePasswordParam'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid Body
+          schema:
+            type: string
+        "401":
+          description: No auth token found
+          schema:
+            type: string
+        "403":
+          description: Invalid token
+          schema:
+            type: string
+        "500":
+          description: Server Error
+          schema:
+            type: string
+      summary: change_password
+      tags:
+      - /users/password
 swagger: "2.0"

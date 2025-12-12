@@ -1,8 +1,11 @@
 package handlers
 
 import (
-	"database/sql"
+	"errors"
+	"macro_vision/custom_errors"
 	"net/http"
+
+	"github.com/labstack/echo/v4/middleware"
 
 	user_service "macro_vision/services/users"
 
@@ -11,19 +14,19 @@ import (
 
 const (
 	UsersGroup       string = "/users"
-	UserInfoPath     string = "/user-info"
-	UserFavoritePath string = "/user-favorites"
+	UserInfoPath     string = "/information"
+	UserFavoritePath string = "/favorites"
 	UserPasswordPath string = "/password"
 )
 
 func UsersRouter(e *echo.Group) error {
-	group := e.Group(UsersGroup)
+	group := e.Group(UsersGroup, middleware.RemoveTrailingSlash())
 	group.GET(UserInfoPath, get_user)
-	group.PUT(UserInfoPath, edit_user)
+	group.PATCH(UserInfoPath, edit_user)
 	group.GET(UserFavoritePath, get_favorites)
-	group.PUT(UserFavoritePath, add_favorites)
-	group.DELETE(UserFavoritePath, remove_favorites)
-	group.PUT(UserPasswordPath, change_password)
+	group.PATCH(UserFavoritePath+"/:dish_id", add_favorites)
+	group.DELETE(UserFavoritePath+"/:dish_id", remove_favorite)
+	group.PATCH(UserPasswordPath, change_password)
 	return nil
 }
 
@@ -39,11 +42,11 @@ type GetUserResponse struct {
 //
 //	@Description	Get the user id from the received session token, then query and return with the corresponding user’s information (except password)
 //
-//	@Tags			/users
+//	@Tags			/users/information
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string	true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
-//	@Router			/users/user-info [get]
+//	@Router			/users/information [get]
 //	@Success		200	{object}	GetUserResponse	"Ok"
 //	@Failure		401	{string}	string			"no auth token found"
 //	@Failure		403	{string}	string			"Invalid token"
@@ -54,7 +57,7 @@ func get_user(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
 	}
 	user, err := user_service.GetUser(c.Request().Context(), token)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, custom_errors.SessionNotFound) {
 		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
 	}
 	if err != nil {
@@ -67,9 +70,10 @@ func get_user(c echo.Context) (err error) {
 	})
 }
 
+// for show
 type EditUserResponse struct {
-	DisplayName string `json:"display_name"`
-	Email       string `json:"email"`
+	DisplayName string `json:"display_name" example:"phantom_1234"`
+	Email       string `json:"email" example:"ranto@example.com"`
 }
 
 // Edits the user display name and/or email
@@ -78,16 +82,16 @@ type EditUserResponse struct {
 //
 //	@Description	Get the user id from the received session token, then query and return with the corresponding user’s information (except password)
 //
-//	@Tags			/users
+//	@Tags			/users/information
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string						true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
+//	@Param			Token	header	string						true	"256bit random token"
 //	@Param			Input	body	user_service.EditUserParam	true	"new info"
-//	@Router			/users/user-info [put]
+//	@Router			/users/information [patch]
 //	@Success		200	{object}	EditUserResponse	"Ok"
 //	@Failure		401	{string}	string				"no auth token found"
 //	@Failure		403	{string}	string				"Invalid token"
-//	@Failure		409	{string}	string				"Invalid input"
+//	@Failure		400	{string}	string				"Invalid input"
 //	@Failure		500	{string}	string				"Server Error"
 func edit_user(c echo.Context) (err error) {
 	token := get_auth_token(c)
@@ -101,31 +105,164 @@ func edit_user(c echo.Context) (err error) {
 	if new_info.DisplayName == "" || new_info.Email == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Body")
 	}
-	display_name, email, err := user_service.EditUser(c.Request().Context(), token, new_info)
-	if err == sql.ErrNoRows {
+	response, err := user_service.EditUser(c.Request().Context(), token, new_info)
+	if errors.Is(err, custom_errors.SessionNotFound) {
 		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
 	}
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, EditUserResponse{
-		DisplayName: display_name,
-		Email:       email,
+	return c.JSON(http.StatusOK, response)
+}
+
+type Favorites struct {
+	DishId   string `json:"dish_id"`
+	DishName string `json:"dish_name"`
+}
+
+// Returns a list of user-favorited dishes
+//
+//	@Summary		get_info
+//
+//	@Description	Get the user id from the received session token, then query and return the list of user’s favorite dishes.
+//
+//	@Tags			/users/favorites
+//	@Accept			json
+//	@Produce		json
+//	@Param			Token	header	string	true	"256bit random token"
+//	@Router			/users/favorites [get]
+//	@Success		200	{object}	[]Favorites	"Ok"
+//	@Failure		401	{string}	string		"no auth token found"
+//	@Failure		403	{string}	string		"Invalid token"
+//	@Failure		500	{string}	string		"Server Error"
+func get_favorites(c echo.Context) (err error) {
+	token := get_auth_token(c)
+	if token == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	}
+	favorites, err := user_service.GetFavorites(c.Request().Context(), token)
+	if errors.Is(err, custom_errors.SessionNotFound) {
+		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
+	}
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, favorites)
+}
+
+// Adds a dish to the user’s favorites
+//
+//	@Summary		add_favorite
+//	@Description	Extract the user session from the provided token, validate the dish ID (UUIDv4),
+//	@Description	then insert the dish into the user’s favorites list.
+//	@Tags			/users/favorites
+//	@Accept			json
+//	@Produce		json
+//	@Param			Token	header	string	true	"256-bit random session token"
+//	@Param			dish_id	path	string	true	"UUIDv4 dish identifier"
+//	@Router			/users/favorites/{dish_id} [patch]
+//	@Success		201	{string}	string	"Added to favorites"
+//	@Failure		400	{string}	string	"Invalid id"
+//	@Failure		401	{string}	string	"no auth token found"
+//	@Failure		403	{string}	string	"Invalid token"
+//	@Failure		500	{string}	string	"Server Error"
+func add_favorites(c echo.Context) (err error) {
+	token := get_auth_token(c)
+	if token == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	}
+	dish_id := c.Param("dish_id")
+	updated_id, err := user_service.AddFavorites(c.Request().Context(), token, dish_id)
+	if errors.Is(err, custom_errors.SessionNotFound) {
+		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
+	}
+	if errors.Is(err, custom_errors.UuidParseFailed) {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
+	}
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, map[string]string{
+		"dish_id": updated_id,
 	})
 }
 
-func get_favorites(c echo.Context) (err error) {
-	return nil
+type RemoveFavoriteResponse struct {
+	DishID string `json:"dish_id" example:"123e4567-e89b-12d3-a456-426614174000"`
 }
 
-func add_favorites(c echo.Context) (err error) {
-	return nil
+// Removes a dish from the user’s favorites
+//
+//	@Summary		remove_favorite
+//	@Description	Extract the user session from the provided token, validate the dish ID (UUIDv4),
+//	@Description	then remove the dish from the user’s favorites list.
+//	@Tags			/users/favorites
+//	@Accept			json
+//	@Produce		json
+//	@Param			Token	header	string	true	"256-bit random session token"
+//	@Param			dish_id	path	string	true	"UUIDv4 dish identifier"
+//	@Router			/users/favorites/{dish_id} [delete]
+//	@Success		200	{object}	RemoveFavoriteResponse	"removed dish id"
+//	@Failure		400	{string}	string					"Invalid id"
+//	@Failure		401	{string}	string					"no auth token found"
+//	@Failure		403	{string}	string					"Invalid token"
+//	@Failure		500	{string}	string					"Server Error"
+func remove_favorite(c echo.Context) (err error) {
+	token := get_auth_token(c)
+	if token == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	}
+	dish_id := c.Param("dish_id")
+	updated_id, err := user_service.RemoveFavorite(c.Request().Context(), token, dish_id)
+	if errors.Is(err, custom_errors.SessionNotFound) {
+		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
+	}
+	if errors.Is(err, custom_errors.UuidParseFailed) {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
+	}
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, map[string]string{
+		"dish_id": updated_id,
+	})
 }
 
-func remove_favorites(c echo.Context) (err error) {
-	return nil
-}
-
+// Changes the user's password
+//
+//	@Summary		change_password
+//	@Description	Extracts the user session from the provided token, validates the request body,
+//	@Description	then updates the user's password.
+//	@Tags			/users/password
+//	@Accept			json
+//	@Produce		json
+//	@Param			Token	header	string								true	"256-bit random session token"
+//	@Param			body	body	user_service.ChangePasswordParam	true	"New password payload"
+//	@Router			/users/password [patch]
+//	@Success		204
+//	@Failure		400	{string}	string	"Invalid Body"
+//	@Failure		401	{string}	string	"No auth token found"
+//	@Failure		403	{string}	string	"Invalid token"
+//	@Failure		500	{string}	string	"Server Error"
 func change_password(c echo.Context) (err error) {
-	return nil
+	token := get_auth_token(c)
+	if token == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	}
+	param := new(user_service.ChangePasswordParam)
+	if err = c.Bind(param); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Body")
+	}
+	err = user_service.ChangePassword(c.Request().Context(), token, param)
+	if errors.Is(err, custom_errors.SessionNotFound) {
+		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
+	}
+	if errors.Is(err, custom_errors.InvalidInput) {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invlid Body")
+	}
+	if err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

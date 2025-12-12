@@ -72,6 +72,7 @@ type SignupResponse struct {
 //   - DbNotInit
 //   - PasswordTooLong
 //   - TokenGenFailed
+//   - PasswordGenFailed
 func Signup(ctx context.Context, user SignupParam) (token string, err error) {
 	if database.DB == nil {
 		return "", custom_errors.DbNotInit
@@ -87,7 +88,7 @@ func Signup(ctx context.Context, user SignupParam) (token string, err error) {
 	if !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
-	password_hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	password_hash, err := database.GenPassword(user.Password)
 	if err != nil {
 		return "", err
 	}

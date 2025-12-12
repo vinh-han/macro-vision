@@ -1,5 +1,7 @@
 package config
 
+import "golang.org/x/crypto/bcrypt"
+
 type AppConfig struct {
 	BasePath string
 	DocPath  string
@@ -10,6 +12,7 @@ type AuthConfig struct {
 	LoginPath    string
 	RegisterPath string
 	LogoutPath   string
+	BcryptCost   int
 }
 
 const (
@@ -27,6 +30,7 @@ var Auth AuthConfig = AuthConfig{
 	LoginPath:    "/login",
 	RegisterPath: "/signup",
 	LogoutPath:   "/logout",
+	BcryptCost:   bcrypt.DefaultCost,
 }
 
 var App AppConfig = AppConfig{

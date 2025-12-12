@@ -13,6 +13,45 @@ import (
 	"github.com/google/uuid"
 )
 
+const add_favorites = `-- name: Add_favorites :one
+insert into favorites(
+    user_id,
+    dish_id,
+    date_created
+)
+values($1,$2,$3)
+returning dish_id
+`
+
+type Add_favoritesParams struct {
+	UserID      uuid.UUID `json:"user_id"`
+	DishID      uuid.UUID `json:"dish_id"`
+	DateCreated time.Time `json:"date_created"`
+}
+
+func (q *Queries) Add_favorites(ctx context.Context, arg Add_favoritesParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, add_favorites, arg.UserID, arg.DishID, arg.DateCreated)
+	var dish_id uuid.UUID
+	err := row.Scan(&dish_id)
+	return dish_id, err
+}
+
+const change_password = `-- name: Change_password :exec
+update users
+set password_hash=$2
+where user_id=$1
+`
+
+type Change_passwordParams struct {
+	UserID       uuid.UUID `json:"user_id"`
+	PasswordHash string    `json:"password_hash"`
+}
+
+func (q *Queries) Change_password(ctx context.Context, arg Change_passwordParams) error {
+	_, err := q.db.ExecContext(ctx, change_password, arg.UserID, arg.PasswordHash)
+	return err
+}
+
 const edit_user = `-- name: Edit_user :one
 update users
 set display_name=$2, email=$3
@@ -76,6 +115,40 @@ func (q *Queries) Get_all_dishes(ctx context.Context) ([]Dish, error) {
 			&i.Description,
 			&i.DateCreated,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const get_favorites = `-- name: Get_favorites :many
+select dishes.dish_id, dishes.dish_name from dishes
+inner join favorites on favorites.dish_id = dishes.dish_id
+where favorites.user_id = $1
+`
+
+type Get_favoritesRow struct {
+	DishID   uuid.UUID `json:"dish_id"`
+	DishName string    `json:"dish_name"`
+}
+
+func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_favoritesRow, error) {
+	rows, err := q.db.QueryContext(ctx, get_favorites, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Get_favoritesRow
+	for rows.Next() {
+		var i Get_favoritesRow
+		if err := rows.Scan(&i.DishID, &i.DishName); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -318,6 +391,24 @@ func (q *Queries) Insert_user(ctx context.Context, arg Insert_userParams) (uuid.
 	var user_id uuid.UUID
 	err := row.Scan(&user_id)
 	return user_id, err
+}
+
+const remove_favorite = `-- name: Remove_favorite :one
+DELETE FROM favorites
+WHERE user_id = $1 AND dish_id = $2
+returning dish_id
+`
+
+type Remove_favoriteParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	DishID uuid.UUID `json:"dish_id"`
+}
+
+func (q *Queries) Remove_favorite(ctx context.Context, arg Remove_favoriteParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, remove_favorite, arg.UserID, arg.DishID)
+	var dish_id uuid.UUID
+	err := row.Scan(&dish_id)
+	return dish_id, err
 }
 
 const remove_session = `-- name: Remove_session :exec

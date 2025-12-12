@@ -14,6 +14,7 @@ var (
 	UserNotFound              = errors.New("user does not exist.")
 	UserExists                = errors.New("user is already registered.")
 	InvalidInput              = errors.New("This input cannot be empty.")
+	UuidParseFailed           = errors.New("UUID could not be parsed.")
 	InvalidUsername           = errors.New("username is not usable.")
 	InvalidCredentials        = errors.New("Invalid username or password")
 	PasswordTooLong           = errors.New("This password exceeds the limit!")
@@ -22,4 +23,5 @@ var (
 	EnvEmpty                  = errors.New("env var has not been initialized.")
 	LinkSaveFailed            = errors.New("failed when saving a course.")
 	TokenGenFailed            = errors.New("token generation failed")
+	PasswordGenFailed         = errors.New("failed to generate password")
 )

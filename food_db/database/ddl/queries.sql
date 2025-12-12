@@ -116,4 +116,27 @@ set display_name=$2, email=$3
 where user_id=$1
 returning display_name, email;
 
+-- name: Change_password :exec
+update users
+set password_hash=$2
+where user_id=$1;
+
+-- name: Get_favorites :many
+select dishes.dish_id, dishes.dish_name from dishes
+inner join favorites on favorites.dish_id = dishes.dish_id
+where favorites.user_id = $1;
+
+-- name: Add_favorites :one
+insert into favorites(
+    user_id,
+    dish_id,
+    date_created
+)
+values($1,$2,$3)
+returning dish_id;
+
+-- name: Remove_favorite :one
+DELETE FROM favorites
+WHERE user_id = $1 AND dish_id = $2
+returning dish_id;
 

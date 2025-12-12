@@ -11,6 +11,8 @@ import (
 	custom_errors "macro_vision/custom_errors"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/google/uuid"
 
 	_ "github.com/lib/pq"
@@ -55,6 +57,14 @@ func InitDB() error {
 		Queries: queries,
 	}
 	return nil
+}
+
+func GenPassword(password string) (hash []byte, err error) {
+	hash, err = bcrypt.GenerateFromPassword([]byte(password), config.Auth.BcryptCost)
+	if err != nil {
+		return []byte{}, fmt.Errorf("%w: %v", custom_errors.PasswordGenFailed, err)
+	}
+	return
 }
 
 func CloseDB() {
