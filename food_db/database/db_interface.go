@@ -59,6 +59,17 @@ func InitDB() error {
 	return nil
 }
 
+func GetUser(ctx context.Context, token string) (user User, err error) {
+	user, err = DB.Queries.Get_user_from_token(ctx, token)
+	if err == sql.ErrNoRows {
+		return User{}, fmt.Errorf("%w: %v", custom_errors.SessionNotFound, err)
+	}
+	if err != nil {
+		return User{}, err
+	}
+	return user, err
+}
+
 func GenPassword(password string) (hash []byte, err error) {
 	hash, err = bcrypt.GenerateFromPassword([]byte(password), config.Auth.BcryptCost)
 	if err != nil {

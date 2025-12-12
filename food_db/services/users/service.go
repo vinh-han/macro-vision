@@ -13,27 +13,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetUser(ctx context.Context, token string) (user database.User, err error) {
-	user, err = database.DB.Queries.Get_user_from_token(ctx, token)
-	if err == sql.ErrNoRows {
-		return database.User{}, fmt.Errorf("%w: %v", custom_errors.SessionNotFound, err)
-	}
-	if err != nil {
-		return database.User{}, err
-	}
-	return user, err
-}
-
 type EditUserParam struct {
 	DisplayName string `json:"display_name" example:"phantom_1234"`
 	Email       string `json:"email" example:"ranto@example.com"`
 }
 
-func EditUser(ctx context.Context, token string, param *EditUserParam) (new_info database.Edit_userRow, err error) {
-	user, err := GetUser(ctx, token)
-	if err != nil {
-		return database.Edit_userRow{}, err
-	}
+func EditUser(ctx context.Context, user database.User, param *EditUserParam) (new_info database.Edit_userRow, err error) {
 	new_info, err = database.DB.Queries.Edit_user(ctx, database.Edit_userParams{
 		UserID:      user.UserID,
 		DisplayName: param.DisplayName,
@@ -45,11 +30,7 @@ func EditUser(ctx context.Context, token string, param *EditUserParam) (new_info
 	return
 }
 
-func GetFavorites(ctx context.Context, token string) (favorites []database.Get_favoritesRow, err error) {
-	user, err := GetUser(ctx, token)
-	if err != nil {
-		return []database.Get_favoritesRow{}, err
-	}
+func GetFavorites(ctx context.Context, user database.User) (favorites []database.Get_favoritesRow, err error) {
 	favorites, err = database.DB.Queries.Get_favorites(ctx, user.UserID)
 	if errors.Is(err, sql.ErrNoRows) {
 		favorites = []database.Get_favoritesRow{}
@@ -62,11 +43,7 @@ func GetFavorites(ctx context.Context, token string) (favorites []database.Get_f
 	return
 }
 
-func AddFavorites(ctx context.Context, token string, dish_id string) (updated_id string, err error) {
-	user, err := GetUser(ctx, token)
-	if err != nil {
-		return "", err
-	}
+func AddFavorites(ctx context.Context, dish_id string, user database.User) (updated_id string, err error) {
 	dish_uuid, err := uuid.Parse(dish_id)
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", custom_errors.UuidParseFailed, err)
@@ -82,11 +59,7 @@ func AddFavorites(ctx context.Context, token string, dish_id string) (updated_id
 	return
 }
 
-func RemoveFavorite(ctx context.Context, token string, dish_id string) (updated_id string, err error) {
-	user, err := GetUser(ctx, token)
-	if err != nil {
-		return "", err
-	}
+func RemoveFavorite(ctx context.Context, dish_id string, user database.User) (updated_id string, err error) {
 	dish_uuid, err := uuid.Parse(dish_id)
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", custom_errors.UuidParseFailed, err)
@@ -107,11 +80,7 @@ type ChangePasswordParam struct {
 	NewPassword     string `json:"new_password"`
 }
 
-func ChangePassword(ctx context.Context, token string, param *ChangePasswordParam) (err error) {
-	user, err := GetUser(ctx, token)
-	if err != nil {
-		return err
-	}
+func ChangePassword(ctx context.Context, user database.User, param *ChangePasswordParam) (err error) {
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(param.CurrentPassword)); err != nil {
 		return fmt.Errorf("%w: %v", custom_errors.InvalidInput, err)
 	}

@@ -128,6 +128,29 @@ func (q *Queries) Get_all_dishes(ctx context.Context) ([]Dish, error) {
 	return items, nil
 }
 
+const get_dish = `-- name: Get_dish :one
+
+select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created from dishes
+where dish_id = $1
+`
+
+// DISHES --
+func (q *Queries) Get_dish(ctx context.Context, dishID uuid.UUID) (Dish, error) {
+	row := q.db.QueryRowContext(ctx, get_dish, dishID)
+	var i Dish
+	err := row.Scan(
+		&i.DishID,
+		&i.DishName,
+		&i.Course,
+		&i.AltName,
+		&i.FullRecipe,
+		&i.Source,
+		&i.Description,
+		&i.DateCreated,
+	)
+	return i, err
+}
+
 const get_favorites = `-- name: Get_favorites :many
 select dishes.dish_id, dishes.dish_name from dishes
 inner join favorites on favorites.dish_id = dishes.dish_id

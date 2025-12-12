@@ -3,10 +3,12 @@ package handlers
 import (
 	"errors"
 	"macro_vision/custom_errors"
+	"macro_vision/database"
 	"net/http"
 
 	"github.com/labstack/echo/v4/middleware"
 
+	custom_middleware "macro_vision/middleware"
 	user_service "macro_vision/services/users"
 
 	"github.com/labstack/echo/v4"
@@ -20,7 +22,9 @@ const (
 )
 
 func UsersRouter(e *echo.Group) error {
-	group := e.Group(UsersGroup, middleware.RemoveTrailingSlash())
+	group := e.Group(UsersGroup, middleware.RemoveTrailingSlash(), middleware.KeyAuthWithConfig(
+		custom_middleware.Auth_config),
+	)
 	group.GET(UserInfoPath, get_user)
 	group.PATCH(UserInfoPath, edit_user)
 	group.GET(UserFavoritePath, get_favorites)
@@ -52,16 +56,9 @@ type GetUserResponse struct {
 //	@Failure		403	{string}	string			"Invalid token"
 //	@Failure		500	{string}	string			"Server Error"
 func get_user(c echo.Context) (err error) {
-	token := get_auth_token(c)
-	if token == "" {
-		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
-	}
-	user, err := user_service.GetUser(c.Request().Context(), token)
-	if errors.Is(err, custom_errors.SessionNotFound) {
-		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
-	}
-	if err != nil {
-		return err
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	return c.JSON(http.StatusOK, GetUserResponse{
 		Username:    user.Username,
@@ -94,9 +91,9 @@ type EditUserResponse struct {
 //	@Failure		400	{string}	string				"Invalid input"
 //	@Failure		500	{string}	string				"Server Error"
 func edit_user(c echo.Context) (err error) {
-	token := get_auth_token(c)
-	if token == "" {
-		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	new_info := new(user_service.EditUserParam)
 	if err = c.Bind(new_info); err != nil {
@@ -105,10 +102,7 @@ func edit_user(c echo.Context) (err error) {
 	if new_info.DisplayName == "" || new_info.Email == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Body")
 	}
-	response, err := user_service.EditUser(c.Request().Context(), token, new_info)
-	if errors.Is(err, custom_errors.SessionNotFound) {
-		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
-	}
+	response, err := user_service.EditUser(c.Request().Context(), user, new_info)
 	if err != nil {
 		return err
 	}
@@ -136,14 +130,11 @@ type Favorites struct {
 //	@Failure		403	{string}	string		"Invalid token"
 //	@Failure		500	{string}	string		"Server Error"
 func get_favorites(c echo.Context) (err error) {
-	token := get_auth_token(c)
-	if token == "" {
-		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
-	favorites, err := user_service.GetFavorites(c.Request().Context(), token)
-	if errors.Is(err, custom_errors.SessionNotFound) {
-		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
-	}
+	favorites, err := user_service.GetFavorites(c.Request().Context(), user)
 	if err != nil {
 		return err
 	}
@@ -168,15 +159,12 @@ func get_favorites(c echo.Context) (err error) {
 //	@Failure		403	{string}	string	"Invalid token"
 //	@Failure		500	{string}	string	"Server Error"
 func add_favorites(c echo.Context) (err error) {
-	token := get_auth_token(c)
-	if token == "" {
-		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	dish_id := c.Param("dish_id")
-	updated_id, err := user_service.AddFavorites(c.Request().Context(), token, dish_id)
-	if errors.Is(err, custom_errors.SessionNotFound) {
-		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
-	}
+	updated_id, err := user_service.AddFavorites(c.Request().Context(), dish_id, user)
 	if errors.Is(err, custom_errors.UuidParseFailed) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
 	}
@@ -209,15 +197,12 @@ type RemoveFavoriteResponse struct {
 //	@Failure		403	{string}	string					"Invalid token"
 //	@Failure		500	{string}	string					"Server Error"
 func remove_favorite(c echo.Context) (err error) {
-	token := get_auth_token(c)
-	if token == "" {
-		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	dish_id := c.Param("dish_id")
-	updated_id, err := user_service.RemoveFavorite(c.Request().Context(), token, dish_id)
-	if errors.Is(err, custom_errors.SessionNotFound) {
-		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
-	}
+	updated_id, err := user_service.RemoveFavorite(c.Request().Context(), dish_id, user)
 	if errors.Is(err, custom_errors.UuidParseFailed) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
 	}
@@ -246,18 +231,15 @@ func remove_favorite(c echo.Context) (err error) {
 //	@Failure		403	{string}	string	"Invalid token"
 //	@Failure		500	{string}	string	"Server Error"
 func change_password(c echo.Context) (err error) {
-	token := get_auth_token(c)
-	if token == "" {
-		return echo.NewHTTPError(http.StatusUnauthorized, "no token found")
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	param := new(user_service.ChangePasswordParam)
 	if err = c.Bind(param); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Body")
 	}
-	err = user_service.ChangePassword(c.Request().Context(), token, param)
-	if errors.Is(err, custom_errors.SessionNotFound) {
-		return echo.NewHTTPError(http.StatusForbidden, "Invalid Token")
-	}
+	err = user_service.ChangePassword(c.Request().Context(), user, param)
 	if errors.Is(err, custom_errors.InvalidInput) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invlid Body")
 	}

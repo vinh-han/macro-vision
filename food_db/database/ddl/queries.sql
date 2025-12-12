@@ -140,3 +140,9 @@ DELETE FROM favorites
 WHERE user_id = $1 AND dish_id = $2
 returning dish_id;
 
+
+-- DISHES --
+
+-- name: Get_dish :one
+select * from dishes
+where dish_id = $1;
