@@ -51,7 +51,7 @@ class Grouper:
             # get current batch
             batch = texts[i : i + batch_size]
             self.logger.info(
-                f"[ RUN ]  Getting embeddings for batch {i//batch_size + 1}/{(len(texts) + batch_size - 1)//batch_size}"
+                f"[ RUN ] Getting embeddings for batch {i//batch_size + 1}/{(len(texts) + batch_size - 1)//batch_size}"
             )
 
             # use azure client to generate embeddings

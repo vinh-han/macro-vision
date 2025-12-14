@@ -1,8 +1,9 @@
 import asyncio
 
 from ingredients.classes import ClassGenerator
-from ingredients.grouping import Grouper
 from utils.logger import setup_logger
+
+from grouper.grouping import Grouper
 
 
 async def main():
