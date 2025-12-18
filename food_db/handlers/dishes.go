@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"github.com/google/uuid"
 
 	"github.com/labstack/echo/v4/middleware"
 
@@ -35,7 +36,7 @@ type SearchDishesResponse struct {
 //
 //	@Summary		Search dishes with filters and pagination
 //	@Description	Search dishes by name, course list, and ingredient count range. Results are paginated and include total match count.
-//	@Tags			/dishes
+//	@Tags			/dishes/search
 //	@Accept			json
 //	@Produce		json
 //	@Param			q				query		string					false	"Search query for dish name"
@@ -71,6 +72,26 @@ func search_dishes(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, response)
 }
 
+
+type DishResponse struct {
+    DishID      uuid.UUID `json:"dish_id"`
+    DishName    string    `json:"dish_name"`
+    Course      string    `json:"course"`
+    AltName     *string   `json:"alt_name,omitempty"`
+    Description string    `json:"description"`
+}
+// Get dish by ID
+//
+//	@Summary		Get dish details
+//	@Description	Retrieve a single dish by its UUID. If the dish does not exist, an empty object is returned.
+//	@Tags			/dishes
+//	@Accept			json
+//	@Produce		json
+//	@Param			dish_id	path	string	true	"Dish UUID"
+//	@Success		200	{object}	DishResponse	"Dish details"
+//	@Failure		400	{string}	string			"Invalid dish ID"
+//	@Failure		500	{string}	string			"Server error"
+//	@Router			/dishes/{dish_id} [get]
 func get_dish(c echo.Context) (err error) {
 	dish_id := c.Param("dish_id")
 	dish, err := dish_service.GetDish(c.Request().Context(), dish_id)

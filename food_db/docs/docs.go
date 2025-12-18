@@ -153,7 +153,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/dishes"
+                    "/dishes/search"
                 ],
                 "summary": "Search dishes with filters and pagination",
                 "parameters": [
@@ -207,6 +207,50 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid query parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/dishes/{dish_id}": {
+            "get": {
+                "description": "Retrieve a single dish by its UUID. If the dish does not exist, an empty object is returned.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/dishes"
+                ],
+                "summary": "Get dish details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dish UUID",
+                        "name": "dish_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dish details",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.DishResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid dish ID",
                         "schema": {
                             "type": "string"
                         }
@@ -630,7 +674,27 @@ const docTemplate = `{
         "dishes.DishResult": {
             "type": "object",
             "properties": {
-                "altName": {
+                "alt_name": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dish_id": {
+                    "type": "string"
+                },
+                "dish_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.DishResponse": {
+            "type": "object",
+            "properties": {
+                "alt_name": {
                     "type": "string"
                 },
                 "course": {

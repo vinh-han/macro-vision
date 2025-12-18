@@ -39,7 +39,7 @@ type DishResult struct {
 	DishID      uuid.UUID `json:"dish_id"`
 	DishName    string    `json:"dish_name"`
 	Course      string    `json:"course"`
-	AltName     string    `json:"alt_name`
+	AltName     string    `json:"alt_name"`
 	Description string    `json:"description"`
 }
 

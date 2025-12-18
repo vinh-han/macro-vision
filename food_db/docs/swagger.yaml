@@ -37,7 +37,20 @@ definitions:
     type: object
   dishes.DishResult:
     properties:
-      altName:
+      alt_name:
+        type: string
+      course:
+        type: string
+      description:
+        type: string
+      dish_id:
+        type: string
+      dish_name:
+        type: string
+    type: object
+  handlers.DishResponse:
+    properties:
+      alt_name:
         type: string
       course:
         type: string
@@ -207,6 +220,36 @@ paths:
       summary: signup
       tags:
       - /auth
+  /dishes/{dish_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single dish by its UUID. If the dish does not exist,
+        an empty object is returned.
+      parameters:
+      - description: Dish UUID
+        in: path
+        name: dish_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dish details
+          schema:
+            $ref: '#/definitions/handlers.DishResponse'
+        "400":
+          description: Invalid dish ID
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Get dish details
+      tags:
+      - /dishes
   /dishes/search:
     get:
       consumes:
@@ -258,7 +301,7 @@ paths:
             type: string
       summary: Search dishes with filters and pagination
       tags:
-      - /dishes
+      - /dishes/search
   /users/favorites:
     get:
       consumes:
