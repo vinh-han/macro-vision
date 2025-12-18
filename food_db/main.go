@@ -10,12 +10,30 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 const (
 	env_path string = "./.env"
 )
+
+var cors_config middleware.CORSConfig = middleware.CORSConfig{
+	AllowOrigins: []string{"http://frontend:" + config.Env.FRONTEND_PORT},
+	AllowHeaders: []string{
+		echo.HeaderOrigin,
+		echo.HeaderContentType,
+		echo.HeaderAccept,
+		echo.HeaderAuthorization,
+	},
+	AllowMethods: []string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodDelete,
+		http.MethodOptions,
+	},
+}
 
 //	@title			Macro_vision backend
 //	@version		1.0
@@ -32,6 +50,7 @@ func main() {
 	docs.SwaggerInfo.BasePath = config.App.BasePath
 
 	e := echo.New()
+	e.Use(middleware.CORSWithConfig(cors_config))
 	// doc path
 	e.GET(config.App.DocPath+"/*", echoSwagger.WrapHandler)
 	fmt.Println(config.App.DocPath + "/*")

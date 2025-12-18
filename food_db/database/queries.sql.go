@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const add_favorites = `-- name: Add_favorites :one
@@ -129,12 +130,10 @@ func (q *Queries) Get_all_dishes(ctx context.Context) ([]Dish, error) {
 }
 
 const get_dish = `-- name: Get_dish :one
-
 select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created from dishes
 where dish_id = $1
 `
 
-// DISHES --
 func (q *Queries) Get_dish(ctx context.Context, dishID uuid.UUID) (Dish, error) {
 	row := q.db.QueryRowContext(ctx, get_dish, dishID)
 	var i Dish
@@ -442,6 +441,86 @@ where token = $1
 func (q *Queries) Remove_session(ctx context.Context, token string) error {
 	_, err := q.db.ExecContext(ctx, remove_session, token)
 	return err
+}
+
+const search_dishes = `-- name: Search_dishes :many
+
+SELECT
+    d.dish_id,
+    d.dish_name,
+    d.course,
+    COALESCE(d.alt_name, '') AS alt_name,
+    d.description,
+    COUNT(*) OVER () AS matches
+FROM dishes d
+JOIN dish_ingredients di
+    ON di.dish_id = d.dish_id
+WHERE
+    d.dish_name ILIKE $1
+    AND d.course = ANY($2::text[])
+GROUP BY
+    d.dish_id
+HAVING
+    COUNT(di.ingredient_id)
+
+BETWEEN $3::int AND $4::int
+LIMIT $6::int offset $5::int
+`
+
+type Search_dishesParams struct {
+	Query          string   `json:"query"`
+	Courses        []string `json:"courses"`
+	MinIngredients int32    `json:"min_ingredients"`
+	MaxIngredients int32    `json:"max_ingredients"`
+	OffsetValue    int32    `json:"offset_value"`
+	ReturnLimit    int32    `json:"return_limit"`
+}
+
+type Search_dishesRow struct {
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Course      string    `json:"course"`
+	AltName     string    `json:"alt_name"`
+	Description string    `json:"description"`
+	Matches     int64     `json:"matches"`
+}
+
+// DISHES --
+func (q *Queries) Search_dishes(ctx context.Context, arg Search_dishesParams) ([]Search_dishesRow, error) {
+	rows, err := q.db.QueryContext(ctx, search_dishes,
+		arg.Query,
+		pq.Array(arg.Courses),
+		arg.MinIngredients,
+		arg.MaxIngredients,
+		arg.OffsetValue,
+		arg.ReturnLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Search_dishesRow
+	for rows.Next() {
+		var i Search_dishesRow
+		if err := rows.Scan(
+			&i.DishID,
+			&i.DishName,
+			&i.Course,
+			&i.AltName,
+			&i.Description,
+			&i.Matches,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateInfo = `-- name: UpdateInfo :exec

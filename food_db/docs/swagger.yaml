@@ -35,6 +35,19 @@ definitions:
         example: f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac
         type: string
     type: object
+  dishes.DishResult:
+    properties:
+      altName:
+        type: string
+      course:
+        type: string
+      description:
+        type: string
+      dishID:
+        type: string
+      dishName:
+        type: string
+    type: object
   handlers.EditUserResponse:
     properties:
       display_name:
@@ -68,6 +81,21 @@ definitions:
       dish_id:
         example: 123e4567-e89b-12d3-a456-426614174000
         type: string
+    type: object
+  handlers.SearchDishesResponse:
+    properties:
+      dishes:
+        items:
+          $ref: '#/definitions/dishes.DishResult'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_pages:
+        type: integer
+      total_results:
+        type: integer
     type: object
   users.ChangePasswordParam:
     properties:
@@ -179,6 +207,58 @@ paths:
       summary: signup
       tags:
       - /auth
+  /dishes/search:
+    get:
+      consumes:
+      - application/json
+      description: Search dishes by name, course list, and ingredient count range.
+        Results are paginated and include total match count.
+      parameters:
+      - description: Search query for dish name
+        in: query
+        name: q
+        type: string
+      - collectionFormat: csv
+        description: Filter by course (can be repeated)
+        in: query
+        items:
+          type: string
+        name: course
+        type: array
+      - description: Minimum number of ingredients
+        in: query
+        name: min_ingredients
+        type: integer
+      - description: Maximum number of ingredients
+        in: query
+        name: max_ingredients
+        type: integer
+      - description: 'Number of results per page (default: 12)'
+        in: query
+        name: limit
+        type: integer
+      - description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results
+          schema:
+            $ref: '#/definitions/handlers.SearchDishesResponse'
+        "400":
+          description: Invalid query parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Search dishes with filters and pagination
+      tags:
+      - /dishes
   /users/favorites:
     get:
       consumes:

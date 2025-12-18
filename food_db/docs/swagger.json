@@ -135,6 +135,83 @@
                 }
             }
         },
+        "/dishes/search": {
+            "get": {
+                "description": "Search dishes by name, course list, and ingredient count range. Results are paginated and include total match count.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/dishes"
+                ],
+                "summary": "Search dishes with filters and pagination",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query for dish name",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Filter by course (can be repeated)",
+                        "name": "course",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum number of ingredients",
+                        "name": "min_ingredients",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of ingredients",
+                        "name": "max_ingredients",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of results per page (default: 12)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (1-based)",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SearchDishesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users/favorites": {
             "get": {
                 "description": "Get the user id from the received session token, then query and return the list of user’s favorite dishes.",
@@ -542,6 +619,26 @@
                 }
             }
         },
+        "dishes.DishResult": {
+            "type": "object",
+            "properties": {
+                "altName": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dishID": {
+                    "type": "string"
+                },
+                "dishName": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.EditUserResponse": {
             "type": "object",
             "properties": {
@@ -589,6 +686,29 @@
                 "dish_id": {
                     "type": "string",
                     "example": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "handlers.SearchDishesResponse": {
+            "type": "object",
+            "properties": {
+                "dishes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dishes.DishResult"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                },
+                "total_results": {
+                    "type": "integer"
                 }
             }
         },

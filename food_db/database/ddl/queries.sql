@@ -143,6 +143,28 @@ returning dish_id;
 
 -- DISHES --
 
+-- name: Search_dishes :many
+SELECT
+    d.dish_id,
+    d.dish_name,
+    d.course,
+    COALESCE(d.alt_name, '') AS alt_name,
+    d.description,
+    COUNT(*) OVER () AS matches
+FROM dishes d
+JOIN dish_ingredients di
+    ON di.dish_id = d.dish_id
+WHERE
+    d.dish_name ILIKE sqlc.arg(query)
+    AND d.course = ANY(sqlc.arg(courses)::text[])
+GROUP BY
+    d.dish_id
+HAVING
+    COUNT(di.ingredient_id)
+
+BETWEEN sqlc.arg(min_ingredients)::int AND sqlc.arg(max_ingredients)::int
+LIMIT sqlc.arg(return_limit)::int offset sqlc.arg(offset_value)::int ;
+
 -- name: Get_dish :one
 select * from dishes
 where dish_id = $1;

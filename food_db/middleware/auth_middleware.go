@@ -22,7 +22,7 @@ func session_validator(token string, c echo.Context) (bool, error) {
 		return false, echo.NewHTTPError(http.StatusInternalServerError, err)
 
 	default:
-        c.Set("user", user)
+		c.Set("user", user)
 		return true, nil
 	}
 }
