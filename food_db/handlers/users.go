@@ -46,7 +46,7 @@ type GetUserResponse struct {
 //
 //	@Description	Get the user id from the received session token, then query and return with the corresponding user’s information (except password)
 //
-//	@Tags			/users/information
+//	@Tags			users
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string	true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
@@ -79,7 +79,7 @@ type EditUserResponse struct {
 //
 //	@Description	Get the user id from the received session token, then query and return with the corresponding user’s information (except password)
 //
-//	@Tags			/users/information
+//	@Tags			users
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string						true	"256bit random token"
@@ -120,7 +120,7 @@ type Favorites struct {
 //
 //	@Description	Get the user id from the received session token, then query and return the list of user’s favorite dishes.
 //
-//	@Tags			/users/favorites
+//	@Tags			users
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string	true	"256bit random token"
@@ -147,7 +147,7 @@ func get_favorites(c echo.Context) (err error) {
 //	@Summary		add_favorite
 //	@Description	Extract the user session from the provided token, validate the dish ID (UUIDv4),
 //	@Description	then insert the dish into the user’s favorites list.
-//	@Tags			/users/favorites
+//	@Tags			users
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string	true	"256-bit random session token"
@@ -185,7 +185,7 @@ type RemoveFavoriteResponse struct {
 //	@Summary		remove_favorite
 //	@Description	Extract the user session from the provided token, validate the dish ID (UUIDv4),
 //	@Description	then remove the dish from the user’s favorites list.
-//	@Tags			/users/favorites
+//	@Tags			users
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string	true	"256-bit random session token"
@@ -219,7 +219,7 @@ func remove_favorite(c echo.Context) (err error) {
 //	@Summary		change_password
 //	@Description	Extracts the user session from the provided token, validates the request body,
 //	@Description	then updates the user's password.
-//	@Tags			/users/password
+//	@Tags			users
 //	@Accept			json
 //	@Produce		json
 //	@Param			Token	header	string								true	"256-bit random session token"

@@ -166,7 +166,7 @@ paths:
             type: string
       summary: login
       tags:
-      - /auth
+      - auth
   /auth/logout:
     get:
       consumes:
@@ -186,7 +186,7 @@ paths:
           description: No Content
       summary: logout
       tags:
-      - /auth
+      - auth
   /auth/signup:
     post:
       consumes:
@@ -219,7 +219,7 @@ paths:
             type: string
       summary: signup
       tags:
-      - /auth
+      - auth
   /dishes/{dish_id}:
     get:
       consumes:
@@ -249,7 +249,7 @@ paths:
             type: string
       summary: Get dish details
       tags:
-      - /dishes
+      - dishes
   /dishes/search:
     get:
       consumes:
@@ -301,7 +301,7 @@ paths:
             type: string
       summary: Search dishes with filters and pagination
       tags:
-      - /dishes/search
+      - dishes
   /users/favorites:
     get:
       consumes:
@@ -337,7 +337,7 @@ paths:
             type: string
       summary: get_info
       tags:
-      - /users/favorites
+      - users
   /users/favorites/{dish_id}:
     delete:
       consumes:
@@ -381,7 +381,7 @@ paths:
             type: string
       summary: remove_favorite
       tags:
-      - /users/favorites
+      - users
     patch:
       consumes:
       - application/json
@@ -424,7 +424,7 @@ paths:
             type: string
       summary: add_favorite
       tags:
-      - /users/favorites
+      - users
   /users/information:
     get:
       consumes:
@@ -459,7 +459,7 @@ paths:
             type: string
       summary: get_info
       tags:
-      - /users/information
+      - users
     patch:
       consumes:
       - application/json
@@ -502,7 +502,7 @@ paths:
             type: string
       summary: edit_info
       tags:
-      - /users/information
+      - users
   /users/password:
     patch:
       consumes:
@@ -545,5 +545,5 @@ paths:
             type: string
       summary: change_password
       tags:
-      - /users/password
+      - users
 swagger: "2.0"

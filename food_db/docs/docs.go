@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/auth"
+                    "auth"
                 ],
                 "summary": "login",
                 "parameters": [
@@ -77,7 +77,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/auth"
+                    "auth"
                 ],
                 "summary": "logout",
                 "parameters": [
@@ -107,7 +107,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/auth"
+                    "auth"
                 ],
                 "summary": "signup",
                 "parameters": [
@@ -153,7 +153,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/dishes/search"
+                    "dishes"
                 ],
                 "summary": "Search dishes with filters and pagination",
                 "parameters": [
@@ -230,7 +230,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/dishes"
+                    "dishes"
                 ],
                 "summary": "Get dish details",
                 "parameters": [
@@ -274,7 +274,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users/favorites"
+                    "users"
                 ],
                 "summary": "get_info",
                 "parameters": [
@@ -327,7 +327,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users/favorites"
+                    "users"
                 ],
                 "summary": "remove_favorite",
                 "parameters": [
@@ -388,7 +388,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users/favorites"
+                    "users"
                 ],
                 "summary": "add_favorite",
                 "parameters": [
@@ -451,7 +451,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users/information"
+                    "users"
                 ],
                 "summary": "get_info",
                 "parameters": [
@@ -500,7 +500,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users/information"
+                    "users"
                 ],
                 "summary": "edit_info",
                 "parameters": [
@@ -565,7 +565,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/users/password"
+                    "users"
                 ],
                 "summary": "change_password",
                 "parameters": [

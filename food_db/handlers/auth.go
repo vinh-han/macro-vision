@@ -23,7 +23,7 @@ func AuthRouter(e *echo.Group) error {
 //
 //	@Summary		login
 //	@Description	Verify user’s login credentials (username and password), then generate a session and return the session token back to user
-//	@Tags			/auth
+//	@Tags			auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			Request	body	auth_service.LoginParam	true	"login parameters"
@@ -58,7 +58,7 @@ func login(c echo.Context) (err error) {
 //
 //	@Summary		signup
 //	@Description	Receive the sign up information, validate username (check if it exists), password (has to be lower than 71 byte for bcrypt hashing), and email (correct format). Then generate the session and return the token to the user (auto login)
-//	@Tags			/auth
+//	@Tags			auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			Request	body	auth_service.SignupParam	true	"signup parameters"
@@ -89,7 +89,7 @@ func signup(c echo.Context) (err error) {
 //
 //	@Summary					logout
 //	@Description				Verify the received token and perform session clean up.
-//	@Tags						/auth
+//	@Tags						auth
 //	@Accept						json
 //	@Produce					json
 //	@securityDefinitions.apikey	ApiKeyAuth

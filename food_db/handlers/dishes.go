@@ -36,7 +36,7 @@ type SearchDishesResponse struct {
 //
 //	@Summary		Search dishes with filters and pagination
 //	@Description	Search dishes by name, course list, and ingredient count range. Results are paginated and include total match count.
-//	@Tags			/dishes/search
+//	@Tags			dishes
 //	@Accept			json
 //	@Produce		json
 //	@Param			q				query		string					false	"Search query for dish name"
@@ -84,7 +84,7 @@ type DishResponse struct {
 //
 //	@Summary		Get dish details
 //	@Description	Retrieve a single dish by its UUID. If the dish does not exist, an empty object is returned.
-//	@Tags			/dishes
+//	@Tags			dishes
 //	@Accept			json
 //	@Produce		json
 //	@Param			dish_id	path	string	true	"Dish UUID"
