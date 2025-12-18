@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	DishesGroup string = "/dishes"
-	SearchPath  string = "/search"
+	DishesGroup  string = "/dishes"
+	SearchPath   string = "/search"
+	DefaultLimit int    = 12
 )
 
 func DishesRouter(api *echo.Group) (err error) {
@@ -54,7 +55,7 @@ func search_dishes(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if param.Limit == 0 {
-		param.Limit = 12
+		param.Limit = DefaultLimit
 	}
 	if param.Page < 1 {
 		param.Page = 1

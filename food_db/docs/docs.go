@@ -639,10 +639,10 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "dishID": {
+                "dish_id": {
                     "type": "string"
                 },
-                "dishName": {
+                "dish_name": {
                     "type": "string"
                 }
             }

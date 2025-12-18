@@ -36,11 +36,11 @@ type SearchDishParam struct {
 	Page           int      `query:"page"`
 }
 type DishResult struct {
-	DishID      uuid.UUID
-	DishName    string
-	Course      string
-	AltName     string
-	Description string
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Course      string    `json:"course"`
+	AltName     string    `json:"alt_name`
+	Description string    `json:"description"`
 }
 
 func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, results []DishResult, err error) {
