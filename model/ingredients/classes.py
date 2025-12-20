@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import List
 
 from openai import AzureOpenAI
-from utils.config import settings
-from utils.logger import setup_logger
+
+from model.utils.config import settings
+from model.utils.logger import setup_logger
 
 
 class ClassGenerator:
@@ -15,11 +16,11 @@ class ClassGenerator:
             azure_endpoint=settings.azure_openai_endpoint
         )
 
-        self.raw_ingredients_path = Path("ingredients/raw/ingredients.txt")
-        self.removed_ingredients_path = Path("ingredients/out/removed.txt")
-        self.output_dir = Path("ingredients/out")
+        self.raw_ingredients_path = Path(__file__).parent / "raw" / "ingredients.txt"
+        self.removed_ingredients_path = Path(__file__).parent / "out" / "removed.txt"
+        self.output_dir = Path(__file__).parent / "out"
         self.output_dir.mkdir(exist_ok=True)
-        self.logger = setup_logger(__name__, "ingredients/classes.log")
+        self.logger = setup_logger(__name__, "classes.log")
 
     def _load_ingredients(self) -> List[str]:
         with open(self.raw_ingredients_path, 'r', encoding='utf-8') as f:

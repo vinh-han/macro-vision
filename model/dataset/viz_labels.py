@@ -5,15 +5,21 @@ from typing import List, Optional, Tuple
 import cv2
 import numpy as np
 
+from model.utils.logger import setup_logger
+
 
 class YOLOVisualizer:
     def __init__(
         self,
-        dataset_dir: str = "dataset/ingredients_dataset",
+        dataset_dir: str = "ingredients_dataset",
         class_names_file: Optional[str] = None
     ):
-        self.dataset_dir = Path(dataset_dir)
+        dataset_path = Path(dataset_dir)
+        if not dataset_path.is_absolute():
+            dataset_path = Path(__file__).parent / dataset_path
+        self.dataset_dir = dataset_path
         self.class_names = self.load_class_names(class_names_file)
+        self.logger = setup_logger(__name__, "viz_labels.log")
 
         # colors for diff classes
         np.random.seed(42)
@@ -65,14 +71,14 @@ class YOLOVisualizer:
         # read image
         img = cv2.imread(str(image_path))
         if img is None:
-            print(f"Fialed to read {image_path}")
+            self.logger.error(f"Failed to read {image_path}")
             return None
 
         h, w = img.shape[:2]
 
         # read labels
         if not label_path.exists():
-            print(f"No label file for {image_path.name}")
+            self.logger.warning(f"No label file for {image_path.name}")
             return img
 
         with open(label_path) as f:
@@ -134,24 +140,24 @@ class YOLOVisualizer:
         labels_dir = self.dataset_dir / split / 'labels'
 
         if not images_dir.exists():
-            print(f"Images directory not found {images_dir}")
+            self.logger.error(f"Images directory not found {images_dir}")
             return
 
         # get all image
         image_files = list(images_dir.glob("*.*"))
 
         if not image_files:
-            print(f"No images found in {images_dir}")
+            self.logger.warning(f"No images found in {images_dir}")
             return
 
         sample_size = min(num_samples, len(image_files))
         sampled_images = random.sample(image_files, sample_size)
 
-        print(f"\nVisualizing {sample_size} images from {split} set.")
-        print("Press any key to see next image, 'q' to quit, 's' to save\n")
+        self.logger.info(f"Visualizing {sample_size} images from {split} set.")
+        self.logger.info("Press any key to see next image, 'q' to quit, 's' to save")
 
         if save_output:
-            output_path = Path(output_dir)
+            output_path = Path(__file__).parent / output_dir
             output_path.mkdir(exist_ok=True)
 
         for i, img_path in enumerate(sampled_images):
@@ -180,12 +186,12 @@ class YOLOVisualizer:
 
             # check for cmmds
             if key == ord('q'):
-                print("Quitting ...")
+                self.logger.info("Quitting ...")
                 break
             elif key == ord('s') and save_output:
                 save_path = output_path / f"{split}_{i:03d}_{img_path.name}"
                 cv2.imwrite(str(save_path), viz_img)
-                print(f"Saved to {save_path}")
+                self.logger.info(f"Saved to {save_path}")
 
         cv2.destroyAllWindows()
 
@@ -195,7 +201,7 @@ def main():
     parser = argparse.ArgumentParser(description='Visualize YOLO labels')
     parser.add_argument(
         '--dataset',
-        default='dataset/ingredients_dataset',
+        default='ingredients_dataset',
         help='Dir to YOLO dataset'
     )
     parser.add_argument(

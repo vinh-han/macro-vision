@@ -1,13 +1,13 @@
 import asyncio
 
 from ingredients.classes import ClassGenerator
-from utils.logger import setup_logger
 
 from grouper.grouping import Grouper
+from model.utils.logger import setup_logger
 
 
 async def main():
-    logger = setup_logger(__name__, "ingredients/main.log")
+    logger = setup_logger(__name__, "main.log")
 
     logger.info("STARTING INGREDIENT PROCESSING PIPELINE...")
 

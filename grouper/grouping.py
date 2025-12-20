@@ -7,8 +7,10 @@ import numpy as np
 from openai import AzureOpenAI
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
-from utils.config import settings
-from utils.logger import setup_logger
+
+from grouper.operations import get_ingredients
+from grouper.utils.config import settings
+from grouper.utils.logger import setup_logger
 
 
 class Grouper:
@@ -19,27 +21,42 @@ class Grouper:
             azure_endpoint=settings.azure_openai_endpoint,
         )
 
-        self.raw_ingredients_path = Path("ingredients/raw/ingredients.txt")
-        self.removed_ingredients_path = Path("ingredients/out/removed.txt")
-        self.classes_path = Path("ingredients/out/classes.txt")
-        self.output_dir = Path("ingredients/out")
+        self.raw_ingredients_path = Path(__file__).parent / "ingredients.txt"
+        self.removed_ingredients_path = Path(__file__).parent / "assets" / "removed.txt"
+        self.classes_path = Path(__file__).parent / "assets" / "classes.txt"
+        self.output_dir = Path(__file__).parent / "out"
         self.output_dir.mkdir(exist_ok=True)
-        self.logger = setup_logger(__name__, "ingredients/grouping.log")
+        self.logger = setup_logger(__name__, "grouping.log")
 
-    def _load_ingredients(self) -> List[str]:
-        with open(self.raw_ingredients_path, "r", encoding="utf-8") as f:
-            raw = [line.strip() for line in f if line.strip()]
+    async def _load_ingredients(self, use_sqlite: bool = None) -> List[str]:
+        self.logger.info(f"Loading ingredients with use_sqlite={use_sqlite}")
+        raw = await get_ingredients(use_sqlite)
+        self.logger.info(f"Raw ingredients loaded: {len(raw)}")
 
-        with open(self.removed_ingredients_path, "r", encoding="utf-8") as f:
-            removed = set(line.strip() for line in f if line.strip())
-
-        cleaned = [ing for ing in raw if ing not in removed]
+        if self.removed_ingredients_path.exists():
+            with open(self.removed_ingredients_path, "r", encoding="utf-8") as f:
+                removed = set(line.strip() for line in f if line.strip())
+            cleaned = [ing for ing in raw if ing not in removed]
+            self.logger.info(f"Removed {len(removed)} ingredients, {len(cleaned)} remaining")
+        else:
+            cleaned = raw
+            self.logger.info("No removed ingredients file found, using all raw ingredients")
 
         return cleaned
 
     def _load_classes(self) -> List[str]:
-        with open(self.classes_path, "r", encoding="utf-8") as f:
-            return [line.strip() for line in f if line.strip()]
+        if not self.classes_path.exists():
+            self.logger.error(f"Classes file not found: {self.classes_path}")
+            return []
+
+        try:
+            with open(self.classes_path, "r", encoding="utf-8") as f:
+                classes = [line.strip() for line in f if line.strip()]
+                self.logger.info(f"Loaded {len(classes)} classes from {self.classes_path}")
+                return classes
+        except Exception as e:
+            self.logger.error(f"Error reading classes file {self.classes_path}: {e}")
+            return []
 
     async def _get_embeddings(
         self, texts: List[str], batch_size: Optional[int] = 100
@@ -65,21 +82,39 @@ class Grouper:
 
         return np.array(embeddings)
 
-    async def group_ingredients(self, save: bool = True) -> Dict[str, List[str]]:
+    async def group_ingredients(self, save: bool = True, use_sqlite: bool = None) -> Dict[str, List[str]]:
         self.logger.info(
             "[ RUN ] Grouping raw ingredients to classes using embeddings..."
         )
 
         # loading ingredients and classes
-        ingredients = self._load_ingredients()
+        ingredients = await self._load_ingredients(use_sqlite)
         classes = self._load_classes()
 
         self.logger.info(f"[ OK ] Loaded {len(ingredients)} raw ingredients")
         self.logger.info(f"[ OK ] Loaded {len(classes)} classes")
 
+        # Validate we have data to process
+        if not ingredients:
+            self.logger.error("No ingredients found. Check your database connection or ingredients file.")
+            return {}
+
+        if not classes:
+            self.logger.error("No classes found. Check your classes file.")
+            return {}
+
         # run thru embedding model
         ingredient_embeddings = await self._get_embeddings(ingredients)
         class_embeddings = await self._get_embeddings(classes)
+
+        # Validate embeddings were generated
+        if len(ingredient_embeddings) == 0:
+            self.logger.error("Failed to generate ingredient embeddings")
+            return {}
+
+        if len(class_embeddings) == 0:
+            self.logger.error("Failed to generate class embeddings")
+            return {}
 
         # normalize
         ingredient_embeddings = normalize(ingredient_embeddings)

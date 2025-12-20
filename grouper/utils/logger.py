@@ -5,7 +5,7 @@ from logging import Formatter, LogRecord
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from model.utils.config import settings
+from grouper.utils.config import settings
 
 LOG_LEVEL = getattr(logging, settings.log_level.upper(), logging.INFO)
 LOG_DIR = settings.log_dir

@@ -1,4 +1,6 @@
 # Project specific
+*.pt
+
 logs/
 model/dataset/imgs
 model/dataset/labels
@@ -6,7 +8,10 @@ model/dataset/pretrained
 model/dataset/visualizations
 model/dataset/train
 model/dataset/val
-*.pt
+model/dataset/ingredients_dataset
+model/labeled_images
+grouper/sample
+grouper/out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

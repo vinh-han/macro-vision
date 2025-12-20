@@ -7,15 +7,16 @@ import requests
 from ddgs import DDGS
 from PIL import Image
 from tqdm.rich import tqdm
-from utils.config import settings
-from utils.logger import setup_logger
+
+from model.utils.config import settings
+from model.utils.logger import setup_logger
 
 
 class ImageScraper:
     def __init__(
         self,
         count_per_ingredient=50,
-        output_dir: str = "dataset/imgs",
+        output_dir: str = "imgs",
         min_image_size: int = 200,
         max_image_size: int = 5000,
         min_file_size_kb: int = 10
@@ -25,7 +26,7 @@ class ImageScraper:
         self.min_image_size = min_image_size
         self.max_image_size = max_image_size
         self.min_file_size_kb = min_file_size_kb
-        self.logger = setup_logger(__name__, "dataset_scraper.log")
+        self.logger = setup_logger(__name__, "image_scraper.log")
 
     def _is_packaged_product(self, ingredient: str) -> bool:
         packaged_keywords = [
@@ -82,7 +83,10 @@ class ImageScraper:
                 f"\nSearch query: {search_query}"
             )
 
-            ingredient_dir = Path(self.output_dir) / ingredient
+            output_path = Path(self.output_dir)
+            if not output_path.is_absolute():
+                output_path = Path(__file__).parent / output_path
+            ingredient_dir = output_path / ingredient
             ingredient_dir.mkdir(parents=True, exist_ok=True)
 
             with DDGS() as ddgs:
@@ -137,11 +141,9 @@ class ImageScraper:
 if __name__ == "__main__":
     scraper = ImageScraper(count_per_ingredient=10)
 
-    ingredients = settings.ingredients_list
-
     # Test with a few ingredients
     # test_ingredients = ["tomato", "onion", "garlic"]
-    test_ingredients = ingredients[:5]
+    test_ingredients = settings.ingredients_list[:5]
 
     results = scraper.scrape(
         test_ingredients

@@ -7,11 +7,22 @@ from typing import Dict, List, Optional
 import yaml
 from PIL import Image
 
+from model.utils.logger import setup_logger
+
 
 class Refiner:
     def __init__(self, images_dir: str, labels_dir: str):
-        self.images_dir = Path(images_dir)
-        self.labels_dir = Path(labels_dir)
+        images_path = Path(images_dir)
+        labels_path = Path(labels_dir)
+
+        if not images_path.is_absolute():
+            images_path = Path(__file__).parent / images_path
+        if not labels_path.is_absolute():
+            labels_path = Path(__file__).parent / labels_path
+
+        self.images_dir = images_path
+        self.labels_dir = labels_path
+        self.logger = setup_logger(__name__, "refiner.log")
 
     def create_yolo_dataset_yaml(
         self,
@@ -72,7 +83,7 @@ class Refiner:
         with open(output_path, 'w') as f:
             yaml.dump(dataset_config, f, default_flow_style=False)
 
-        print(f"Created dataset.yaml with {len(train_images)} train, {len(val_images)} val images")
+        self.logger.info(f"Created dataset.yaml with {len(train_images)} train, {len(val_images)} val images")
 
         return output_path
 
@@ -150,7 +161,7 @@ class Refiner:
         with open(output_path, 'w') as f:
             json.dump(coco_format, f, indent=2)
 
-        print(f"Exported {len(coco_format['images'])} images with {len(coco_format['annotations'])} annotations to COCO format")
+        self.logger.info(f"Exported {len(coco_format['images'])} images with {len(coco_format['annotations'])} annotations to COCO format")
         return output_path
 
 
@@ -192,16 +203,16 @@ class Refiner:
             with open(label_path, 'w') as f:
                 f.writelines(filtered_lines)
 
-        print(f"Removed {removed_count} low-confidence boxes")
+        self.logger.info(f"Removed {removed_count} low-confidence boxes")
 
 if __name__ == "__main__":
     # Example usage
-    refiner = Refiner(images_dir="dataset/imgs", labels_dir="dataset/labels")
+    refiner = Refiner(images_dir="imgs", labels_dir="labels")
 
     class_names = ["tomato", "onion", "garlic"]
 
     # Create YOLO dataset structure
-    refiner.create_yolo_dataset_yaml("dataset/dataset.yaml", class_names)
+    refiner.create_yolo_dataset_yaml("dataset.yaml", class_names)
 
     # Export to COCO for manual refinement in CVAT/Label Studio
-    refiner.export_to_coco("dataset/annotations.json", class_names)
+    refiner.export_to_coco("annotations.json", class_names)

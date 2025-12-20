@@ -3,18 +3,21 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
+import torch
 from autodistill.detection import CaptionOntology
 from autodistill_grounding_dino import GroundingDINO
 from PIL import Image
 from tqdm.rich import tqdm
 
+from model.utils.logger import setup_logger
+
 
 class GroundingDINOLabeler:
     def __init__(
         self,
-        source_dir: str = 'dataset/imgs',
-        output_dir: str = 'dataset/ingredients_dataset',
-        classes_file: Optional[str] = 'ingredients/out/classes.txt',
+        source_dir: str = 'imgs',
+        output_dir: str = 'ingredients_dataset',
+        classes_file: Optional[str] = '../../grouper/assets/classes.txt',
         train_split: float = 0.8,
         val_split: float = 0.15,
         test_split: float = 0.05,
@@ -24,8 +27,16 @@ class GroundingDINOLabeler:
         nms_iou_threshold: float = 0.45
     ):
 
-        self.source_dir = Path(source_dir)
-        self.output_dir = Path(output_dir)
+        source_path = Path(source_dir)
+        output_path = Path(output_dir)
+
+        if not source_path.is_absolute():
+            source_path = Path(__file__).parent / source_path
+        if not output_path.is_absolute():
+            output_path = Path(__file__).parent / output_path
+
+        self.source_dir = source_path
+        self.output_dir = output_path
         self.classes_file = classes_file
         self.train_split = train_split
         self.val_split = val_split
@@ -38,15 +49,39 @@ class GroundingDINOLabeler:
         # validate splits
         assert abs(train_split + val_split + test_split - 1.0) < 1e-6
 
-        self.class_names = []
+        self.class_names = None
         self.class_to_idx = {}
         self.base_model = None
+        self.logger = setup_logger(__name__, "auto_labeling.log")
 
     # Load class names from classes.txt
     def load_classes(self) -> List[str]:
-        if self.classes_file and Path(self.classes_file).exists():
-            with open(self.classes_file, 'r') as f:
-                return [line.strip() for line in f if line.strip()]
+        if not self.classes_file:
+            return []
+
+        classes_path = Path(self.classes_file)
+
+        # Handle relative paths
+        if not classes_path.is_absolute():
+            classes_path = Path(__file__).parent / classes_path
+
+        if not classes_path.exists():
+            self.logger.warning(f"Classes file not found at {classes_path}")
+            return []
+
+        if not classes_path.is_file():
+            self.logger.warning(f"Classes path exists but is not a file: {classes_path}")
+            return []
+
+        try:
+            with open(classes_path, 'r', encoding='utf-8') as f:
+                classes = [line.strip() for line in f if line.strip()]
+                if not classes:
+                    self.logger.warning(f"Classes file is empty: {classes_path}")
+                return classes
+        except Exception as e:
+            self.logger.error(f"Error reading classes file {classes_path}: {e}")
+            return []
 
     # Check if ingredient is a packaged product
     def is_packaged_product(self, ingredient: str) -> bool:
@@ -174,7 +209,12 @@ class GroundingDINOLabeler:
 
     # Get class mapping from classes.txt
     def get_class_mapping(self):
-        self.class_names = self.load_classes()
+        if self.class_names is None:
+            self.class_names = self.load_classes()
+
+        if not self.class_names:
+            raise ValueError("No class names available. Either provide a valid classes_file or set class_names directly.")
+
         self.class_to_idx = {name: idx for idx, name in enumerate(self.class_names)}
 
         return {name: name for name in self.class_names}
@@ -254,7 +294,7 @@ class GroundingDINOLabeler:
             return {'labels': yolo_labels, 'num_detections': len(yolo_labels), 'image_size': (img_width, img_height)}
 
         except Exception as e:
-            print(f"Error labeling image {image_path}: {e}")
+            self.logger.error(f"Error labeling image {image_path}: {e}")
             return None
 
     # Save labels in YOLO format
@@ -326,16 +366,25 @@ class GroundingDINOLabeler:
 
     # run the labeling
     def label_dataset(self):
-        print("-" * 60)
-        print("Auto-Labeling using Grounding DINO")
-        print("-" * 60)
-        print(f"Source dir: {self.source_dir}")
-        print(f"Output dir: {self.output_dir}")
-        print(f"Classes file: {self.classes_file}")
+        self.logger.info("Auto-Labeling using Grounding DINO")
+        self.logger.info(f"Source dir: {self.source_dir}")
+        self.logger.info(f"Output dir: {self.output_dir}")
+        self.logger.info(f"Classes file: {self.classes_file}")
 
         self.create_dir_structure()
-        folder_to_canonical = self.get_class_mapping()
-        print(f"Loaded {len(self.class_names)} classes from {self.classes_file}")
+
+        try:
+            folder_to_canonical = self.get_class_mapping()
+            if self.classes_file:
+                self.logger.info(f"Loaded {len(self.class_names)} classes from {self.classes_file}: {self.class_names}")
+            else:
+                self.logger.info(f"Using {len(self.class_names)} classes set directly")
+        except ValueError as e:
+            self.logger.error(f"Error: {e}")
+            self.logger.error("Please either:")
+            self.logger.error("1. Provide a valid classes_file path, or")
+            self.logger.error("2. Set class_names directly before calling label_dataset()")
+            return {'train': 0, 'val': 0, 'test': 0, 'skipped': 0, 'class_distribution': {}}
 
         # build ontology and init model
         ontology = self.build_ontology(self.class_names)
@@ -345,13 +394,11 @@ class GroundingDINOLabeler:
         total_stats = {'train': 0, 'val': 0, 'test': 0, 'skipped': 0, 'class_distribution': {name: 0 for name in self.class_names}}
 
         folders = [d.name for d  in self.source_dir.iterdir() if d.is_dir()]
-        print("-" * 60)
-        print(f"Processing {len(folders)} ingredient folders...")
-        print("-" * 60)
+        self.logger.info(f"Processing {len(folders)} ingredient folders...")
 
         for folder_name in tqdm(folders, desc="Processing folders"):
             if folder_name not in self.class_to_idx:
-                print(f"Skipping folder {folder_name} as it's not in classes.txt")
+                self.logger.warning(f"Skipping folder {folder_name} as it's not in classes.txt")
                 continue
 
             canonical_class = folder_name
@@ -368,28 +415,26 @@ class GroundingDINOLabeler:
         # Create config file
         self.create_data_yaml()
 
-        print("-" * 60)
-        print("Auto-labeling completed!!!!!!!!!!")
-        print("-" * 60)
-        print(f"Classes labeled: {len(self.class_names)}")
-        print(f"Train images: {total_stats['train']}")
-        print(f"Validation images: {total_stats['val']}")
-        print(f"Test images: {total_stats['test']}")
-        print(f"Skipped images (no detections): {total_stats['skipped']}")
-        print("Dataset YAML created at:", {self.output_dir.absolute()})
+        self.logger.info("Auto-labeling completed")
+        self.logger.info(f"Classes labeled: {len(self.class_names)}")
+        self.logger.info(f"Train images: {total_stats['train']}")
+        self.logger.info(f"Validation images: {total_stats['val']}")
+        self.logger.info(f"Test images: {total_stats['test']}")
+        self.logger.info(f"Skipped images (no detections): {total_stats['skipped']}")
+        self.logger.info(f"Dataset YAML created at: {self.output_dir.absolute()}")
 
         return total_stats
 
 def main():
-    import torch
-    print(f"CUDA available: {torch.cuda.is_available()}")
-    print(f"CUDA version: {torch.version.cuda}")
-    print(f"GPU device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None'}")
+    logger = setup_logger(__name__, "auto_labeling_main.log")
+    logger.info(f"CUDA available: {torch.cuda.is_available()}")
+    logger.info(f"CUDA version: {torch.version.cuda}")
+    logger.info(f"GPU device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None'}")
 
     labeler = GroundingDINOLabeler(
-        source_dir = Path('dataset/imgs'),
-        output_dir = Path('dataset/ingredients_dataset'),
-        classes_file = 'ingredients/out/classes.txt',
+        source_dir = Path(__file__).parent / 'imgs',
+        output_dir = Path(__file__).parent / 'ingredients_dataset',
+        classes_file = Path(__file__).parent.parent / 'ingredients' / 'out' / 'classes.txt',
         train_split = 0.8,
         val_split = 0.15,
         test_split = 0.05,
@@ -400,7 +445,7 @@ def main():
     )
 
     stats = labeler.label_dataset()
-    print("Final Stats:", stats)
+    logger.info(f"Final Stats: {stats}")
 
 if __name__ == "__main__":
     main()
