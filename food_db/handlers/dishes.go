@@ -99,10 +99,10 @@ type DishResponse struct {
 //	@Tags			dishes
 //	@Accept			json
 //	@Produce		json
-//	@Param			dish_id	path	string	true	"Dish UUID"
-//	@Success		200	{object}	DishResponse	"Dish details"
-//	@Failure		400	{string}	string			"Invalid dish ID"
-//	@Failure		500	{string}	string			"Server error"
+//	@Param			dish_id	path		string			true	"Dish UUID"
+//	@Success		200		{object}	DishResponse	"Dish details"
+//	@Failure		400		{string}	string			"Invalid dish ID"
+//	@Failure		500		{string}	string			"Server error"
 //	@Router			/dishes/{dish_id} [get]
 func get_dish(c echo.Context) (err error) {
 	dish_id := c.Param("dish_id")

@@ -33,6 +33,17 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING dish_id;
 
 -- ============ Ingredients
+-- name: Get_all_ingredients :many
+select * from ingredients;
+
+-- name: Get_one_ingredient :one
+select * from ingredients
+where ingredient_id = $1;
+
+-- name: Search_ingredients :many
+select * from ingredients
+where ingredient_name ILIKE $1;
+
 -- name: Upsert_ingredient :one
 INSERT INTO ingredients(
     ingredient_id, ingredient_name, date_created

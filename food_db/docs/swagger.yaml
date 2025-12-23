@@ -35,6 +35,15 @@ definitions:
         example: f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac
         type: string
     type: object
+  database.Ingredient:
+    properties:
+      date_created:
+        type: string
+      ingredient_id:
+        type: string
+      ingredient_name:
+        type: string
+    type: object
   dishes.DishResult:
     properties:
       alt_name:
@@ -302,6 +311,73 @@ paths:
       summary: Search dishes with filters and pagination
       tags:
       - dishes
+  /ingredients:
+    get:
+      description: Retrieve the full list of ingredients from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of ingredients
+          schema:
+            items:
+              $ref: '#/definitions/database.Ingredient'
+            type: array
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Get all ingredients
+      tags:
+      - ingredients
+  /ingredients/{ingredient_id}:
+    get:
+      description: Retrieve a single ingredient by its ID
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: ingredient_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingredient
+          schema:
+            $ref: '#/definitions/database.Ingredient'
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Get ingredient
+      tags:
+      - ingredients
+  /ingredients/search:
+    get:
+      description: Search ingredients by a query string
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of matching ingredients
+          schema:
+            items:
+              $ref: '#/definitions/database.Ingredient'
+            type: array
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Search ingredients
+      tags:
+      - ingredients
   /users/favorites:
     get:
       consumes:

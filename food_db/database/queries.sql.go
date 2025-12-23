@@ -129,6 +129,34 @@ func (q *Queries) Get_all_dishes(ctx context.Context) ([]Dish, error) {
 	return items, nil
 }
 
+const get_all_ingredients = `-- name: Get_all_ingredients :many
+select ingredient_id, ingredient_name, date_created from ingredients
+`
+
+// ============ Ingredients
+func (q *Queries) Get_all_ingredients(ctx context.Context) ([]Ingredient, error) {
+	rows, err := q.db.QueryContext(ctx, get_all_ingredients)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ingredient
+	for rows.Next() {
+		var i Ingredient
+		if err := rows.Scan(&i.IngredientID, &i.IngredientName, &i.DateCreated); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const get_dish = `-- name: Get_dish :one
 select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created from dishes
 where dish_id = $1
@@ -182,6 +210,18 @@ func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_fa
 		return nil, err
 	}
 	return items, nil
+}
+
+const get_one_ingredient = `-- name: Get_one_ingredient :one
+select ingredient_id, ingredient_name, date_created from ingredients
+where ingredient_id = $1
+`
+
+func (q *Queries) Get_one_ingredient(ctx context.Context, ingredientID uuid.UUID) (Ingredient, error) {
+	row := q.db.QueryRowContext(ctx, get_one_ingredient, ingredientID)
+	var i Ingredient
+	err := row.Scan(&i.IngredientID, &i.IngredientName, &i.DateCreated)
+	return i, err
 }
 
 const get_session = `-- name: Get_session :one
@@ -523,6 +563,34 @@ func (q *Queries) Search_dishes(ctx context.Context, arg Search_dishesParams) ([
 	return items, nil
 }
 
+const search_ingredients = `-- name: Search_ingredients :many
+select ingredient_id, ingredient_name, date_created from ingredients
+where ingredient_name ILIKE $1
+`
+
+func (q *Queries) Search_ingredients(ctx context.Context, ingredientName string) ([]Ingredient, error) {
+	rows, err := q.db.QueryContext(ctx, search_ingredients, ingredientName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ingredient
+	for rows.Next() {
+		var i Ingredient
+		if err := rows.Scan(&i.IngredientID, &i.IngredientName, &i.DateCreated); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateInfo = `-- name: UpdateInfo :exec
 INSERT INTO db_info (version, last_scraped)
 VALUES ($1, $2)
@@ -557,7 +625,6 @@ type Upsert_ingredientParams struct {
 	DateCreated    time.Time `json:"date_created"`
 }
 
-// ============ Ingredients
 func (q *Queries) Upsert_ingredient(ctx context.Context, arg Upsert_ingredientParams) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, upsert_ingredient, arg.IngredientID, arg.IngredientName, arg.DateCreated)
 	var ingredient_id uuid.UUID
