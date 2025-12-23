@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+
 	"github.com/google/uuid"
+	"golang.org/x/time/rate"
 
 	"github.com/labstack/echo/v4/middleware"
 
@@ -12,15 +14,20 @@ import (
 )
 
 const (
-	DishesGroup  string = "/dishes"
-	SearchPath   string = "/search"
-	DefaultLimit int    = 12
+	DishesGroup     string = "/dishes"
+	SearchPath      string = "/search"
+	DefaultLimit    int    = 12
+	DishesRateLimit int    = 10
 )
 
 func DishesRouter(api *echo.Group) (err error) {
-	group := api.Group(DishesGroup, middleware.RemoveTrailingSlash())
+	group := api.Group(DishesGroup,
+		middleware.RemoveTrailingSlash(),
+		middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(DishesRateLimit))),
+	)
 	group.GET(SearchPath, search_dishes)
 	group.GET("/:dish_id", get_dish)
+	group.POST("/suggestion", suggest_dish)
 	return
 }
 
@@ -72,14 +79,19 @@ func search_dishes(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, response)
 }
 
+// waiting api
+func suggest_dish(c echo.Context) (err error) {
+	return
+}
 
 type DishResponse struct {
-    DishID      uuid.UUID `json:"dish_id"`
-    DishName    string    `json:"dish_name"`
-    Course      string    `json:"course"`
-    AltName     *string   `json:"alt_name,omitempty"`
-    Description string    `json:"description"`
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Course      string    `json:"course"`
+	AltName     *string   `json:"alt_name,omitempty"`
+	Description string    `json:"description"`
 }
+
 // Get dish by ID
 //
 //	@Summary		Get dish details

@@ -27,6 +27,16 @@ func GetDish(ctx context.Context, dish_id string) (dish database.Dish, err error
 	return
 }
 
+type SuggestDishesParam struct {
+	IngredientId   string `json:"ingredient_id"`
+	IngredientName string `json:"ingredient_name"`
+}
+
+// waiting api
+func SuggestDishes(ctx context.Context, param SuggestDishesParam) (dishes []database.Dish, err error) {
+	return
+}
+
 type SearchDishParam struct {
 	Query          string   `query:"q"`
 	Courses        []string `query:"course"`
