@@ -45,15 +45,8 @@ type SearchDishParam struct {
 	Limit          int      `query:"limit"`
 	Page           int      `query:"page"`
 }
-type DishResult struct {
-	DishID      uuid.UUID `json:"dish_id"`
-	DishName    string    `json:"dish_name"`
-	Course      string    `json:"course"`
-	AltName     string    `json:"alt_name"`
-	Description string    `json:"description"`
-}
 
-func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, results []DishResult, err error) {
+func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, results []database.Dish, err error) {
 	rows, err := database.DB.Queries.Search_dishes(ctx, database.Search_dishesParams{
 		Query:          param.Query,
 		Courses:        param.Courses,
@@ -66,14 +59,14 @@ func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, resu
 		return 0, nil, err
 	}
 	if len(rows) == 0 {
-		return 0, []DishResult{}, nil
+		return 0, []database.Dish{}, nil
 	}
-	results = make([]DishResult, 0, len(rows))
+	results = make([]database.Dish, 0, len(rows))
 	for i, v := range rows {
 		if i == 0 {
 			matches = int(v.Matches)
 		}
-		results = append(results, DishResult{
+		results = append(results, database.Dish{
 			DishID:      v.DishID,
 			DishName:    v.DishName,
 			Course:      v.Course,

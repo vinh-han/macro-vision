@@ -8,11 +8,13 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-// TODO: some refactoring might be needed
 func AuthRouter(e *echo.Group) error {
-	group := e.Group(config.Auth.AuthGroup)
+	group := e.Group(config.Auth.AuthGroup,
+		middleware.RemoveTrailingSlash(),
+    )
 	group.POST(config.Auth.LoginPath, login)
 	group.GET(config.Auth.RegisterPath, signup)
 	group.GET(config.Auth.LogoutPath, logout)

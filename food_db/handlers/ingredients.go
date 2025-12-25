@@ -10,12 +10,11 @@ import (
 )
 
 const (
-	IngredientsGroup     string = "/ingredients"
 	IngredientsRateLimit int    = 10
 )
 
 func IngredientsRouter(api echo.Group) (err error) {
-	group := api.Group(IngredientsGroup,
+	group := api.Group("/ingredients",
 		middleware.RemoveTrailingSlash(),
 		middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(IngredientsRateLimit))),
 	)

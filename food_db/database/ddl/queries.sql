@@ -159,7 +159,7 @@ SELECT
     d.dish_id,
     d.dish_name,
     d.course,
-    COALESCE(d.alt_name, '') AS alt_name,
+    d.alt_name,
     d.description,
     COUNT(*) OVER () AS matches
 FROM dishes d

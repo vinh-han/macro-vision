@@ -763,7 +763,7 @@ SELECT
     d.dish_id,
     d.dish_name,
     d.course,
-    COALESCE(d.alt_name, '') AS alt_name,
+    d.alt_name,
     d.description,
     COUNT(*) OVER () AS matches
 FROM dishes d
@@ -791,12 +791,12 @@ type Search_dishesParams struct {
 }
 
 type Search_dishesRow struct {
-	DishID      uuid.UUID `json:"dish_id"`
-	DishName    string    `json:"dish_name"`
-	Course      string    `json:"course"`
-	AltName     string    `json:"alt_name"`
-	Description string    `json:"description"`
-	Matches     int64     `json:"matches"`
+	DishID      uuid.UUID      `json:"dish_id"`
+	DishName    string         `json:"dish_name"`
+	Course      string         `json:"course"`
+	AltName     sql.NullString `json:"alt_name"`
+	Description string         `json:"description"`
+	Matches     int64          `json:"matches"`
 }
 
 // DISHES --

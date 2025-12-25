@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"macro_vision/database"
 	"net/http"
 
-	"github.com/google/uuid"
 	"golang.org/x/time/rate"
 
 	"github.com/labstack/echo/v4/middleware"
@@ -14,29 +14,27 @@ import (
 )
 
 const (
-	DishesGroup     string = "/dishes"
-	SearchPath      string = "/search"
-	DefaultLimit    int    = 12
-	DishesRateLimit int    = 10
+	DefaultLimit    int = 12
+	DishesRateLimit int = 10
 )
 
 func DishesRouter(api *echo.Group) (err error) {
-	group := api.Group(DishesGroup,
+	group := api.Group("/dishes",
 		middleware.RemoveTrailingSlash(),
 		middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(DishesRateLimit))),
 	)
-	group.GET(SearchPath, search_dishes)
+	group.GET("/search", search_dishes)
 	group.GET("/:dish_id", get_dish)
 	group.POST("/suggestion", suggest_dish)
 	return
 }
 
 type SearchDishesResponse struct {
-	PageNumber   int                       `json:"page"`
-	Limit        int                       `json:"limit"`
-	TotalResults int                       `json:"total_results"`
-	TotalPages   int                       `json:"total_pages"`
-	Dishes       []dish_service.DishResult `json:"dishes"`
+	PageNumber   int             `json:"page"`
+	Limit        int             `json:"limit"`
+	TotalResults int             `json:"total_results"`
+	TotalPages   int             `json:"total_pages"`
+	Dishes       []database.Dish `json:"dishes"`
 }
 
 // Search dishes
@@ -84,14 +82,6 @@ func suggest_dish(c echo.Context) (err error) {
 	return
 }
 
-type DishResponse struct {
-	DishID      uuid.UUID `json:"dish_id"`
-	DishName    string    `json:"dish_name"`
-	Course      string    `json:"course"`
-	AltName     *string   `json:"alt_name,omitempty"`
-	Description string    `json:"description"`
-}
-
 // Get dish by ID
 //
 //	@Summary		Get dish details
@@ -100,7 +90,7 @@ type DishResponse struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			dish_id	path		string			true	"Dish UUID"
-//	@Success		200		{object}	DishResponse	"Dish details"
+//	@Success		200		{object}	database.Dish	"Dish details"
 //	@Failure		400		{string}	string			"Invalid dish ID"
 //	@Failure		500		{string}	string			"Server error"
 //	@Router			/dishes/{dish_id} [get]

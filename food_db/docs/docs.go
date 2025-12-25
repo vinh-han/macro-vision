@@ -246,7 +246,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Dish details",
                         "schema": {
-                            "$ref": "#/definitions/handlers.DishResponse"
+                            "$ref": "#/definitions/database.Dish"
                         }
                     },
                     "400": {
@@ -1324,50 +1324,10 @@ const docTemplate = `{
                 }
             }
         },
-        "dishes.DishResult": {
-            "type": "object",
-            "properties": {
-                "alt_name": {
-                    "type": "string"
-                },
-                "course": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "dish_id": {
-                    "type": "string"
-                },
-                "dish_name": {
-                    "type": "string"
-                }
-            }
-        },
         "echo.HTTPError": {
             "type": "object",
             "properties": {
                 "message": {}
-            }
-        },
-        "handlers.DishResponse": {
-            "type": "object",
-            "properties": {
-                "alt_name": {
-                    "type": "string"
-                },
-                "course": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "dish_id": {
-                    "type": "string"
-                },
-                "dish_name": {
-                    "type": "string"
-                }
             }
         },
         "handlers.EditUserResponse": {
@@ -1426,7 +1386,7 @@ const docTemplate = `{
                 "dishes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dishes.DishResult"
+                        "$ref": "#/definitions/database.Dish"
                     }
                 },
                 "limit": {

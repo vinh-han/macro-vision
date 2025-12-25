@@ -76,35 +76,9 @@ definitions:
       user_id:
         type: string
     type: object
-  dishes.DishResult:
-    properties:
-      alt_name:
-        type: string
-      course:
-        type: string
-      description:
-        type: string
-      dish_id:
-        type: string
-      dish_name:
-        type: string
-    type: object
   echo.HTTPError:
     properties:
       message: {}
-    type: object
-  handlers.DishResponse:
-    properties:
-      alt_name:
-        type: string
-      course:
-        type: string
-      description:
-        type: string
-      dish_id:
-        type: string
-      dish_name:
-        type: string
     type: object
   handlers.EditUserResponse:
     properties:
@@ -144,7 +118,7 @@ definitions:
     properties:
       dishes:
         items:
-          $ref: '#/definitions/dishes.DishResult'
+          $ref: '#/definitions/database.Dish'
         type: array
       limit:
         type: integer
@@ -332,7 +306,7 @@ paths:
         "200":
           description: Dish details
           schema:
-            $ref: '#/definitions/handlers.DishResponse'
+            $ref: '#/definitions/database.Dish'
         "400":
           description: Invalid dish ID
           schema:
