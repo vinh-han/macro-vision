@@ -22,8 +22,9 @@ const (
 )
 
 func UsersRouter(e *echo.Group) error {
-	group := e.Group(UsersGroup, middleware.RemoveTrailingSlash(), middleware.KeyAuthWithConfig(
-		custom_middleware.Auth_config),
+	group := e.Group(UsersGroup,
+		middleware.RemoveTrailingSlash(),
+		middleware.KeyAuthWithConfig(custom_middleware.Auth_config),
 	)
 	group.GET(UserInfoPath, get_user)
 	group.PATCH(UserInfoPath, edit_user)

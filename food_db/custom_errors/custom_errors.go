@@ -24,4 +24,5 @@ var (
 	LinkSaveFailed            = errors.New("failed when saving a course.")
 	TokenGenFailed            = errors.New("token generation failed")
 	PasswordGenFailed         = errors.New("failed to generate password")
+	UnauthorizedOperation     = errors.New("This user is not permitted to operate on this resource")
 )

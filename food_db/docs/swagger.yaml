@@ -35,6 +35,25 @@ definitions:
         example: f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac
         type: string
     type: object
+  database.Dish:
+    properties:
+      alt_name:
+        $ref: '#/definitions/sql.NullString'
+      course:
+        type: string
+      date_created:
+        type: string
+      description:
+        type: string
+      dish_id:
+        type: string
+      dish_name:
+        type: string
+      full_recipe:
+        type: string
+      source:
+        type: string
+    type: object
   database.Ingredient:
     properties:
       date_created:
@@ -42,6 +61,19 @@ definitions:
       ingredient_id:
         type: string
       ingredient_name:
+        type: string
+    type: object
+  database.MealCard:
+    properties:
+      card_id:
+        type: string
+      date_created:
+        type: string
+      meal_date:
+        type: string
+      title:
+        type: string
+      user_id:
         type: string
     type: object
   dishes.DishResult:
@@ -56,6 +88,10 @@ definitions:
         type: string
       dish_name:
         type: string
+    type: object
+  echo.HTTPError:
+    properties:
+      message: {}
     type: object
   handlers.DishResponse:
     properties:
@@ -118,6 +154,55 @@ definitions:
         type: integer
       total_results:
         type: integer
+    type: object
+  mealcards.AddDishToCardParam:
+    properties:
+      card_id:
+        type: string
+      dish_id:
+        type: string
+    type: object
+  mealcards.CreateMealCardParam:
+    properties:
+      dishes:
+        items:
+          type: string
+        type: array
+      meal_date:
+        type: string
+      title:
+        type: string
+    type: object
+  mealcards.MealCardDish:
+    properties:
+      dishes:
+        items:
+          $ref: '#/definitions/database.Dish'
+        type: array
+      mealCard:
+        $ref: '#/definitions/database.MealCard'
+    type: object
+  mealcards.RemoveDishFromCardParam:
+    properties:
+      card_id:
+        type: string
+      dish_id:
+        type: string
+    type: object
+  mealcards.UpdateMealCardParam:
+    properties:
+      meal_date:
+        type: string
+      title:
+        type: string
+    type: object
+  sql.NullString:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
+        type: boolean
     type: object
   users.ChangePasswordParam:
     properties:
@@ -378,6 +463,321 @@ paths:
       summary: Search ingredients
       tags:
       - ingredients
+  /meal-cards:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a meal card belonging to the authenticated user.
+      parameters:
+      - description: Meal card ID (UUID)
+        in: query
+        name: card_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request or unauthorized operation
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Meal card not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Remove meal card
+      tags:
+      - meal-cards
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a meal card and its dishes belonging to the authenticated
+        user.
+      parameters:
+      - description: Meal card ID (UUID)
+        in: query
+        name: card_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mealcards.MealCardDish'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Meal card not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Get meal card with dishes
+      tags:
+      - meal-cards
+    post:
+      consumes:
+      - application/json
+      description: Create a new meal card for the authenticated user.
+      parameters:
+      - description: Meal card payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mealcards.CreateMealCardParam'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: new card uuid
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Create meal card
+      tags:
+      - meal-cards
+    put:
+      consumes:
+      - application/json
+      description: Update meal card information belonging to the authenticated user.
+      parameters:
+      - description: Updated meal card payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mealcards.UpdateMealCardParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mealcards.MealCardDish'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Meal card not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Update meal card
+      tags:
+      - meal-cards
+  /meal-cards/daily:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all meal cards for a specific day belonging to the authenticated
+        user.
+      parameters:
+      - description: Meal date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.MealCard'
+            type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: No meal cards found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Get daily meal cards
+      tags:
+      - meal-cards
+  /meal-cards/dishes:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a dish from a meal card belonging to the authenticated user.
+      parameters:
+      - description: Remove dish from meal card payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mealcards.RemoveDishFromCardParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request or unauthorized operation
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Meal card or dish not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Remove dish from meal card
+      tags:
+      - meal-cards
+    post:
+      consumes:
+      - application/json
+      description: Add a dish to a meal card belonging to the authenticated user.
+      parameters:
+      - description: Add dish to meal card payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mealcards.AddDishToCardParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request or unauthorized operation
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Meal card or dish not found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Add dish to meal card
+      tags:
+      - meal-cards
+  /meal-cards/monthly:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all meal cards for the month of the given date belonging
+        to the authenticated user. The day portion of the date is ignored.
+      parameters:
+      - description: Reference date (YYYY-MM-DD); day is ignored
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.MealCard'
+            type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: No meal cards found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      security:
+      - BasicAuth: []
+      summary: Get monthly meal cards
+      tags:
+      - meal-cards
   /users/favorites:
     get:
       consumes:

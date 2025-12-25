@@ -179,3 +179,68 @@ LIMIT sqlc.arg(return_limit)::int offset sqlc.arg(offset_value)::int ;
 -- name: Get_dish :one
 select * from dishes
 where dish_id = $1;
+
+-- Meal cards --
+
+-- name: Get_meal_cards_daily :many
+select * from meal_cards
+WHERE meal_date >= $1
+  AND meal_date <  $1 + INTERVAL '1 day'
+  and user_id=$2;
+
+-- name: Get_meal_cards_monthly :many
+SELECT *
+FROM meal_cards
+WHERE meal_date >= date_trunc('month', $1::timestamptz)
+  AND meal_date <  date_trunc('month', $1::timestamptz) + INTERVAL '1 month'
+  and user_id=$2;
+
+-- name: Get_card_with_id :one
+select * from meal_cards
+where card_id = $1 and user_id=$2;
+
+-- name: Get_dishes_in_meal_card :many
+select *
+from dishes d
+join meal_cards_dishes mcd on mcd.dish_id = d.dish_id
+where mcd.card_id = $1;
+
+-- name: Update_meal_card_info :one
+update meal_cards
+set title= $3, meal_date=$4
+where card_id=$1 and user_id=$2
+returning *;
+
+-- name: Add_dish_to_card :one
+insert into meal_cards_dishes(card_id, dish_id)
+values($1, $2)
+on conflict do nothing
+returning card_id;
+
+-- name: Remove_dish_from_card :one
+delete from meal_cards_dishes
+where card_id=$1 and dish_id=$2
+returning card_id;
+
+-- name: Create_meal_card :one
+insert into meal_cards(
+    card_id,
+    user_id,
+    title,
+    meal_date,
+    date_created
+)
+values($1, $2, $3, $4, $5)
+returning *;
+
+-- name: Remove_card :one
+delete from meal_cards
+where card_id = $1 and user_id = $2
+returning card_id;
+
+-- name: Add_dishes_to_card :exec
+INSERT INTO meal_cards_dishes (card_id, dish_id)
+SELECT
+    $1,
+    unnest($2::uuid[])
+ON CONFLICT DO NOTHING;

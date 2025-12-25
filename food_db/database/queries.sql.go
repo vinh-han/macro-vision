@@ -14,6 +14,43 @@ import (
 	"github.com/lib/pq"
 )
 
+const add_dish_to_card = `-- name: Add_dish_to_card :one
+insert into meal_cards_dishes(card_id, dish_id)
+values($1, $2)
+on conflict do nothing
+returning card_id
+`
+
+type Add_dish_to_cardParams struct {
+	CardID uuid.UUID `json:"card_id"`
+	DishID uuid.UUID `json:"dish_id"`
+}
+
+func (q *Queries) Add_dish_to_card(ctx context.Context, arg Add_dish_to_cardParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, add_dish_to_card, arg.CardID, arg.DishID)
+	var card_id uuid.UUID
+	err := row.Scan(&card_id)
+	return card_id, err
+}
+
+const add_dishes_to_card = `-- name: Add_dishes_to_card :exec
+INSERT INTO meal_cards_dishes (card_id, dish_id)
+SELECT
+    $1,
+    unnest($2::uuid[])
+ON CONFLICT DO NOTHING
+`
+
+type Add_dishes_to_cardParams struct {
+	CardID  uuid.UUID   `json:"card_id"`
+	Column2 []uuid.UUID `json:"column_2"`
+}
+
+func (q *Queries) Add_dishes_to_card(ctx context.Context, arg Add_dishes_to_cardParams) error {
+	_, err := q.db.ExecContext(ctx, add_dishes_to_card, arg.CardID, pq.Array(arg.Column2))
+	return err
+}
+
 const add_favorites = `-- name: Add_favorites :one
 insert into favorites(
     user_id,
@@ -51,6 +88,45 @@ type Change_passwordParams struct {
 func (q *Queries) Change_password(ctx context.Context, arg Change_passwordParams) error {
 	_, err := q.db.ExecContext(ctx, change_password, arg.UserID, arg.PasswordHash)
 	return err
+}
+
+const create_meal_card = `-- name: Create_meal_card :one
+insert into meal_cards(
+    card_id,
+    user_id,
+    title,
+    meal_date,
+    date_created
+)
+values($1, $2, $3, $4, $5)
+returning card_id, user_id, title, meal_date, date_created
+`
+
+type Create_meal_cardParams struct {
+	CardID      uuid.UUID `json:"card_id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Title       string    `json:"title"`
+	MealDate    time.Time `json:"meal_date"`
+	DateCreated time.Time `json:"date_created"`
+}
+
+func (q *Queries) Create_meal_card(ctx context.Context, arg Create_meal_cardParams) (MealCard, error) {
+	row := q.db.QueryRowContext(ctx, create_meal_card,
+		arg.CardID,
+		arg.UserID,
+		arg.Title,
+		arg.MealDate,
+		arg.DateCreated,
+	)
+	var i MealCard
+	err := row.Scan(
+		&i.CardID,
+		&i.UserID,
+		&i.Title,
+		&i.MealDate,
+		&i.DateCreated,
+	)
+	return i, err
 }
 
 const edit_user = `-- name: Edit_user :one
@@ -157,6 +233,29 @@ func (q *Queries) Get_all_ingredients(ctx context.Context) ([]Ingredient, error)
 	return items, nil
 }
 
+const get_card_with_id = `-- name: Get_card_with_id :one
+select card_id, user_id, title, meal_date, date_created from meal_cards
+where card_id = $1 and user_id=$2
+`
+
+type Get_card_with_idParams struct {
+	CardID uuid.UUID `json:"card_id"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) Get_card_with_id(ctx context.Context, arg Get_card_with_idParams) (MealCard, error) {
+	row := q.db.QueryRowContext(ctx, get_card_with_id, arg.CardID, arg.UserID)
+	var i MealCard
+	err := row.Scan(
+		&i.CardID,
+		&i.UserID,
+		&i.Title,
+		&i.MealDate,
+		&i.DateCreated,
+	)
+	return i, err
+}
+
 const get_dish = `-- name: Get_dish :one
 select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created from dishes
 where dish_id = $1
@@ -176,6 +275,60 @@ func (q *Queries) Get_dish(ctx context.Context, dishID uuid.UUID) (Dish, error) 
 		&i.DateCreated,
 	)
 	return i, err
+}
+
+const get_dishes_in_meal_card = `-- name: Get_dishes_in_meal_card :many
+select d.dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created, card_id, mcd.dish_id
+from dishes d
+join meal_cards_dishes mcd on mcd.dish_id = d.dish_id
+where mcd.card_id = $1
+`
+
+type Get_dishes_in_meal_cardRow struct {
+	DishID      uuid.UUID      `json:"dish_id"`
+	DishName    string         `json:"dish_name"`
+	Course      string         `json:"course"`
+	AltName     sql.NullString `json:"alt_name"`
+	FullRecipe  string         `json:"full_recipe"`
+	Source      string         `json:"source"`
+	Description string         `json:"description"`
+	DateCreated time.Time      `json:"date_created"`
+	CardID      uuid.UUID      `json:"card_id"`
+	DishID_2    uuid.UUID      `json:"dish_id_2"`
+}
+
+func (q *Queries) Get_dishes_in_meal_card(ctx context.Context, cardID uuid.UUID) ([]Get_dishes_in_meal_cardRow, error) {
+	rows, err := q.db.QueryContext(ctx, get_dishes_in_meal_card, cardID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Get_dishes_in_meal_cardRow
+	for rows.Next() {
+		var i Get_dishes_in_meal_cardRow
+		if err := rows.Scan(
+			&i.DishID,
+			&i.DishName,
+			&i.Course,
+			&i.AltName,
+			&i.FullRecipe,
+			&i.Source,
+			&i.Description,
+			&i.DateCreated,
+			&i.CardID,
+			&i.DishID_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const get_favorites = `-- name: Get_favorites :many
@@ -199,6 +352,91 @@ func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_fa
 	for rows.Next() {
 		var i Get_favoritesRow
 		if err := rows.Scan(&i.DishID, &i.DishName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const get_meal_cards_daily = `-- name: Get_meal_cards_daily :many
+
+select card_id, user_id, title, meal_date, date_created from meal_cards
+WHERE meal_date >= $1
+  AND meal_date <  $1 + INTERVAL '1 day'
+  and user_id=$2
+`
+
+type Get_meal_cards_dailyParams struct {
+	MealDate time.Time `json:"meal_date"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+// Meal cards --
+func (q *Queries) Get_meal_cards_daily(ctx context.Context, arg Get_meal_cards_dailyParams) ([]MealCard, error) {
+	rows, err := q.db.QueryContext(ctx, get_meal_cards_daily, arg.MealDate, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MealCard
+	for rows.Next() {
+		var i MealCard
+		if err := rows.Scan(
+			&i.CardID,
+			&i.UserID,
+			&i.Title,
+			&i.MealDate,
+			&i.DateCreated,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const get_meal_cards_monthly = `-- name: Get_meal_cards_monthly :many
+SELECT card_id, user_id, title, meal_date, date_created
+FROM meal_cards
+WHERE meal_date >= date_trunc('month', $1::timestamptz)
+  AND meal_date <  date_trunc('month', $1::timestamptz) + INTERVAL '1 month'
+  and user_id=$2
+`
+
+type Get_meal_cards_monthlyParams struct {
+	Column1 time.Time `json:"column_1"`
+	UserID  uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) Get_meal_cards_monthly(ctx context.Context, arg Get_meal_cards_monthlyParams) ([]MealCard, error) {
+	rows, err := q.db.QueryContext(ctx, get_meal_cards_monthly, arg.Column1, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MealCard
+	for rows.Next() {
+		var i MealCard
+		if err := rows.Scan(
+			&i.CardID,
+			&i.UserID,
+			&i.Title,
+			&i.MealDate,
+			&i.DateCreated,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -455,6 +693,42 @@ func (q *Queries) Insert_user(ctx context.Context, arg Insert_userParams) (uuid.
 	return user_id, err
 }
 
+const remove_card = `-- name: Remove_card :one
+delete from meal_cards
+where card_id = $1 and user_id = $2
+returning card_id
+`
+
+type Remove_cardParams struct {
+	CardID uuid.UUID `json:"card_id"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) Remove_card(ctx context.Context, arg Remove_cardParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, remove_card, arg.CardID, arg.UserID)
+	var card_id uuid.UUID
+	err := row.Scan(&card_id)
+	return card_id, err
+}
+
+const remove_dish_from_card = `-- name: Remove_dish_from_card :one
+delete from meal_cards_dishes
+where card_id=$1 and dish_id=$2
+returning card_id
+`
+
+type Remove_dish_from_cardParams struct {
+	CardID uuid.UUID `json:"card_id"`
+	DishID uuid.UUID `json:"dish_id"`
+}
+
+func (q *Queries) Remove_dish_from_card(ctx context.Context, arg Remove_dish_from_cardParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, remove_dish_from_card, arg.CardID, arg.DishID)
+	var card_id uuid.UUID
+	err := row.Scan(&card_id)
+	return card_id, err
+}
+
 const remove_favorite = `-- name: Remove_favorite :one
 DELETE FROM favorites
 WHERE user_id = $1 AND dish_id = $2
@@ -608,6 +882,38 @@ type UpdateInfoParams struct {
 func (q *Queries) UpdateInfo(ctx context.Context, arg UpdateInfoParams) error {
 	_, err := q.db.ExecContext(ctx, updateInfo, arg.Version, arg.LastScraped)
 	return err
+}
+
+const update_meal_card_info = `-- name: Update_meal_card_info :one
+update meal_cards
+set title= $3, meal_date=$4
+where card_id=$1 and user_id=$2
+returning card_id, user_id, title, meal_date, date_created
+`
+
+type Update_meal_card_infoParams struct {
+	CardID   uuid.UUID `json:"card_id"`
+	UserID   uuid.UUID `json:"user_id"`
+	Title    string    `json:"title"`
+	MealDate time.Time `json:"meal_date"`
+}
+
+func (q *Queries) Update_meal_card_info(ctx context.Context, arg Update_meal_card_infoParams) (MealCard, error) {
+	row := q.db.QueryRowContext(ctx, update_meal_card_info,
+		arg.CardID,
+		arg.UserID,
+		arg.Title,
+		arg.MealDate,
+	)
+	var i MealCard
+	err := row.Scan(
+		&i.CardID,
+		&i.UserID,
+		&i.Title,
+		&i.MealDate,
+		&i.DateCreated,
+	)
+	return i, err
 }
 
 const upsert_ingredient = `-- name: Upsert_ingredient :one
