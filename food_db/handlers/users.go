@@ -56,6 +56,7 @@ type GetUserResponse struct {
 //	@Failure		401	{string}	string			"no auth token found"
 //	@Failure		403	{string}	string			"Invalid token"
 //	@Failure		500	{string}	string			"Server Error"
+//	@Security		BasicAuth
 func get_user(c echo.Context) (err error) {
 	user, ok := c.Get("user").(database.User)
 	if !ok {
@@ -91,6 +92,7 @@ type EditUserResponse struct {
 //	@Failure		403	{string}	string				"Invalid token"
 //	@Failure		400	{string}	string				"Invalid input"
 //	@Failure		500	{string}	string				"Server Error"
+//	@Security		BasicAuth
 func edit_user(c echo.Context) (err error) {
 	user, ok := c.Get("user").(database.User)
 	if !ok {
@@ -130,6 +132,7 @@ type Favorites struct {
 //	@Failure		401	{string}	string		"no auth token found"
 //	@Failure		403	{string}	string		"Invalid token"
 //	@Failure		500	{string}	string		"Server Error"
+//	@Security		BasicAuth
 func get_favorites(c echo.Context) (err error) {
 	user, ok := c.Get("user").(database.User)
 	if !ok {
@@ -159,6 +162,7 @@ func get_favorites(c echo.Context) (err error) {
 //	@Failure		401	{string}	string	"no auth token found"
 //	@Failure		403	{string}	string	"Invalid token"
 //	@Failure		500	{string}	string	"Server Error"
+//	@Security		BasicAuth
 func add_favorites(c echo.Context) (err error) {
 	user, ok := c.Get("user").(database.User)
 	if !ok {
@@ -197,6 +201,7 @@ type RemoveFavoriteResponse struct {
 //	@Failure		401	{string}	string					"no auth token found"
 //	@Failure		403	{string}	string					"Invalid token"
 //	@Failure		500	{string}	string					"Server Error"
+//	@Security		BasicAuth
 func remove_favorite(c echo.Context) (err error) {
 	user, ok := c.Get("user").(database.User)
 	if !ok {
@@ -231,6 +236,7 @@ func remove_favorite(c echo.Context) (err error) {
 //	@Failure		401	{string}	string	"No auth token found"
 //	@Failure		403	{string}	string	"Invalid token"
 //	@Failure		500	{string}	string	"Server Error"
+//	@Security		BasicAuth
 func change_password(c echo.Context) (err error) {
 	user, ok := c.Get("user").(database.User)
 	if !ok {

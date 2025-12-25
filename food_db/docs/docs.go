@@ -856,6 +856,11 @@ const docTemplate = `{
         },
         "/users/favorites": {
             "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Get the user id from the received session token, then query and return the list of user’s favorite dishes.",
                 "consumes": [
                     "application/json"
@@ -909,6 +914,11 @@ const docTemplate = `{
         },
         "/users/favorites/{dish_id}": {
             "delete": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Extract the user session from the provided token, validate the dish ID (UUIDv4),\nthen remove the dish from the user’s favorites list.",
                 "consumes": [
                     "application/json"
@@ -970,6 +980,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Extract the user session from the provided token, validate the dish ID (UUIDv4),\nthen insert the dish into the user’s favorites list.",
                 "consumes": [
                     "application/json"
@@ -1033,6 +1048,11 @@ const docTemplate = `{
         },
         "/users/information": {
             "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Get the user id from the received session token, then query and return with the corresponding user’s information (except password)",
                 "consumes": [
                     "application/json"
@@ -1082,6 +1102,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Get the user id from the received session token, then query and return with the corresponding user’s information (except password)",
                 "consumes": [
                     "application/json"
@@ -1147,6 +1172,11 @@ const docTemplate = `{
         },
         "/users/password": {
             "patch": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Extracts the user session from the provided token, validates the request body,\nthen updates the user's password.",
                 "consumes": [
                     "application/json"

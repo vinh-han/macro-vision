@@ -785,6 +785,8 @@ paths:
           description: Server Error
           schema:
             type: string
+      security:
+      - BasicAuth: []
       summary: get_info
       tags:
       - users
@@ -829,6 +831,8 @@ paths:
           description: Server Error
           schema:
             type: string
+      security:
+      - BasicAuth: []
       summary: remove_favorite
       tags:
       - users
@@ -872,6 +876,8 @@ paths:
           description: Server Error
           schema:
             type: string
+      security:
+      - BasicAuth: []
       summary: add_favorite
       tags:
       - users
@@ -907,6 +913,8 @@ paths:
           description: Server Error
           schema:
             type: string
+      security:
+      - BasicAuth: []
       summary: get_info
       tags:
       - users
@@ -950,6 +958,8 @@ paths:
           description: Server Error
           schema:
             type: string
+      security:
+      - BasicAuth: []
       summary: edit_info
       tags:
       - users
@@ -993,6 +1003,8 @@ paths:
           description: Server Error
           schema:
             type: string
+      security:
+      - BasicAuth: []
       summary: change_password
       tags:
       - users
