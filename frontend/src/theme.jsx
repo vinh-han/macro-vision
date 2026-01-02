@@ -6,6 +6,7 @@ const config = defineConfig({
       colors: {
         crimsonred: {
           "500": { value: "#ab3841" },
+          "600": { value: "#983139" }
         },
       },
     },

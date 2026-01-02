@@ -1,11 +1,46 @@
-import { Box, Text } from '@chakra-ui/react'
+import { Box, Text, Field, Input, Button } from '@chakra-ui/react'
+import { useNavigate } from 'react-router'
 
 export default function Login() {
+    let navigate = useNavigate();
     return (
         <Box background="crimsonred.500" width="100%" height="100vh" color="white">
-            <Text textStyle={[ "sm", "md", "lg", "xl" ]}>
-                Hii~
-            </Text>
+            <Box paddingX="55px" position="relative" top="50%" transform="auto" translateY="-60%">
+                <Text textAlign="center" fontWeight="semi" fontSize="30px">Welcome Back!</Text>
+                <Box 
+                    bgColor="crimsonred.600" 
+                    marginTop="20px" 
+                    paddingX="20px" 
+                    paddingY="20px"
+                    rounded="10px"
+                    boxSizing="border-box">
+                    <Field.Root required>
+                        <Field.Label fontSize="17px">
+                            Username <Field.RequiredIndicator />
+                        </Field.Label>
+                        <Input marginTop="2px" placeholder="username123" variant="subtle" rounded="8px" fontSize="15px" color="black" />
+                    </Field.Root>
+                    <Field.Root required marginTop="20px">
+                        <Field.Label fontSize="17px">
+                            Password <Field.RequiredIndicator />
+                        </Field.Label>
+                        <Input type="password" marginTop="2px" placeholder="password123" variant="subtle" rounded="8px" fontSize="15px" color="black"/>
+                    </Field.Root>
+                    <Text marginTop="10px" textAlign="right" textDecoration="underline">Forgot Password?</Text>
+                    <Button type="submit" marginTop="40px" width="100%" rounded="15px" fontSize="18px" >Log In</Button>
+                </Box>
+            </Box>
+            <Text 
+                textAlign="center" 
+                textDecoration="underline" 
+                position="absolute" 
+                left="50%" 
+                bottom="15%" 
+                transform="auto" 
+                translateX="-50%" 
+                textWrap="nowrap"
+                cursor="pointer"
+                onClick={() => navigate("/signup")}>Don't have an account yet? Sign up</Text>
         </Box>
     )
 }
