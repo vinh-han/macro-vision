@@ -7,7 +7,7 @@ import AppLayout from './layouts/AppLayout';
 //import public pages 
 import Guide from './pages/guide/Guide';
 import Login from './pages/auth/Login';
-import Signup from './pages/auth/Signup';
+import Signup from './pages/auth/Signup';   
 
 // import app pages 
 import HomePage from './pages/app/Homepage';
