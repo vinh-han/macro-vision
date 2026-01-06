@@ -1,9 +1,9 @@
-import { Button, HStack } from "@chakra-ui/react"
+import { Button, HStack, Heading } from "@chakra-ui/react"
 
 export default function HomePage() {
     return (
         <div>
-            <h1>Home Page</h1>
+            <Heading as="h1">Home Page</Heading>
             <HStack>
             <Button>Click me</Button>
             <Button>Click me</Button>

@@ -1,4 +1,4 @@
-import { HStack, Box } from "@chakra-ui/react"
+import { HStack,StackSeparator, Box } from "@chakra-ui/react"
 import NavButton from "./NavButton"
 
 const NavItems = [
@@ -12,16 +12,17 @@ const NavItems = [
 export default function NavBar() {
     return (
         <Box>
-        <HStack gap="10">
-            {NavItems.map((item) => (
-                <NavButton 
-                    key={item.PathName}
-                    IconName = {item.IconName}
-                    PathName = {item.PathName}
-                    Path = {item.Path}
-                />
-            ))}
-        </HStack>
+            <HStack gap={{base: "3.5em", md:"5.5em", lg: "7.5em"}} >
+                {NavItems.map((item) => (
+                    <NavButton 
+                        key={item.PathName}
+                        IconName = {item.IconName}
+                        PathName = {item.PathName}
+                        Path = {item.Path}
+                        h= "0.5em"
+                    />
+                ))}
+            </HStack>
         </Box>
     )
 }

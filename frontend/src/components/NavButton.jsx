@@ -1,24 +1,25 @@
-import { Text, Icon, VStack } from "@chakra-ui/react";
+import { Text, Icon, VStack, Box } from "@chakra-ui/react";
 import { NavLink } from "react-router";
 
 
 export default function NavButton({IconName, PathName, Path}) {
 
     return (
-        <NavLink to={Path} end>
+        <NavLink to={Path} end >
         {({ isActive }) => (
-            <VStack >
+            <VStack>
                 <Icon   
-                    color={isActive ? "#AB3841" : "gray.600"}
-                    fontSize="xl"
+                    color={isActive ? "crimsonred.500" : "gray.600"}
+                    fontSize="3xl"
                 > 
                     <i className={IconName}></i>
                 </Icon>
 
                 <Text 
                     display={{base: "none", md: "block"}}
-                    color={isActive ? "#AB3841" : "gray.600"} 
+                    color={isActive ?  "crimsonred.500" : "gray.600"} 
                     fontWeight={isActive ? "bold" : "normal"}
+                    fontSize="sm"
                 >
                     {PathName}
                 </Text>
