@@ -3,7 +3,6 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
 export default function Login() {
-    let [formValue, ]
     let navigate = useNavigate();
     return (
         <Box

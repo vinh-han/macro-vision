@@ -1,5 +1,5 @@
 import { Box, Image, SimpleGrid, Text, Center, Button } from "@chakra-ui/react"
-import Logo from "../../assets/images/LogoVertical_bareWhite.png"
+import Logo from "../../assets/images/LogoVertical_bareWhite.svg"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router";
 

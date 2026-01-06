@@ -1,13 +1,17 @@
-import { Button, HStack, Heading } from "@chakra-ui/react"
-
+import { Button, HStack, Heading, Box, Image, Container   } from "@chakra-ui/react"
+import Logo from "../../assets/images/LogoHorizontal.svg"
 export default function HomePage() {
     return (
-        <div>
-            <Heading as="h1">Home Page</Heading>
-            <HStack>
-            <Button>Click me</Button>
-            <Button>Click me</Button>
-            </HStack>
-        </div>
+        <Container centerContent>
+            {/* Logo */}
+            <Box >
+                <Image src={Logo}  height="3rem" m="30px" ></Image>
+            </Box>
+
+            {/* Today meal cards area */}
+
+
+            {/* Popular dishes area  */}
+        </Container>
     )
 }

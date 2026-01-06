@@ -1,3 +1,6 @@
+import {Box, Button, Text, SimpleGrid, Center} from "@chakra-ui/react"
+import IngredientCard from "../../components/IngredientCard"
+
 export default function IngredientInputPage() {
     return (
         <>
