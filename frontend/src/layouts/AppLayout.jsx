@@ -12,13 +12,13 @@ export default function AppLayout() {
                 </Container>
             </Box>
             {/* Bottom nav bar area */}
-            <Box as="nav" position="fixed" zIndex={1} bottom="0" left="0" right="0"  
+            <Box display="flex" alignItems="center" as="nav" position="fixed" zIndex={1} bottom="0" left="0" right="0"  
                 p="1em" 
-                h="10vh"
+                minH="10vh"
                 borderTopWidth="1px"
                 borderTopColor="gray.300"
                 bg="white">
-                <Container h="100%" centerContent="true" justifyContent="center">
+                <Container centerContent="true">
                     <NavBar/>
                 </Container>
             </Box>
