@@ -1,4 +1,4 @@
-FROM node:22.21.1-alpine3.21 AS main
+FROM node:lts-alpine AS main
 WORKDIR /frontend
 COPY package.json package-lock.json ./
 RUN npm install

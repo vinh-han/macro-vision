@@ -10,11 +10,11 @@ import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';   
 
 // import app pages 
-import HomePage from './pages/app/Homepage';
+import HomePage from './pages/app/HomePage';
 import SearchPage from './pages/app/SearchPage';
 import IngredientInputPage from './pages/app/IngredientInput';
 import AddToMealPlanPage from './pages/app/AddToMealPlanPage';
-import RecipeInfoPage from './pages/app/RecipeInfoPage';
+import DishInfoPage from './pages/app/DishInfoPage';
 import MealPlannerPage from './pages/app/MealPlannerPage';
 import MealCardPage from './pages/app/MealCardPage';
 import ProfilePage from './pages/app/ProfilePage';
@@ -36,7 +36,7 @@ export const router = createBrowserRouter(
                 <Route path="search" element={<SearchPage />} />
                 <Route path="ingredient-input" element={<IngredientInputPage />} />
                 <Route path="add-to-meal-plan" element={<AddToMealPlanPage />} />
-                <Route path="recipe" element={<RecipeInfoPage />} />
+                <Route path="dish" element={<DishInfoPage />} />
                 <Route path="meal-planner" element={<MealPlannerPage/>} />
                 <Route path="meal-card" element={<MealCardPage />} />
                 <Route path="profile" element={<ProfilePage />} />
