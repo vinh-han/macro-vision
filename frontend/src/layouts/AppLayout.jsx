@@ -6,7 +6,7 @@ export default function AppLayout() {
     return (
         <Box>
             {/* Main content area */}
-            <Box bg="red.200" as="main" minH="90vh">
+            <Box as="main" minH="90vh">
                 <Outlet></Outlet>
             </Box>
             {/* Bottom nav bar area */}
@@ -14,7 +14,7 @@ export default function AppLayout() {
                 p="1em" 
                 minH="10vh"
                 borderTopWidth="1px"
-                borderTopColor="gray.300"
+                borderTopColor="gray.200"
                 bg="white">
                 <Container centerContent="true">
                     <NavBar/>

@@ -1,4 +1,4 @@
-import { HStack,StackSeparator, Box } from "@chakra-ui/react"
+import { HStack, Box } from "@chakra-ui/react"
 import NavButton from "./NavButton"
 
 const NavItems = [
