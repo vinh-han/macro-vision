@@ -128,8 +128,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/auth.SignupResponse"
                         }
                     },
-                    "409": {
+                    "401": {
                         "description": "Password too long (over 71 bytes)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "user alr in db",
                         "schema": {
                             "type": "string"
                         }

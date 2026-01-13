@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	config "macro_vision/config"
 	custom_errors "macro_vision/custom_errors"
 	auth_service "macro_vision/services/auth"
@@ -14,10 +15,10 @@ import (
 func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup,
 		middleware.RemoveTrailingSlash(),
-    )
+	)
 	group.POST(config.Auth.LoginPath, login)
-	group.GET(config.Auth.RegisterPath, signup)
-	group.GET(config.Auth.LogoutPath, logout)
+	group.POST(config.Auth.RegisterPath, signup)
+	group.POST(config.Auth.LogoutPath, logout)
 	return nil
 }
 
@@ -66,7 +67,8 @@ func login(c echo.Context) (err error) {
 //	@Param			Request	body	auth_service.SignupParam	true	"signup parameters"
 //	@Router			/auth/signup [post]
 //	@Success		201	{object}	auth_service.SignupResponse	"Account Created"
-//	@Failure		409	{string}	string						"Password too long (over 71 bytes)"
+//	@Failure		401	{string}	string						"Password too long (over 71 bytes)"
+//	@Failure		409	{string}	string						"user alr in db"
 //	@Failure		500	{string}	string						"Server Error"
 func signup(c echo.Context) (err error) {
 	singup_info := new(auth_service.SignupParam)
@@ -75,11 +77,14 @@ func signup(c echo.Context) (err error) {
 	}
 
 	token, err := auth_service.Signup(c.Request().Context(), *singup_info)
-	if err == custom_errors.DbNotInit || err == custom_errors.TokenGenFailed {
+	if errors.Is(err, custom_errors.DbNotInit) || errors.Is(err, custom_errors.TokenGenFailed) {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	if err == custom_errors.PasswordTooLong {
+	if errors.Is(err, custom_errors.PasswordTooLong) {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if errors.Is(err, custom_errors.UserExists) {
+		return echo.NewHTTPError(http.StatusConflict, err)
 	}
 	if err != nil {
 		return err

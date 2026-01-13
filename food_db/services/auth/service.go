@@ -70,6 +70,7 @@ type SignupResponse struct {
 //
 // Errors:
 //   - DbNotInit
+//   - UserExists
 //   - PasswordTooLong
 //   - TokenGenFailed
 //   - PasswordGenFailed
