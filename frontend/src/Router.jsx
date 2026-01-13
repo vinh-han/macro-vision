@@ -19,6 +19,8 @@ import MealPlannerPage from './pages/app/MealPlannerPage';
 import MealCardPage from './pages/app/MealCardPage';
 import ProfilePage from './pages/app/ProfilePage';
 
+import './main.css'
+
 export const router = createBrowserRouter( 
     createRoutesFromElements (
         <Route path="/">
