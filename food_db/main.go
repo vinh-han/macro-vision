@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	config "macro_vision/config"
+	"macro_vision/database"
 	docs "macro_vision/docs"
 	env_parser "macro_vision/env_parser"
 	handlers "macro_vision/handlers"
+	custom_middleware "macro_vision/middleware"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -18,39 +20,49 @@ const (
 	env_path string = "./.env"
 )
 
-var cors_config middleware.CORSConfig = middleware.CORSConfig{
-	AllowOrigins: []string{"http://frontend:" + config.Env.FRONTEND_PORT},
-	AllowHeaders: []string{
-		echo.HeaderOrigin,
-		echo.HeaderContentType,
-		echo.HeaderAccept,
-		echo.HeaderAuthorization,
-	},
-	AllowMethods: []string{
-		http.MethodGet,
-		http.MethodPost,
-		http.MethodPut,
-		http.MethodDelete,
-		http.MethodOptions,
-	},
-}
-
 //	@title			Macro_vision backend
 //	@version		1.0
 //	@description	API for Macro_vision
 
+func corsConfig() middleware.CORSConfig {
+    return middleware.CORSConfig{
+		AllowOrigins: []string{
+				"http://localhost:" + config.Env.FRONTEND_PORT,
+				"http://127.0.0.1:" + config.Env.FRONTEND_PORT,
+			},
+		AllowHeaders: []string{
+				echo.HeaderOrigin,
+				echo.HeaderContentType,
+				echo.HeaderAccept,
+				echo.HeaderAuthorization,
+			},
+		AllowMethods: []string{
+				http.MethodGet,
+				http.MethodPost,
+				http.MethodPut,
+				http.MethodDelete,
+				http.MethodOptions,
+			},
+		AllowCredentials: true,
+	}
+}
 func main() {
 	var err error
 	err = env_parser.LoadConfig(env_path)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	err = database.InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 	docs.SwaggerInfo.Host = "127.0.0.1:" + config.Env.BACKEND_PORT
 	docs.SwaggerInfo.BasePath = config.App.BasePath
 
 	e := echo.New()
-	e.Use(middleware.CORSWithConfig(cors_config))
+    custom_middleware.SetupLogger(e)
+	e.Use(middleware.CORSWithConfig(corsConfig()))
+
 	// doc path
 	e.GET(config.App.DocPath+"/*", echoSwagger.WrapHandler)
 	fmt.Println(config.App.DocPath + "/*")
