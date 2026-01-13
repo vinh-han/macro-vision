@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -82,13 +83,6 @@ func Signup(ctx context.Context, user SignupParam) (token string, err error) {
 		return "", custom_errors.PasswordTooLong
 	}
 	queries := database.DB.Queries
-	_, err = queries.Get_user_from_name(ctx, user.Username)
-	if err == nil {
-		return "", fmt.Errorf("%w, username: %s", custom_errors.UserExists, user.Username)
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return "", err
-	}
 	password_hash, err := database.GenPassword(user.Password)
 	if err != nil {
 		return "", err
@@ -102,6 +96,19 @@ func Signup(ctx context.Context, user SignupParam) (token string, err error) {
 		PasswordHash: string(password_hash),
 		DateCreated:  time.Now(),
 	})
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		if pqErr.Code == "23505" {
+			switch pqErr.Constraint {
+			case "idx_users_email":
+				return "", fmt.Errorf("%w email:%s.", custom_errors.UserExists, user.Email)
+			case "idx_users_username":
+				return "", fmt.Errorf("%w username:%s.", custom_errors.UserExists, user.Username)
+			default:
+				return "", fmt.Errorf("%w username:%s, email:%s.", custom_errors.UserExists, user.Username, user.Email)
+			}
+		}
+	}
 	if err != nil {
 		return "", err
 	}
