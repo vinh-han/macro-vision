@@ -89,7 +89,7 @@ func signup(c echo.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, token)
+	return c.JSON(http.StatusCreated, token)
 }
 
 // Removes the user auth token and log them out
