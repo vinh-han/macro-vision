@@ -22,6 +22,10 @@ func AuthRouter(e *echo.Group) error {
 	return nil
 }
 
+type LoginResponse struct {
+	Token string `json:"token" example:"f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"`
+}
+
 // Gives the user a token to authenticate
 //
 //	@Summary		login
@@ -31,10 +35,10 @@ func AuthRouter(e *echo.Group) error {
 //	@Produce		json
 //	@Param			Request	body	auth_service.LoginParam	true	"login parameters"
 //	@Router			/auth/login [post]
-//	@Success		200	{object}	auth_service.LoginResponse	"Ok"
-//	@Failure		404	{string}	string						"User not found in db"
-//	@Failure		409	{string}	string						"Invalid Credentials"
-//	@Failure		500	{string}	string						"Server Error"
+//	@Success		200	{object}	LoginResponse	"Ok"
+//	@Failure		404	{string}	string			"User not found in db"
+//	@Failure		409	{string}	string			"Invalid Credentials"
+//	@Failure		500	{string}	string			"Server Error"
 func login(c echo.Context) (err error) {
 	login_info := new(auth_service.LoginParam)
 	if err = c.Bind(login_info); err != nil {
@@ -54,7 +58,13 @@ func login(c echo.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, token)
+	return c.JSON(http.StatusOK, LoginResponse{
+		Token: token,
+	})
+}
+
+type SignupResponse struct {
+	Token string `json:"token" example:"f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"`
 }
 
 // Make an account for the user to login
@@ -66,10 +76,10 @@ func login(c echo.Context) (err error) {
 //	@Produce		json
 //	@Param			Request	body	auth_service.SignupParam	true	"signup parameters"
 //	@Router			/auth/signup [post]
-//	@Success		201	{object}	auth_service.SignupResponse	"Account Created"
-//	@Failure		401	{string}	string						"Password too long (over 71 bytes)"
-//	@Failure		409	{string}	string						"user alr in db"
-//	@Failure		500	{string}	string						"Server Error"
+//	@Success		201	{object}	SignupResponse	"Account Created"
+//	@Failure		401	{string}	string			"Password too long (over 71 bytes)"
+//	@Failure		409	{string}	string			"user alr in db"
+//	@Failure		500	{string}	string			"Server Error"
 func signup(c echo.Context) (err error) {
 	singup_info := new(auth_service.SignupParam)
 	if err = c.Bind(singup_info); err != nil {
@@ -89,8 +99,9 @@ func signup(c echo.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusCreated, map[string]string{
-		"token": token,
+
+	return c.JSON(http.StatusCreated, SignupResponse{
+		Token: token,
 	})
 }
 

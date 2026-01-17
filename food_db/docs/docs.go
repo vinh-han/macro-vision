@@ -43,7 +43,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Ok",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/handlers.LoginResponse"
                         }
                     },
                     "404": {
@@ -125,7 +125,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Account Created",
                         "schema": {
-                            "$ref": "#/definitions/auth.SignupResponse"
+                            "$ref": "#/definitions/handlers.SignupResponse"
                         }
                     },
                     "401": {
@@ -525,7 +525,7 @@ const docTemplate = `{
                     "201": {
                         "description": "new card uuid",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/mealcards.MealCardDishID"
                         }
                     },
                     "400": {
@@ -578,7 +578,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.RemoveMealCardResponse"
                         }
                     },
                     "400": {
@@ -705,7 +705,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.AddDishToCardResponse"
                         }
                     },
                     "400": {
@@ -766,7 +766,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.RemoveDishFromCardResponse"
                         }
                     },
                     "400": {
@@ -1258,15 +1258,6 @@ const docTemplate = `{
                 }
             }
         },
-        "auth.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string",
-                    "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
-                }
-            }
-        },
         "auth.SignupParam": {
             "type": "object",
             "properties": {
@@ -1285,15 +1276,6 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "ranto"
-                }
-            }
-        },
-        "auth.SignupResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string",
-                    "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
                 }
             }
         },
@@ -1366,6 +1348,43 @@ const docTemplate = `{
                 "message": {}
             }
         },
+        "handlers.AddDishToCardResponse": {
+            "type": "object",
+            "properties": {
+                "added_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.Dish": {
+            "type": "object",
+            "properties": {
+                "alt_name": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "date_created": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dish_id": {
+                    "type": "string"
+                },
+                "dish_name": {
+                    "type": "string"
+                },
+                "full_recipe": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.EditUserResponse": {
             "type": "object",
             "properties": {
@@ -1407,6 +1426,23 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
+                }
+            }
+        },
+        "handlers.RemoveDishFromCardResponse": {
+            "type": "object",
+            "properties": {
+                "removed_id": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.RemoveFavoriteResponse": {
             "type": "object",
             "properties": {
@@ -1416,13 +1452,21 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.RemoveMealCardResponse": {
+            "type": "object",
+            "properties": {
+                "removed_id": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.SearchDishesResponse": {
             "type": "object",
             "properties": {
                 "dishes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Dish"
+                        "$ref": "#/definitions/handlers.Dish"
                     }
                 },
                 "limit": {
@@ -1436,6 +1480,15 @@ const docTemplate = `{
                 },
                 "total_results": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.SignupResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"
                 }
             }
         },
@@ -1474,6 +1527,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Dish"
+                    }
+                },
+                "mealCard": {
+                    "$ref": "#/definitions/database.MealCard"
+                }
+            }
+        },
+        "mealcards.MealCardDishID": {
+            "type": "object",
+            "properties": {
+                "dishesID": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 },
                 "mealCard": {

@@ -9,6 +9,7 @@ import (
 
 	custom_middleware "macro_vision/middleware"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -134,7 +135,7 @@ func get_meal_cards_monthly(c echo.Context) (err error) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		mealcard_service.CreateMealCardParam	true	"Meal card payload"
-//	@Success		201		{object}	uuid.UUID								"new card uuid"
+//	@Success		201		{object}	mealcard_service.MealCardDishID			"new card uuid"
 //	@Failure		400		{object}	echo.HTTPError							"Invalid request body"
 //	@Failure		401		{object}	echo.HTTPError							"Unauthorized"
 //	@Failure		500		{object}	echo.HTTPError							"Internal server error"
@@ -188,6 +189,10 @@ func update_meal_card_info(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, updated)
 }
 
+type RemoveMealCardResponse struct {
+	RemovedId uuid.UUID `json:"removed_id"`
+}
+
 // remove_meal_card godoc
 //
 //	@Summary		Remove meal card
@@ -197,7 +202,7 @@ func update_meal_card_info(c echo.Context) (err error) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			card_id	query		string	true	"Meal card ID (UUID)"
-//	@Success		200		{object}	uuid.UUID
+//	@Success		200		{object}	RemoveMealCardResponse
 //	@Failure		400		{object}	echo.HTTPError	"Invalid request or unauthorized operation"
 //	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
 //	@Failure		404		{object}	echo.HTTPError	"Meal card not found"
@@ -220,7 +225,13 @@ func remove_meal_card(c echo.Context) (err error) {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, removed_id)
+	return c.JSON(http.StatusOK, RemoveMealCardResponse{
+		RemovedId: removed_id,
+	})
+}
+
+type AddDishToCardResponse struct {
+	AddedID uuid.UUID `json:"added_id"`
 }
 
 // add_dish_to_card godoc
@@ -232,7 +243,7 @@ func remove_meal_card(c echo.Context) (err error) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		mealcard_service.AddDishToCardParam	true	"Add dish to meal card payload"
-//	@Success		200		{object}	uuid.UUID
+//	@Success		200		{object}	AddDishToCardResponse
 //	@Failure		400		{object}	echo.HTTPError	"Invalid request or unauthorized operation"
 //	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
 //	@Failure		404		{object}	echo.HTTPError	"Meal card or dish not found"
@@ -252,7 +263,13 @@ func add_dish_to_card(c echo.Context) (err error) {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, added_id)
+	return c.JSON(http.StatusOK, AddDishToCardResponse{
+		AddedID: added_id,
+	})
+}
+
+type RemoveDishFromCardResponse struct {
+	RemovedID uuid.UUID `json:"removed_id"`
 }
 
 // remove_dish_from_card godoc
@@ -264,7 +281,7 @@ func add_dish_to_card(c echo.Context) (err error) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		mealcard_service.RemoveDishFromCardParam	true	"Remove dish from meal card payload"
-//	@Success		200		{object}	uuid.UUID
+//	@Success		200		{object}	RemoveDishFromCardResponse
 //	@Failure		400		{object}	echo.HTTPError	"Invalid request or unauthorized operation"
 //	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
 //	@Failure		404		{object}	echo.HTTPError	"Meal card or dish not found"
@@ -284,5 +301,7 @@ func remove_dish_from_card(c echo.Context) (err error) {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, removed_id)
+	return c.JSON(http.StatusOK, RemoveDishFromCardResponse{
+		RemovedID: removed_id,
+	})
 }

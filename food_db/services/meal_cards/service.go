@@ -108,6 +108,7 @@ type CreateMealCardParam struct {
 	MealDate time.Time `json:"meal_date"`
 	Dishes   []string  `json:"dishes"`
 }
+
 type MealCardDishID struct {
 	MealCard database.MealCard
 	DishesID uuid.UUIDs

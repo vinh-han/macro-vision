@@ -19,9 +19,6 @@ type LoginParam struct {
 	Username string `json:"username" example:"ranto"`
 	Password string `json:"password" example:"11111"`
 }
-type LoginResponse struct {
-	Token string `json:"token" example:"f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"`
-}
 
 // Login returns a token if the user is already in the db
 //
@@ -60,9 +57,6 @@ type SignupParam struct {
 	DisplayName string `json:"display_name" example:"phantom"`
 	Email       string `json:"email" example:"ranto@example.com"`
 	Password    string `json:"password" example:"1233445"`
-}
-type SignupResponse struct {
-	Token string `json:"token" example:"f3d1b8cd4f29e6a173c0dd9d84b3af2d2e19a74ccf8b0e57a3c4d90e8f12b7ac"`
 }
 
 // Register returns a token if the user is new

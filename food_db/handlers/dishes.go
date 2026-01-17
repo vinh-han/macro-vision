@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"macro_vision/database"
 	"net/http"
+	"time"
 
 	"golang.org/x/time/rate"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4/middleware"
 
 	dish_service "macro_vision/services/dishes"
@@ -30,11 +31,22 @@ func DishesRouter(api *echo.Group) (err error) {
 }
 
 type SearchDishesResponse struct {
-	PageNumber   int             `json:"page"`
-	Limit        int             `json:"limit"`
-	TotalResults int             `json:"total_results"`
-	TotalPages   int             `json:"total_pages"`
-	Dishes       []database.Dish `json:"dishes"`
+	PageNumber   int    `json:"page"`
+	Limit        int    `json:"limit"`
+	TotalResults int    `json:"total_results"`
+	TotalPages   int    `json:"total_pages"`
+	Dishes       []Dish `json:"dishes"`
+}
+
+type Dish struct {
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Course      string    `json:"course"`
+	AltName     string    `json:"alt_name"`
+	FullRecipe  string    `json:"full_recipe"`
+	Source      string    `json:"source"`
+	Description string    `json:"description"`
+	DateCreated time.Time `json:"date_created"`
 }
 
 // Search dishes
@@ -67,12 +79,29 @@ func search_dishes(c echo.Context) (err error) {
 		param.Page = 1
 	}
 	matches, dishes, err := dish_service.SearchDishes(c.Request().Context(), param)
+	dishes_cleaned := make([]Dish, len(dishes))
+	for _, v := range dishes {
+		var temp Dish
+		temp.DishID = v.DishID
+		temp.DishName = v.DishName
+		temp.Course = v.Course
+		temp.FullRecipe = v.FullRecipe
+		temp.Source = v.FullRecipe
+		temp.Description = v.Description
+		temp.DateCreated = v.DateCreated
+		if v.AltName.Valid == false {
+			temp.AltName = ""
+		} else {
+			temp.AltName = v.AltName.String
+		}
+		dishes_cleaned = append(dishes_cleaned, temp)
+	}
 	response = &SearchDishesResponse{
 		PageNumber:   param.Page,
 		Limit:        param.Limit,
 		TotalResults: matches,
 		TotalPages:   (matches + param.Limit - 1) / param.Limit,
-		Dishes:       dishes,
+		Dishes:       dishes_cleaned,
 	}
 	return c.JSON(http.StatusOK, response)
 }

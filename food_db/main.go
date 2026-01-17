@@ -25,24 +25,24 @@ const (
 //	@description	API for Macro_vision
 
 func corsConfig() middleware.CORSConfig {
-    return middleware.CORSConfig{
+	return middleware.CORSConfig{
 		AllowOrigins: []string{
-				"http://localhost:" + config.Env.FRONTEND_PORT,
-				"http://127.0.0.1:" + config.Env.FRONTEND_PORT,
-			},
+			"http://localhost:" + config.Env.FRONTEND_PORT,
+			"http://127.0.0.1:" + config.Env.FRONTEND_PORT,
+		},
 		AllowHeaders: []string{
-				echo.HeaderOrigin,
-				echo.HeaderContentType,
-				echo.HeaderAccept,
-				echo.HeaderAuthorization,
-			},
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
 		AllowMethods: []string{
-				http.MethodGet,
-				http.MethodPost,
-				http.MethodPut,
-				http.MethodDelete,
-				http.MethodOptions,
-			},
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
 		AllowCredentials: true,
 	}
 }
@@ -60,7 +60,7 @@ func main() {
 	docs.SwaggerInfo.BasePath = config.App.BasePath
 
 	e := echo.New()
-    custom_middleware.SetupLogger(e)
+	custom_middleware.SetupLogger(e)
 	e.Use(middleware.CORSWithConfig(corsConfig()))
 
 	// doc path
