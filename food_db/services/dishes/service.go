@@ -46,7 +46,16 @@ type SearchDishParam struct {
 	Page           int      `query:"page"`
 }
 
-func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, results []database.Dish, err error) {
+type DishResponse struct {
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Course      string    `json:"course"`
+	AltName     string    `json:"alt_name"`
+	Description string    `json:"description"`
+	DateCreated time.Time `json:"date_created"`
+}
+
+func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, results []DishResponse, err error) {
 	rows, err := database.DB.Queries.Search_dishes(ctx, database.Search_dishesParams{
 		Query:          param.Query,
 		Courses:        param.Courses,

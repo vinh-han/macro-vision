@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	config "macro_vision/config"
@@ -9,6 +11,8 @@ import (
 	env_parser "macro_vision/env_parser"
 	handlers "macro_vision/handlers"
 	custom_middleware "macro_vision/middleware"
+	processor "macro_vision/processor"
+	scraper "macro_vision/scraper"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -46,19 +50,38 @@ func corsConfig() middleware.CORSConfig {
 		AllowCredentials: true,
 	}
 }
-func main() {
+
+func init() {
 	var err error
 	err = env_parser.LoadConfig(env_path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = database.InitDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	docs.SwaggerInfo.Host = "127.0.0.1:" + config.Env.BACKEND_PORT
 	docs.SwaggerInfo.BasePath = config.App.BasePath
 
+	err = database.InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = scraper.Scrape()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = database.DB.Queries.GetInfo(context.Background())
+	if err == sql.ErrNoRows {
+		err = processor.Process_recipes()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func main() {
 	e := echo.New()
 	custom_middleware.SetupLogger(e)
 	e.Use(middleware.CORSWithConfig(corsConfig()))
@@ -71,34 +94,11 @@ func main() {
 	})
 
 	api := e.Group(config.App.BasePath)
-	handlers.AuthRouter(api)
+
+	handlers.InitRouters(api)
+
 	fmt.Printf("\n==================================\n")
 	fmt.Printf("\nAccess the Docs via domain root (http://<domain>:<port>/)\n")
 	fmt.Printf("\n==================================\n")
 	e.Logger.Fatal(e.Start(":" + config.Env.BACKEND_PORT))
 }
-
-//err = database.InitDB()
-//if err != nil {
-//	log.Fatal(err.Error())
-//}
-//err = scraper.Scrape()
-//if err != nil {
-//	log.Fatal(err)
-//}
-
-//_, err = database.DB.Queries.GetInfo(context.Background())
-//if err == sql.ErrNoRows {
-//	err = processor.Process_recipes()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//}
-//if err != nil {
-//	log.Fatal(err)
-//}
-//for true {
-//	time.Sleep(time.Second * 10)
-//	fmt.Println("===============================================================================================================")
-//	time.Sleep(time.Second * 10)
-//}

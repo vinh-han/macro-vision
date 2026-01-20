@@ -31,22 +31,11 @@ func DishesRouter(api *echo.Group) (err error) {
 }
 
 type SearchDishesResponse struct {
-	PageNumber   int    `json:"page"`
-	Limit        int    `json:"limit"`
-	TotalResults int    `json:"total_results"`
-	TotalPages   int    `json:"total_pages"`
-	Dishes       []Dish `json:"dishes"`
-}
-
-type Dish struct {
-	DishID      uuid.UUID `json:"dish_id"`
-	DishName    string    `json:"dish_name"`
-	Course      string    `json:"course"`
-	AltName     string    `json:"alt_name"`
-	FullRecipe  string    `json:"full_recipe"`
-	Source      string    `json:"source"`
-	Description string    `json:"description"`
-	DateCreated time.Time `json:"date_created"`
+	PageNumber   int                         `json:"page"`
+	Limit        int                         `json:"limit"`
+	TotalResults int                         `json:"total_results"`
+	TotalPages   int                         `json:"total_pages"`
+	Dishes       []dish_service.DishResponse `json:"dishes"`
 }
 
 // Search dishes

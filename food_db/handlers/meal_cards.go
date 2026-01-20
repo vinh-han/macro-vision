@@ -14,7 +14,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func MealCardRouter(api echo.Group) (err error) {
+func MealCardRouter(api *echo.Group) (err error) {
 	group := api.Group("/meal-cards",
 		middleware.RemoveTrailingSlash(),
 		middleware.KeyAuthWithConfig(custom_middleware.Auth_config),
