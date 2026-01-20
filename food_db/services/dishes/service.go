@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"macro_vision/custom_errors"
 	"macro_vision/database"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -68,18 +69,24 @@ func SearchDishes(ctx context.Context, param SearchDishParam) (matches int, resu
 		return 0, nil, err
 	}
 	if len(rows) == 0 {
-		return 0, []database.Dish{}, nil
+		return 0, []DishResponse{}, nil
 	}
-	results = make([]database.Dish, 0, len(rows))
+	results = make([]DishResponse, 0, len(rows))
 	for i, v := range rows {
 		if i == 0 {
 			matches = int(v.Matches)
 		}
-		results = append(results, database.Dish{
-			DishID:      v.DishID,
-			DishName:    v.DishName,
-			Course:      v.Course,
-			AltName:     v.AltName,
+		results = append(results, DishResponse{
+			DishID:   v.DishID,
+			DishName: v.DishName,
+			Course:   v.Course,
+			AltName: func() string {
+				if v.AltName.Valid {
+					return v.AltName.String
+				} else {
+					return ""
+				}
+			}(),
 			Description: v.Description,
 		})
 	}

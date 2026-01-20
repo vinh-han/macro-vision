@@ -771,7 +771,11 @@ JOIN dish_ingredients di
     ON di.dish_id = d.dish_id
 WHERE
     d.dish_name ILIKE $1
-    AND d.course = ANY($2::text[])
+    AND (
+        array_length($2::text[], 1) is null
+        OR d.course = ANY($2::text[])
+)
+
 GROUP BY
     d.dish_id
 HAVING

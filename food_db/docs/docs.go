@@ -1342,21 +1342,7 @@ const docTemplate = `{
                 }
             }
         },
-        "echo.HTTPError": {
-            "type": "object",
-            "properties": {
-                "message": {}
-            }
-        },
-        "handlers.AddDishToCardResponse": {
-            "type": "object",
-            "properties": {
-                "added_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.Dish": {
+        "dishes.DishResponse": {
             "type": "object",
             "properties": {
                 "alt_name": {
@@ -1376,11 +1362,19 @@ const docTemplate = `{
                 },
                 "dish_name": {
                     "type": "string"
-                },
-                "full_recipe": {
-                    "type": "string"
-                },
-                "source": {
+                }
+            }
+        },
+        "echo.HTTPError": {
+            "type": "object",
+            "properties": {
+                "message": {}
+            }
+        },
+        "handlers.AddDishToCardResponse": {
+            "type": "object",
+            "properties": {
+                "added_id": {
                     "type": "string"
                 }
             }
@@ -1466,7 +1460,7 @@ const docTemplate = `{
                 "dishes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.Dish"
+                        "$ref": "#/definitions/dishes.DishResponse"
                     }
                 },
                 "limit": {

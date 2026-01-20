@@ -167,7 +167,11 @@ JOIN dish_ingredients di
     ON di.dish_id = d.dish_id
 WHERE
     d.dish_name ILIKE sqlc.arg(query)
-    AND d.course = ANY(sqlc.arg(courses)::text[])
+    AND (
+        array_length(sqlc.arg(courses)::text[], 1) is null
+        OR d.course = ANY(sqlc.arg(courses)::text[])
+)
+
 GROUP BY
     d.dish_id
 HAVING

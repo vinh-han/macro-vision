@@ -2,11 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"golang.org/x/time/rate"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4/middleware"
 
 	dish_service "macro_vision/services/dishes"
@@ -67,22 +65,23 @@ func search_dishes(c echo.Context) (err error) {
 	if param.Page < 1 {
 		param.Page = 1
 	}
+	if param.Query == "" {
+		param.Query = "%"
+	} else {
+		param.Query = "%" + param.Query + "%"
+	}
+	if param.MaxIngredients == 0 {
+		param.MaxIngredients = 100
+	}
 	matches, dishes, err := dish_service.SearchDishes(c.Request().Context(), param)
-	dishes_cleaned := make([]Dish, len(dishes))
+	dishes_cleaned := make([]dish_service.DishResponse, 0, len(dishes))
 	for _, v := range dishes {
-		var temp Dish
+		var temp dish_service.DishResponse
 		temp.DishID = v.DishID
 		temp.DishName = v.DishName
 		temp.Course = v.Course
-		temp.FullRecipe = v.FullRecipe
-		temp.Source = v.FullRecipe
 		temp.Description = v.Description
 		temp.DateCreated = v.DateCreated
-		if v.AltName.Valid == false {
-			temp.AltName = ""
-		} else {
-			temp.AltName = v.AltName.String
-		}
 		dishes_cleaned = append(dishes_cleaned, temp)
 	}
 	response = &SearchDishesResponse{
