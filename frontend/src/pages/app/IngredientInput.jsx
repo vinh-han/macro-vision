@@ -12,7 +12,7 @@ export default function IngredientInputPage() {
                 padding="1.2rem 1rem 1rem"
                 background="black"
                 roundedBottom="18px"
-                position="fixed"
+                position="sticky" // changed from fixed to sticky 
                 top="0"
                 zIndex="1">
                 <Button
@@ -31,9 +31,9 @@ export default function IngredientInputPage() {
             </Box>
             <Box
                 width="100%"
-                padding="0.8rem 1.1rem 8rem"
-                position="absolute"
-                top="5.5rem"
+                padding="0.8rem 1.1rem 2rem" // reduce bottom padding from 8rem to 2rem
+                // position="absolute"
+                // top="5.5rem"
                 fontSize="1rem">
                 {
                     (() => {

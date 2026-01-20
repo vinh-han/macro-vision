@@ -1,17 +1,39 @@
 import { 
     // wrapping components: 
-    HStack, Box, Container, Center, Carousel, 
+     Card, 
     // typography components: 
-    Heading, Text,  
+    Text,  
     // functional components: 
-    Image, Button 
+    Image 
 } from "@chakra-ui/react"
 
+import dish from  "../assets/images/dish/dish_1.jpg"
+import { useNavigate } from "react-router"
+
 export default function DishCard() {
+    const navigate = useNavigate(); 
+
     return (
-        <HStack gap="1rem">
-            {/* individual meal card  */}
-            <Text>Dish Card 1</Text>
-        </HStack>
+        <Card.Root 
+        maxW="sm" borderRadius="md"
+        cursor="pointer" onClick={() => navigate('/app/dish')}
+        >
+            <Image 
+                src={dish}
+                alt="A bowl of bun cha Hanoi"
+                borderRadius="md"
+            />
+            <Card.Body>
+                <Card.Title>Bun Cha Hanoi</Card.Title>
+                <Card.Description>
+                    A delicious traditional noodle dish from Hanoi.
+                </Card.Description>
+            </Card.Body>
+            <Card.Footer>
+                <Text bg="gray.300" p="0.3em" borderRadius="md">
+                    soups
+                </Text>
+            </Card.Footer>
+        </Card.Root>
     )
 }

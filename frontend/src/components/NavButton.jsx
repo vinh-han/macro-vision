@@ -1,4 +1,4 @@
-import { Text, Icon, VStack, Box } from "@chakra-ui/react";
+import { Text, Icon, VStack } from "@chakra-ui/react";
 import { NavLink } from "react-router";
 
 

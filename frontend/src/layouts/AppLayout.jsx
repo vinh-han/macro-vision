@@ -4,13 +4,17 @@ import { Box, Container } from "@chakra-ui/react";
 
 export default function AppLayout() {
     return (
-        <Box>
+        <Box h = "100dvh" display="flex" flexDirection="column">
+
             {/* Main content area */}
-            <Box as="main" minH="90vh">
+            <Box as="main" overflowY="auto" flex="1" pb="1rem">
                 <Outlet></Outlet>
             </Box>
+
             {/* Bottom nav bar area */}
-            <Box display="flex" alignItems="center" as="nav" position="fixed" zIndex={1} bottom="0" left="0" right="0"  
+            <Box
+                as = "nav"
+                zIndex={1}
                 p="1em" 
                 minH="10vh"
                 borderTopWidth="1px"

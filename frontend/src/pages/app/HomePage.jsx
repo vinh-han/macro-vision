@@ -1,6 +1,6 @@
 import { 
     // wrapping components: 
-    HStack, Box, Container,
+    HStack, Box, Container, Carousel, Center, 
     // typography components: 
     Heading, Text,  
     // functional components: 
@@ -20,9 +20,19 @@ export default function HomePage() {
             </Box>
 
             {/* Today meal cards area */}
-            <Container bg="gray.400" padding="5" borderRadius="xl" mb="3rem">
-                <Heading>Today's meal cards</Heading>
-                <MealCardMini/>
+            <Container>
+                <Container bg="gray.400" padding="4" borderRadius="md" mb="1rem">
+                    <Heading>Today's meal cards</Heading>
+
+                    <HStack gap="1rem">
+                        {/* meal cards mini */}
+                        <MealCardMini/>
+                        {/* add new mmeal card button  */}
+                        <Center border="dashed 2px" rounded="md" width="8rem" height="8rem" fontSize="4xl" >
+                                <i class="ri-add-line"></i>
+                        </Center>
+                    </HStack>
+                </Container>
             </Container>
 
             {/* Popular dishes area  */}

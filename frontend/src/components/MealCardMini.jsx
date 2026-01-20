@@ -1,27 +1,33 @@
 import { 
     // wrapping components: 
-    HStack, Box, Container, Center, Carousel, 
+    Card, 
     // typography components: 
-    Heading, Text,  
+    Text
     // functional components: 
-    Image, Button 
+    
 } from "@chakra-ui/react"
+import { useNavigate } from "react-router"
 
 export default function MealCardMini() {
-    return (
-        <HStack gap="1rem">
-            {/* individual meal card  */}
-            <Box width="8rem" height="8rem" background="white" p="0.5rem" rounded="md">
-                <Heading>Lunch</Heading>
+    const navigate = useNavigate(); 
 
-                <Box background="black" bottom="0" left="0" right="0" >
-                    <Text color="white">3 dishes</Text>
-                </Box>
-            </Box>
-            {/* add new mmeal card button  */}
-            <Center border="dashed 2px" rounded="md" width="8rem" height="8rem" fontSize="4xl" >
-                    <i class="ri-add-line"></i>
-            </Center>
-        </HStack>
+    return (
+        <Card.Root width="8rem" background="white"  
+            overflow="hidden" 
+            borderRadius="md" variant="elevated" boxShadow="lg"
+            cursor="pointer" onClick={() => navigate('/app/meal-card')}
+            >
+
+            <Card.Body pt={5} px={4} pb={6}>
+                <Card.Title
+                    fontSize="lg" lineHeight="1.2"  fontWeight="medium"
+                >Lunch / Bữa Trưa 
+                </Card.Title>
+            </Card.Body>      
+
+            <Card.Footer bg="black" p={3}>
+                <Text color="white" fontSize="sm" fontWeight="medium" >3 dishes</Text>
+            </Card.Footer>   
+        </Card.Root>
     )
 }
