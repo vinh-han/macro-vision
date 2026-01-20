@@ -46,13 +46,13 @@ func login(c echo.Context) (err error) {
 	}
 
 	token, err := auth_service.Login(c.Request().Context(), *login_info)
-	if err == custom_errors.DbNotInit || err == custom_errors.TokenGenFailed {
+	if errors.Is(err, custom_errors.DbNotInit) || errors.Is(err, custom_errors.TokenGenFailed) {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	if err == custom_errors.UserNotFound {
+	if errors.Is(err, custom_errors.UserNotFound) {
 		return echo.NewHTTPError(http.StatusNotFound, err)
 	}
-	if err == custom_errors.InvalidCredentials {
+	if errors.Is(err, custom_errors.InvalidCredentials) {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err != nil {

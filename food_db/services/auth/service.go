@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	custom_errors "macro_vision/custom_errors"
 	database "macro_vision/database"
 	"time"
@@ -37,7 +36,7 @@ func Login(ctx context.Context, user LoginParam) (token string, err error) {
 	user_db, err := queries.Get_user_from_name(ctx, user.Username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", fmt.Errorf("%w: username '%s' not found", custom_errors.UserNotFound, user.Username)
+			return "", custom_errors.UserNotFound
 		}
 		return "", err
 	}
@@ -47,7 +46,7 @@ func Login(ctx context.Context, user LoginParam) (token string, err error) {
 	}
 	token, err = database.Create_session(ctx, user_db.UserID)
 	if err != nil {
-		return "", fmt.Errorf("%w: failed to create session for user '%s'", custom_errors.TokenGenFailed, user.Username)
+		return "", custom_errors.TokenGenFailed
 	}
 	return token, nil
 }
@@ -93,14 +92,7 @@ func Signup(ctx context.Context, user SignupParam) (token string, err error) {
 	var pqErr *pq.Error
 	if errors.As(err, &pqErr) {
 		if pqErr.Code == "23505" {
-			switch pqErr.Constraint {
-			case "idx_users_email":
-				return "", fmt.Errorf("%w email:%s.", custom_errors.UserExists, user.Email)
-			case "idx_users_username":
-				return "", fmt.Errorf("%w username:%s.", custom_errors.UserExists, user.Username)
-			default:
-				return "", fmt.Errorf("%w username:%s, email:%s.", custom_errors.UserExists, user.Username, user.Email)
-			}
+			return "", custom_errors.UserExists
 		}
 	}
 	if err != nil {

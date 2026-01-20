@@ -47,13 +47,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "User not found in db",
+                        "description": "User not found in db\"\texample(User does not exist.)",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "409": {
-                        "description": "Invalid Credentials",
+                        "description": "Invalid Credentials\"\texample(Invalid username or password.)",
                         "schema": {
                             "type": "string"
                         }
@@ -93,6 +93,12 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }
@@ -129,13 +135,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Password too long (over 71 bytes)",
+                        "description": "Password too long (over 71 bytes)\"\texample(This password exceeds the limit!)",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "409": {
-                        "description": "user alr in db",
+                        "description": "user alr in db\"\t\t\t\t\texample(User is already registered.)",
                         "schema": {
                             "type": "string"
                         }
