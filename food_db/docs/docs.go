@@ -270,35 +270,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/ingredients": {
-            "get": {
-                "description": "Retrieve the full list of ingredients from the database",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ingredients"
-                ],
-                "summary": "Get all ingredients",
-                "responses": {
-                    "200": {
-                        "description": "List of ingredients",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Ingredient"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/ingredients/search": {
             "get": {
                 "description": "Search ingredients by a query string",
@@ -314,8 +285,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "q",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -18,28 +18,10 @@ func IngredientsRouter(api *echo.Group) (err error) {
 		middleware.RemoveTrailingSlash(),
 		middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(IngredientsRateLimit))),
 	)
-	group.GET("/", get_all_ingredients)
-	group.GET("/:ingredient_id", get_ingredient)
 	group.GET("/search", search_ingredients)
+	group.GET("/:ingredient_id", get_ingredient)
 	group.POST("/detection", detect_ingredients)
 	return
-}
-
-// Get all ingredients
-//
-//	@Summary		Get all ingredients
-//	@Description	Retrieve the full list of ingredients from the database
-//	@Tags			ingredients
-//	@Produce		json
-//	@Success		200	{array}		database.Ingredient	"List of ingredients"
-//	@Failure		500	{string}	string				"Server error"
-//	@Router			/ingredients [get]
-func get_all_ingredients(c echo.Context) (err error) {
-	ingredients, err := ingredients_service.GetAllIngredients(c.Request().Context())
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, ingredients)
 }
 
 // Get ingredient by ID
@@ -67,12 +49,17 @@ func get_ingredient(c echo.Context) (err error) {
 //	@Description	Search ingredients by a query string
 //	@Tags			ingredients
 //	@Produce		json
-//	@Param			q	query		string				true	"Search query"
+//	@Param			q	query		string				false	"Search query"
 //	@Success		200	{array}		database.Ingredient	"List of matching ingredients"
 //	@Failure		500	{string}	string				"Server error"
 //	@Router			/ingredients/search [get]
 func search_ingredients(c echo.Context) (err error) {
 	query := c.QueryParam("q")
+	if query == "" {
+		query = "%"
+	} else {
+		query = "%" + query + "%"
+	}
 	ingredients, err := ingredients_service.SearchIngredients(c.Request().Context(), query)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
