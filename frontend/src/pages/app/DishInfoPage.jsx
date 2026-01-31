@@ -4,13 +4,43 @@ import {
     // typography components: 
     Heading, Text,
     // functional components: 
-    Image
+    Image, Button
 } from "@chakra-ui/react"
 import dish from  "../../assets/images/dish/dish_1.jpg"
 import { useNavigate } from "react-router"
+import { useState, useEffect } from "react";
 
 export default function DishInfoPage() {
     const navigate = useNavigate();
+
+    const [data, setData] = useState(null); 
+    const [loading, setLoading] = useState(true); 
+    const [error, setError] = useState(null); 
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const reponse = await fetch('http://127.0.0.1:8000/v1/dishes/faee2d47-410d-4939-bbd5-d755f50269f1'); 
+
+                if(!reponse.ok) {
+                    throw new Error('Network error'); 
+                }
+
+                const result = await reponse.json();
+                setData(result); 
+
+            } catch (err) {
+                setError(err.message); 
+            } finally {
+                setLoading(false); 
+            }
+        };
+
+        fetchData();
+    },[]);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <Box bg="white" minH="100vh">
@@ -35,14 +65,11 @@ export default function DishInfoPage() {
 
             {/* Content area */}
             <Container mt={6}>
-                <Heading size="lg" mb={2}>Bun Cha Hanoi</Heading>
+                <Heading size="lg" mb={2}>{data.dish_name} ({data.alt_name?.String})</Heading>
                 
-                {/* Meta Data (Ingredients count & Time) */}
+                {/* Meta Data  */}
                 <Text color="gray.500" fontSize="lg">
-                    16 ingredients
-                </Text>
-                <Text color="gray.500" fontSize="lg" mb={6}>
-                    1 hour
+                    {data.description}
                 </Text>
 
                 {/* Buttons */}
@@ -56,41 +83,15 @@ export default function DishInfoPage() {
                 <Heading size="md" mb={4} mt={4}>Ingredients</Heading>
                 <Box as="ul" listStyleType="circle" ml={4} mb={4}>
 
-                    <li>700 gr thịt ba chỉ</li>
-                    <li>500 gr thịt heo xay nhuyễn</li>
-                    
-                    <li>1 củ cà rốt</li>
-                    <li>1/2 trái đu đủ xanh</li>
-                    <li>500 gr rau sống các loại (xà lách, tía tô, húng quế, húng lủi, diếp cá)</li>
-
-                    <li>1 kg bún tươi</li>
-
-                    <li>1 muỗng canh hành tím băm</li>
-                    <li>1.5 muỗng canh tỏi băm</li>
-                    <li>1 ít ớt băm</li>
-                    <li>2 muỗng canh dầu hào</li>
-                    <li>2 muỗng canh nước màu</li>
-                    <li>1 chén (khoảng 220ml) nước mắm</li>
-                    <li>1/2 chén (khoảng 100ml) giấm</li>
-                    <li>1 ít dầu ăn</li>
-                    <li>1 ít gia vị thông dụng (muối, đường, tiêu xay, hạt nêm, bột ngọt)</li>
                 </Box>
                 <hr/>
 
                 {/* Cooking steps  */}
                 <Heading size="md" mb={4} mt={4}>Steps</Heading>
-                <Heading size="sm" mb={4} mt={4}>1.Sơ chế và ướp thịt</Heading>
-
-                <Text>
-                    Đối với thịt ba chỉ, để loại sạch bụi bẩn và mùi hôi các bạn mang đi  chà sạch với muối, sau đó rửa lại với nước lạnh và để ráo. Dùng dao cắt  thịt thành các miếng mỏng vừa ăn.
-                    <br/> <br/>
-                    Ướp thịt với 1/2 muỗng canh hành tím băm, 1/2 muỗng canh tỏi băm, 1/2 muỗng canh hạt nêm, 1/2 muỗng canh bột ngọt, 1/2 muỗng canh tiêu xay, 2 muỗng canh nước mắm, 1 muỗng canh dầu hào, 2 muỗng canh mật ong, 1  muỗng canh nước màu, sau đó trộn đều và để cho thịt thấm gia vị ít nhất  khoảng 30 phút.
-                     <br/> <br/>
-                    Về phần thịt xay, các bạn cho 1/2 muỗng canh hành tím băm và 1/2  muỗng canh tỏi băm, 1/2 muỗng canh hạt nêm, 1/2 muỗng canh bột ngọt, 1/2 muỗng canh tiêu xay, 1.5 muỗng canh nước mắm, 1 muỗng canh dầu hào, 1  muỗng canh mật ong, 1 muỗng canh nước màu. Dùng tay trộn đều và ướp thịt khoảng 30 phút cho thấm gia vị.
-                    Sau khoảng 30 phút, dùng tkay lấy một lượng thịt xay vừa đủ rồi vo viên.
-                </Text>
-
-                
+                <Button
+                    isDisabled={!data?.source}
+                    onClick={() => {window.open(data.source, "_blank"); }}
+                >Link to steps</Button>
             </Container>
         </Box>
     )
