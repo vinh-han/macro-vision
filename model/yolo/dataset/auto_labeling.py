@@ -17,7 +17,7 @@ class GroundingDINOLabeler:
         self,
         source_dir: str = 'imgs',
         output_dir: str = 'ingredients_dataset',
-        classes_file: Optional[str] = '../../grouper/assets/classes.txt',
+        classes_file: Optional[str] = '../../../assets/classes.txt',
         train_split: float = 0.8,
         val_split: float = 0.15,
         test_split: float = 0.05,
@@ -434,7 +434,7 @@ def main():
     labeler = GroundingDINOLabeler(
         source_dir = Path(__file__).parent / 'imgs',
         output_dir = Path(__file__).parent / 'ingredients_dataset',
-        classes_file = Path(__file__).parent.parent / 'ingredients' / 'out' / 'classes.txt',
+        classes_file = Path(__file__).parent.parent.parent.parent / 'assets' / 'classes.txt',
         train_split = 0.8,
         val_split = 0.15,
         test_split = 0.05,

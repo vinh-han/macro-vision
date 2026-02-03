@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
 
-    ingredients_list_path: str = './grouper/assets/classes.txt'
+    ingredients_list_path: str = './assets/classes.txt'
 
     @property
     def ingredients_list(self) -> str:

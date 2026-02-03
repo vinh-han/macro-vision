@@ -2,14 +2,15 @@
 *.pt
 
 logs/
-model/dataset/imgs
-model/dataset/labels
-model/dataset/pretrained
-model/dataset/visualizations
-model/dataset/train
-model/dataset/val
-model/dataset/ingredients_dataset
-model/labeled_images
+model/yolo/dataset/imgs
+model/yolo/dataset/labels
+model/yolo/dataset/pretrained
+model/yolo/dataset/visualizations
+model/yolo/dataset/train
+model/yolo/dataset/val
+model/yolo/dataset/ingredients_dataset
+model/yolo/labeled_images
+model/yolo/ingredients/out
 grouper/sample
 grouper/out
 

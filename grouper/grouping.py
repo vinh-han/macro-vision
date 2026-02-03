@@ -21,9 +21,9 @@ class Grouper:
             azure_endpoint=settings.azure_openai_endpoint,
         )
 
-        self.raw_ingredients_path = Path(__file__).parent / "ingredients.txt"
-        self.removed_ingredients_path = Path(__file__).parent / "assets" / "removed.txt"
-        self.classes_path = Path(__file__).parent / "assets" / "classes.txt"
+        self.raw_ingredients_path = Path(__file__).parent / "../assets/ingredients.txt"
+        self.removed_ingredients_path = Path(__file__).parent / "../assets/removed.txt"
+        self.classes_path = Path(__file__).parent / "../assets/classes.txt"
         self.output_dir = Path(__file__).parent / "out"
         self.output_dir.mkdir(exist_ok=True)
         self.logger = setup_logger(__name__, "grouping.log")

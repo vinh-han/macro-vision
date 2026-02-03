@@ -2,12 +2,12 @@ import random
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from model.dataset.auto_labeling import GroundingDINOLabeler
-from model.dataset.image_scraper import ImageScraper
-from model.dataset.refiner import Refiner
-from model.dataset.viz_labels import YOLOVisualizer
 from model.utils.config import settings
 from model.utils.logger import setup_logger
+from model.yolo.dataset.auto_labeling import GroundingDINOLabeler
+from model.yolo.dataset.image_scraper import ImageScraper
+from model.yolo.dataset.refiner import Refiner
+from model.yolo.dataset.viz_labels import YOLOVisualizer
 
 
 class DatasetPipeline:
@@ -43,7 +43,7 @@ class DatasetPipeline:
         self.labeler = GroundingDINOLabeler(
             source_dir=images_dir,
             output_dir=output_dir,
-            classes_file='../../grouper/assets/classes.txt',
+            classes_file='../../../assets/classes.txt',
             train_split=train_split,
             val_split=val_split,
             test_split=test_split,
