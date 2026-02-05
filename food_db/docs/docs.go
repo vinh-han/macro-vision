@@ -47,13 +47,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "User not found in db\"\texample(User does not exist.)",
+                        "description": "User not found in db",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "409": {
-                        "description": "Invalid Credentials\"\texample(Invalid username or password.)",
+                        "description": "Invalid Credentials",
                         "schema": {
                             "type": "string"
                         }
@@ -69,6 +69,11 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Verify the received token and perform session clean up.",
                 "consumes": [
                     "application/json"
@@ -85,7 +90,7 @@ const docTemplate = `{
                         "type": "string",
                         "example": "f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e",
                         "description": "256bit random token",
-                        "name": "Token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -93,12 +98,6 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "500": {
-                        "description": "Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 }
             }
@@ -135,13 +134,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Password too long (over 71 bytes)\"\texample(This password exceeds the limit!)",
+                        "description": "Password too long (over 71 bytes)",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "409": {
-                        "description": "user alr in db\"\t\t\t\t\texample(User is already registered.)",
+                        "description": "user alr in db",
                         "schema": {
                             "type": "string"
                         }
@@ -373,6 +372,13 @@ const docTemplate = `{
                         "name": "card_id",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -434,6 +440,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/mealcards.UpdateMealCardParam"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -495,6 +508,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/mealcards.CreateMealCardParam"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -547,6 +567,13 @@ const docTemplate = `{
                         "description": "Meal card ID (UUID)",
                         "name": "card_id",
                         "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -608,6 +635,13 @@ const docTemplate = `{
                         "description": "Meal date (YYYY-MM-DD)",
                         "name": "date",
                         "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Meal date (YYYY-MM-DD)",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -675,6 +709,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/mealcards.AddDishToCardParam"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -736,6 +777,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/mealcards.RemoveDishFromCardParam"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -796,6 +844,13 @@ const docTemplate = `{
                         "description": "Reference date (YYYY-MM-DD); day is ignored",
                         "name": "date",
                         "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Meal date (YYYY-MM-DD)",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -858,7 +913,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "256bit random token",
-                        "name": "Token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -916,7 +971,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "256-bit random session token",
-                        "name": "Token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -981,8 +1036,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "256-bit random session token",
-                        "name": "Token",
+                        "description": "256bit random token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1049,9 +1104,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e",
+                        "example": "Bearer token",
                         "description": "256bit random token",
-                        "name": "Token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -1103,8 +1158,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "Bearer token",
                         "description": "256bit random token",
-                        "name": "Token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1174,7 +1230,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "256-bit random session token",
-                        "name": "Token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },

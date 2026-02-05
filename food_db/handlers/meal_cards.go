@@ -38,12 +38,13 @@ func MealCardRouter(api *echo.Group) (err error) {
 //	@Router			/meal-cards [get]
 //	@Accept			json
 //	@Produce		json
-//	@Param			card_id	query		string	true	"Meal card ID (UUID)"
-//	@Success		200		{object}	mealcard_service.MealCardDish
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request parameters"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"Meal card not found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			card_id			query		string	true	"Meal card ID (UUID)"
+//	@Param			Authorization	header		string	true	"auth"
+//	@Success		200				{object}	mealcard_service.MealCardDish
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"Meal card not found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func get_meal_card(c echo.Context) (err error) {
 	var request mealcard_service.GetMealCardWithDishesParam
@@ -70,12 +71,13 @@ func get_meal_card(c echo.Context) (err error) {
 //	@Router			/meal-cards/daily [get]
 //	@Accept			json
 //	@Produce		json
-//	@Param			date	query		string	true	"Meal date (YYYY-MM-DD)"
-//	@Success		200		{array}		database.MealCard
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request parameters"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"No meal cards found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			date			query		string	true	"Meal date (YYYY-MM-DD)"
+//	@Param			Authorization	header		string	true	"Meal date (YYYY-MM-DD)"
+//	@Success		200				{array}		database.MealCard
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"No meal cards found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func get_meal_cards_daily(c echo.Context) (err error) {
 	var request mealcard_service.GetMealCardsDailyParam
@@ -102,12 +104,13 @@ func get_meal_cards_daily(c echo.Context) (err error) {
 //	@Router			/meal-cards/monthly [get]
 //	@Accept			json
 //	@Produce		json
-//	@Param			date	query		string	true	"Reference date (YYYY-MM-DD); day is ignored"
-//	@Success		200		{array}		database.MealCard
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request parameters"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"No meal cards found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			date			query		string	true	"Reference date (YYYY-MM-DD); day is ignored"
+//	@Param			Authorization	header		string	true	"Meal date (YYYY-MM-DD)"
+//	@Success		200				{array}		database.MealCard
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"No meal cards found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func get_meal_cards_monthly(c echo.Context) (err error) {
 	var request mealcard_service.GetMealCardsMonthlyParam
@@ -134,11 +137,12 @@ func get_meal_cards_monthly(c echo.Context) (err error) {
 //	@Router			/meal-cards [post]
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		mealcard_service.CreateMealCardParam	true	"Meal card payload"
-//	@Success		201		{object}	mealcard_service.MealCardDishID			"new card uuid"
-//	@Failure		400		{object}	echo.HTTPError							"Invalid request body"
-//	@Failure		401		{object}	echo.HTTPError							"Unauthorized"
-//	@Failure		500		{object}	echo.HTTPError							"Internal server error"
+//	@Param			request			body		mealcard_service.CreateMealCardParam	true	"Meal card payload"
+//	@Param			Authorization	header		string									true	"auth"
+//	@Success		201				{object}	mealcard_service.MealCardDishID			"new card uuid"
+//	@Failure		400				{object}	echo.HTTPError							"Invalid request body"
+//	@Failure		401				{object}	echo.HTTPError							"Unauthorized"
+//	@Failure		500				{object}	echo.HTTPError							"Internal server error"
 //	@Security		BasicAuth
 func create_meal_card(c echo.Context) (err error) {
 	var request mealcard_service.CreateMealCardParam
@@ -165,12 +169,13 @@ func create_meal_card(c echo.Context) (err error) {
 //	@Router			/meal-cards [put]
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		mealcard_service.UpdateMealCardParam	true	"Updated meal card payload"
-//	@Success		200		{object}	mealcard_service.MealCardDish
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request body"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"Meal card not found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			request			body		mealcard_service.UpdateMealCardParam	true	"Updated meal card payload"
+//	@Param			Authorization	header		string									true	"auth"
+//	@Success		200				{object}	mealcard_service.MealCardDish
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request body"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"Meal card not found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func update_meal_card_info(c echo.Context) (err error) {
 	var request mealcard_service.UpdateMealCardParam
@@ -201,12 +206,13 @@ type RemoveMealCardResponse struct {
 //	@Router			/meal-cards [delete]
 //	@Accept			json
 //	@Produce		json
-//	@Param			card_id	query		string	true	"Meal card ID (UUID)"
-//	@Success		200		{object}	RemoveMealCardResponse
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request or unauthorized operation"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"Meal card not found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			card_id			query		string	true	"Meal card ID (UUID)"
+//	@Param			Authorization	header		string	true	"auth"
+//	@Success		200				{object}	RemoveMealCardResponse
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request or unauthorized operation"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"Meal card not found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func remove_meal_card(c echo.Context) (err error) {
 	var request mealcard_service.RemoveMealCardParam
@@ -242,12 +248,13 @@ type AddDishToCardResponse struct {
 //	@Router			/meal-cards/dishes [post]
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		mealcard_service.AddDishToCardParam	true	"Add dish to meal card payload"
-//	@Success		200		{object}	AddDishToCardResponse
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request or unauthorized operation"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"Meal card or dish not found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			request			body		mealcard_service.AddDishToCardParam	true	"Add dish to meal card payload"
+//	@Param			Authorization	header		string								true	"auth"
+//	@Success		200				{object}	AddDishToCardResponse
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request or unauthorized operation"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"Meal card or dish not found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func add_dish_to_card(c echo.Context) (err error) {
 	var request mealcard_service.AddDishToCardParam
@@ -280,12 +287,13 @@ type RemoveDishFromCardResponse struct {
 //	@Router			/meal-cards/dishes [delete]
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		mealcard_service.RemoveDishFromCardParam	true	"Remove dish from meal card payload"
-//	@Success		200		{object}	RemoveDishFromCardResponse
-//	@Failure		400		{object}	echo.HTTPError	"Invalid request or unauthorized operation"
-//	@Failure		401		{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404		{object}	echo.HTTPError	"Meal card or dish not found"
-//	@Failure		500		{object}	echo.HTTPError	"Internal server error"
+//	@Param			request			body		mealcard_service.RemoveDishFromCardParam	true	"Remove dish from meal card payload"
+//	@Param			Authorization	header		string										true	"auth"
+//	@Success		200				{object}	RemoveDishFromCardResponse
+//	@Failure		400				{object}	echo.HTTPError	"Invalid request or unauthorized operation"
+//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404				{object}	echo.HTTPError	"Meal card or dish not found"
+//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func remove_dish_from_card(c echo.Context) (err error) {
 	var request mealcard_service.RemoveDishFromCardParam

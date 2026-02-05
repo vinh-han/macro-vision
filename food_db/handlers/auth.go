@@ -113,9 +113,10 @@ func signup(c echo.Context) (err error) {
 //	@Accept						json
 //	@Produce					json
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						Token	header	string	true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
+//	@Param						Authorization	header	string	true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
 //	@Router						/auth/logout [get]
 //	@Success					204
+//	@Security					BasicAuth
 func logout(c echo.Context) (err error) {
 	auth := c.Request().Header.Get("Authorization")
 	if auth == "" {

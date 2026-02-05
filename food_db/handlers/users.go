@@ -50,7 +50,7 @@ type GetUserResponse struct {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string	true	"256bit random token"	example(f3d9c4e6a7b1ce204fa8d5b39e181f9b3e2c1d7fbe4490d6732eab5c4fd7c92e)
+//	@Param			Authorization	header	string	true	"256bit random token"	example(Bearer token)
 //	@Router			/users/information [get]
 //	@Success		200	{object}	GetUserResponse	"Ok"
 //	@Failure		401	{string}	string			"no auth token found"
@@ -84,8 +84,8 @@ type EditUserResponse struct {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string						true	"256bit random token"
-//	@Param			Input	body	user_service.EditUserParam	true	"new info"
+//	@Param			Authorization	header	string						true	"256bit random token"	example(Bearer token)
+//	@Param			Input			body	user_service.EditUserParam	true	"new info"
 //	@Router			/users/information [patch]
 //	@Success		200	{object}	EditUserResponse	"Ok"
 //	@Failure		401	{string}	string				"no auth token found"
@@ -126,7 +126,7 @@ type Favorites struct {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string	true	"256bit random token"
+//	@Param			Authorization	header	string	true	"256bit random token"
 //	@Router			/users/favorites [get]
 //	@Success		200	{object}	[]Favorites	"Ok"
 //	@Failure		401	{string}	string		"no auth token found"
@@ -154,8 +154,8 @@ func get_favorites(c echo.Context) (err error) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string	true	"256-bit random session token"
-//	@Param			dish_id	path	string	true	"UUIDv4 dish identifier"
+//	@Param			Authorization	header	string	true	"256bit random token"
+//	@Param			dish_id			path	string	true	"UUIDv4 dish identifier"
 //	@Router			/users/favorites/{dish_id} [patch]
 //	@Success		201	{string}	string	"Added to favorites"
 //	@Failure		400	{string}	string	"Invalid id"
@@ -193,8 +193,8 @@ type RemoveFavoriteResponse struct {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string	true	"256-bit random session token"
-//	@Param			dish_id	path	string	true	"UUIDv4 dish identifier"
+//	@Param			Authorization	header	string	true	"256-bit random session token"
+//	@Param			dish_id			path	string	true	"UUIDv4 dish identifier"
 //	@Router			/users/favorites/{dish_id} [delete]
 //	@Success		200	{object}	RemoveFavoriteResponse	"removed dish id"
 //	@Failure		400	{string}	string					"Invalid id"
@@ -228,8 +228,8 @@ func remove_favorite(c echo.Context) (err error) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			Token	header	string								true	"256-bit random session token"
-//	@Param			body	body	user_service.ChangePasswordParam	true	"New password payload"
+//	@Param			Authorization	header	string								true	"256-bit random session token"
+//	@Param			body			body	user_service.ChangePasswordParam	true	"New password payload"
 //	@Router			/users/password [patch]
 //	@Success		204
 //	@Failure		400	{string}	string	"Invalid Body"

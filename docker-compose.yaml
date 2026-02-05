@@ -34,17 +34,19 @@ services:
                 condition: service_healthy
     database:
         image: "postgres:14.19-alpine3.21"
+        container_name: database
         env_file: ".env"
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
             interval: 30s
             timeout: 3s
             retries: 3
-            start_period: 2s
+            start_period: 1s
         volumes:
             - postgres_data:/var/lib/postgresql
     adminer:
         image: adminer
+        container_name: adminer
         ports:
             - 8080:8080
         environment:

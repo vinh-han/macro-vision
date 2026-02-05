@@ -1,3 +1,3 @@
-- [ ] change to postgres
-- [ ] add uuid
-- [ ] change to jwt
+- [ ] add auth headers to doc
+- [ ] add tests for service layers
+- [ ] change to jwt (?)
