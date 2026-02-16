@@ -14,7 +14,7 @@ import (
 
 const (
 	DefaultLimit    int = 12
-	DishesRateLimit int = 10
+	DishesRateLimit int = 1
 )
 
 func DishesRouter(api *echo.Group) (err error) {

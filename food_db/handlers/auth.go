@@ -15,7 +15,7 @@ import (
 func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup,
 		middleware.RemoveTrailingSlash(),
-        middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10.0)),
+        middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1)),
 	)
 	group.POST(config.Auth.LoginPath, login)
 	group.POST(config.Auth.RegisterPath, signup)
