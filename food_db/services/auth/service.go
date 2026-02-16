@@ -19,6 +19,8 @@ type LoginParam struct {
 	Password string `json:"password" example:"11111"`
 }
 
+const User_session_limit int = 10
+
 // Login returns a token if the user is already in the db
 //
 // # This func creates a session in the db if the user exists
@@ -31,6 +33,13 @@ type LoginParam struct {
 func Login(ctx context.Context, user LoginParam) (token string, err error) {
 	if database.DB == nil {
 		return "", custom_errors.DbNotInit
+	}
+	count, err := database.DB.Queries.Count_session(ctx, user.Username)
+	if err != nil {
+		return "", err
+	}
+	if count >= int64(User_session_limit) {
+		return "", custom_errors.SessionLimit
 	}
 	queries := database.DB.Queries
 	user_db, err := queries.Get_user_from_name(ctx, user.Username)

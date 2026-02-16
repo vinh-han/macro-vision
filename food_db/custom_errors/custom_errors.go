@@ -12,6 +12,7 @@ var (
 	DbInitFailed              = errors.New("Something went wrong when initializing the db.")
 	DbNotInit                 = errors.New("The main DB has not been initialized.")
 	UserNotFound              = errors.New("User does not exist.")
+	SessionLimit              = errors.New("User has too many sessions. Please log off.")
 	UserExists                = errors.New("User is already registered.")
 	InvalidInput              = errors.New("This input cannot be empty.")
 	UuidParseFailed           = errors.New("UUID could not be parsed.")

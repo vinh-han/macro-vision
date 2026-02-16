@@ -15,10 +15,11 @@ import (
 func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup,
 		middleware.RemoveTrailingSlash(),
+        middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10.0)),
 	)
 	group.POST(config.Auth.LoginPath, login)
 	group.POST(config.Auth.RegisterPath, signup)
-	group.POST(config.Auth.LogoutPath, logout)
+	group.GET(config.Auth.LogoutPath, logout)
 	return nil
 }
 

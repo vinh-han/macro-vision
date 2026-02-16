@@ -90,6 +90,22 @@ func (q *Queries) Change_password(ctx context.Context, arg Change_passwordParams
 	return err
 }
 
+const count_session = `-- name: Count_session :one
+select count(*)
+from sessions
+where user_id = (
+    select user_id from users where username=$1
+)
+`
+
+// ----SESSION-----
+func (q *Queries) Count_session(ctx context.Context, username string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, count_session, username)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const create_meal_card = `-- name: Create_meal_card :one
 insert into meal_cards(
     card_id,
@@ -468,7 +484,6 @@ from sessions
 where token = $1
 `
 
-// ----SESSION-----
 func (q *Queries) Get_session(ctx context.Context, token string) (Session, error) {
 	row := q.db.QueryRowContext(ctx, get_session, token)
 	var i Session

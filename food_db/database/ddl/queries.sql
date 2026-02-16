@@ -62,6 +62,12 @@ INSERT INTO dish_ingredients(
 VALUES ($1, $2, $3, $4);
 
 -- ----SESSION-----
+-- name: Count_session :one
+select count(*)
+from sessions
+where user_id = (
+    select user_id from users where username=$1
+);
 -- name: Get_session :one
 select *
 from sessions

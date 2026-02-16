@@ -112,7 +112,7 @@ func Create_session(ctx context.Context, user_id uuid.UUID) (token string, err e
 		SessionID:   uuid.New(),
 		UserID:      user_id,
 		Token:       token,
-		ExpiresAt:   time.Now().Add(token_expiration_hr * time.Hour),
+		ExpiresAt:   time.Now().Add(token_expiration_hr),
 		DateCreated: time.Now(),
 	})
 	if err != nil {
