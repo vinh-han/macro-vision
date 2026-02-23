@@ -1,0 +1,8 @@
+vision.endstranding.net {
+    reverse_proxy frontend:5173
+    reverse_proxy /dev/adminer/* adminer:8080
+    handle_path /api/* {
+        rewrite * {path}
+        reverse_proxy backend:8000
+    }
+}
