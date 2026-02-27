@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     model_deployment_name: str = "extractor-mini"
     embedding_deployment_name: str = "embeddings"
 
+    # AZURE VISION CONFIGS
+    azure_vision_endpoint: str = ""
+    azure_vision_api_key: str = ""
+
     links_folder: str
     user_agent: str
     db_path: str
