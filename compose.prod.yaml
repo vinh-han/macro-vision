@@ -6,11 +6,14 @@ services:
         - 443:443
         - 443:443/udp
       volumes:
-        - ./caddy:/etc/caddy
+        - ./caddy:/etc/caddy:z
         - caddy_data:/data
         - caddy_config:/config
     frontend:
-        build: ./frontend/
+        init: true
+        build:
+          context: ./frontend
+          dockerfile: ./Dockerfile.prod
         container_name: frontend
         develop:
             watch:
