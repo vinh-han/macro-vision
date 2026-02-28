@@ -2,6 +2,7 @@ import { Box, Text, Field, Input, Button, HStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BASE_API_URL } from '../../constant';
+import { setCookie } from '../../components/Methods';
 
 export default function Signup() {
     let navigate = useNavigate();
@@ -37,14 +38,24 @@ export default function Signup() {
                 return response.json()
             }
 
-            return Promise.reject()
+            return Promise.reject(response)
         }).then((data) => {
-            console.log(data)
+            setCookie('token', data.token, 10)
+            navigate("/app")
         }).catch((response) => {
-            console.log(response)
-        })
+            let error = ""
+            if (response.status === 401) {
+                error = "Password too long!"
+            }
+            else if (response.status === 409) {
+                error = "Username or Email existed!"
+            } 
+            else if (response.status === 500) {
+                error = "Unexpected Error!"
+            }
 
-        setErrorMsg("")
+            setErrorMsg(error)
+        })
     }
 
     return (
@@ -147,7 +158,7 @@ export default function Signup() {
                                     color="black"/>
                             </Field.Root>
                             {errorMsg && (
-                                <HStack justifyContent="center" fontSize="1.2em" marginTop="1.4rem">
+                                <HStack justifyContent="center" alignContent="start" fontSize="1em" marginTop="1.4rem">
                                     <i className="ri-error-warning-fill" style={{lineHeight: 1}}></i>
                                     <Text 
                                         textAlign="center"

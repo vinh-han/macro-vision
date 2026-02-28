@@ -1,4 +1,4 @@
-import {Route, createBrowserRouter, createRoutesFromElements} from 'react-router';
+import {Route, createHashRouter, createRoutesFromElements} from 'react-router';
 
 //import layouts
 import PublicLayout from './layouts/PublicLayout'; 
@@ -21,7 +21,7 @@ import ProfilePage from './pages/app/ProfilePage';
 
 import './main.css'
 
-export const router = createBrowserRouter( 
+export const router = createHashRouter( 
     createRoutesFromElements (
         <Route path="/">
 

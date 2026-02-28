@@ -20,7 +20,7 @@ export default function DishInfoPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const reponse = await fetch('http://127.0.0.1:8000/v1/dishes/faee2d47-410d-4939-bbd5-d755f50269f1'); 
+                const reponse = await fetch('http://127.0.0.1:8000/v1/dishes/706a4960-e53e-4120-9708-5b60cc135f03'); 
 
                 if(!reponse.ok) {
                     throw new Error('Network error'); 

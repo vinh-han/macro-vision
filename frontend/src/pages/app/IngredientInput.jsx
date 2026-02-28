@@ -32,8 +32,6 @@ export default function IngredientInputPage() {
             <Box
                 width="100%"
                 padding="0.8rem 1.1rem 2rem" // reduce bottom padding from 8rem to 2rem
-                // position="absolute"
-                // top="5.5rem"
                 fontSize="1rem">
                 {
                     (() => {

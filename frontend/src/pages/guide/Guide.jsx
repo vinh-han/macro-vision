@@ -25,7 +25,7 @@ export default function Guide() {
             color="white">
                 <Image
                     src={Logo}
-                    width="18rem"
+                    width="15rem"
                     transform="auto"
                     translateY={atTop ? "0" : "calc(50vh - 100%)"}
                     transition="all 0.7s ease"/>
@@ -48,12 +48,12 @@ export default function Guide() {
                             boxSizing="border-box"
                             border="1px solid"
                             borderRadius="1rem">
-                            <i className="ri-camera-ai-2-fill" style={{ fontSize: "3.2rem", lineHeight: "1" }}></i>
+                            <i className="ri-camera-ai-2-fill" style={{ fontSize: "3.1rem", lineHeight: "1" }}></i>
                             <Box 
                                 display="flex"
                                 flexDirection="column"
                                 alignItems="center"
-                                fontSize="1rem">
+                                fontSize="0.95rem">
                                 <Text
                                     fontWeight="semibold" 
                                     fontSize="1.2em">
@@ -75,12 +75,12 @@ export default function Guide() {
                             boxSizing="border-box"
                             border="1px solid"
                             borderRadius="1rem">
-                            <i className="ri-fridge-line" style={{ fontSize: "3.2rem", lineHeight: "1" }}></i>
+                            <i className="ri-fridge-line" style={{ fontSize: "3.1rem", lineHeight: "1" }}></i>
                             <Box 
                                 display="flex"
                                 flexDirection="column"
                                 alignItems="center"
-                                fontSize="1rem">
+                                fontSize="0.95rem">
                                 <Text
                                     fontWeight="semibold" 
                                     fontSize="1.2em">
@@ -102,12 +102,12 @@ export default function Guide() {
                             boxSizing="border-box"
                             border="1px solid"
                             borderRadius="1rem">
-                            <i className="ri-calendar-2-fill" style={{ fontSize: "3.2rem", lineHeight: "1" }}></i>
+                            <i className="ri-calendar-2-fill" style={{ fontSize: "3.1rem", lineHeight: "1" }}></i>
                             <Box 
                                 display="flex"
                                 flexDirection="column"
                                 alignItems="center"
-                                fontSize="1rem">
+                                fontSize="0.95rem">
                                 <Text
                                     fontWeight="semibold" 
                                     fontSize="1.2em">
