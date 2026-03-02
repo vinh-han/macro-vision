@@ -9,6 +9,7 @@ COPY ./frontend/package.json ./frontend/package-lock.json ./
 RUN pnpm import
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 COPY ./frontend .
+COPY .env ./
 RUN pnpm run build
 
 FROM nginx:stable-alpine
