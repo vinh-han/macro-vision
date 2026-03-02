@@ -6,7 +6,7 @@ services:
         - 443:443
         - 443:443/udp
       volumes:
-        - ./caddy:/etc/caddy:z
+        - ./deploy_conf:/etc/caddy:z
         - caddy_data:/data
         - caddy_config:/config
     frontend:

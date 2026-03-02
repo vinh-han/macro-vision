@@ -1,15 +1,15 @@
-import {Route, createHashRouter, createRoutesFromElements} from 'react-router';
+import {Route, createBrowserRouter, createRoutesFromElements} from 'react-router';
 
 //import layouts
-import PublicLayout from './layouts/PublicLayout'; 
-import AppLayout from './layouts/AppLayout'; 
+import PublicLayout from './layouts/PublicLayout';
+import AppLayout from './layouts/AppLayout';
 
-//import public pages 
+//import public pages
 import Guide from './pages/guide/Guide';
 import Login from './pages/auth/Login';
-import Signup from './pages/auth/Signup';   
+import Signup from './pages/auth/Signup';
 
-// import app pages 
+// import app pages
 import HomePage from './pages/app/HomePage';
 import SearchPage from './pages/app/SearchPage';
 import IngredientInputPage from './pages/app/IngredientInput';
@@ -21,7 +21,7 @@ import ProfilePage from './pages/app/ProfilePage';
 
 import './main.css'
 
-export const router = createHashRouter( 
+export const router = createBrowserRouter(
     createRoutesFromElements (
         <Route path="/">
 

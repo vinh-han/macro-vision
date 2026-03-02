@@ -8,7 +8,6 @@ type EnvConfig struct {
 	BACKEND_PORT        string
 	DOMAIN              string
 	FRONTEND_PORT       string
-    TEST string
 	POSTGRES_PORT       string
 	POSTGRES_USER       string
 	POSTGRES_PASSWORD   string
