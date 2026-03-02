@@ -134,7 +134,9 @@ class YOLOVisualizer:
         split: str = "train",
         num_samples: int = 5,
         save_output: bool = False,
-        output_dir: str = "labeled_images"
+        output_dir: str = "labeled_images",
+        start_index: int = 0,
+        randomize: bool = False
     ):
         images_dir = self.dataset_dir / split / 'images'
         labels_dir = self.dataset_dir / split / 'labels'
@@ -143,34 +145,43 @@ class YOLOVisualizer:
             self.logger.error(f"Images directory not found {images_dir}")
             return
 
-        # get all image
         image_files = list(images_dir.glob("*.*"))
 
         if not image_files:
             self.logger.warning(f"No images found in {images_dir}")
             return
 
-        sample_size = min(num_samples, len(image_files))
-        sampled_images = random.sample(image_files, sample_size)
+        if num_samples == -1:
+            sampled_images = image_files
+        else:
+            sample_size = min(num_samples, len(image_files))
+            if randomize:
+                sampled_images = random.sample(image_files, sample_size)
+            else:
+                sampled_images = image_files[:sample_size]
 
-        self.logger.info(f"Visualizing {sample_size} images from {split} set.")
-        self.logger.info("Press any key to see next image, 'q' to quit, 's' to save")
+        total_samples = len(sampled_images)
+        start_index = max(0, min(start_index, total_samples - 1))
+        self.logger.info(f"Visualizing {total_samples} images from {split} set.")
+        self.logger.info(f"Starting from index {start_index}")
+        self.logger.info("Press 'n' for next, 'p' for previous, 'q' to quit, 's' to save")
 
         if save_output:
             output_path = Path(__file__).parent / output_dir
             output_path.mkdir(exist_ok=True)
 
-        for i, img_path in enumerate(sampled_images):
+        i = start_index
+        while i < total_samples:
+            img_path = sampled_images[i]
             label_path = labels_dir / f"{img_path.stem}.txt"
 
-            # visualize
             viz_img = self.visualize_image(img_path, label_path)
 
             if viz_img is None:
+                i += 1
                 continue
 
-            # Add info text
-            info_text = f"{split.upper()} | {i+1}/{sample_size} | {img_path.name}"
+            info_text = f"{split.upper()} | {i+1}/{total_samples} | {img_path.name}"
             cv2.putText(
                 viz_img,
                 info_text,
@@ -184,7 +195,6 @@ class YOLOVisualizer:
             cv2.imshow("YOLO Label Visualization", viz_img)
             key = cv2.waitKey(0)
 
-            # check for cmmds
             if key == ord('q'):
                 self.logger.info("Quitting ...")
                 break
@@ -192,6 +202,12 @@ class YOLOVisualizer:
                 save_path = output_path / f"{split}_{i:03d}_{img_path.name}"
                 cv2.imwrite(str(save_path), viz_img)
                 self.logger.info(f"Saved to {save_path}")
+            elif key == ord('p'):
+                i = max(0, i - 1)
+            elif key == ord('n') or key == 32 or key == 13:
+                i += 1
+            else:
+                i += 1
 
         cv2.destroyAllWindows()
 
@@ -212,7 +228,19 @@ def main():
     parser.add_argument(
         '--num-samples',
         type=int,
-        default=5
+        default=5,
+        help='Number of samples to visualize (-1 for all images)'
+    )
+    parser.add_argument(
+        '--start-index',
+        type=int,
+        default=0,
+        help='Index to start visualization from'
+    )
+    parser.add_argument(
+        '--random',
+        action='store_true',
+        help='Randomize image selection'
     )
     parser.add_argument(
         '--save',
@@ -221,12 +249,13 @@ def main():
 
     args = parser.parse_args()
 
-    # create viz
     visualizer = YOLOVisualizer(dataset_dir=args.dataset)
     visualizer.visualize_dataset(
         split=args.split,
         num_samples=args.num_samples,
-        save_output=args.save
+        save_output=args.save,
+        start_index=args.start_index,
+        randomize=args.random
     )
 
 if __name__ == "__main__":
