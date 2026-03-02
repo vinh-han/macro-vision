@@ -1,9 +1,9 @@
 FROM golang:1.24.2-alpine AS builder
 ENV CGO_ENABLED=0
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY ./food_db/go.mod ./food_db/go.sum ./
 RUN go mod download && go mod verify
-COPY . .
+COPY ./food_db .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go build -v -o backend.exe .

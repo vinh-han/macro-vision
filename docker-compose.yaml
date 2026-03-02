@@ -1,6 +1,8 @@
 services:
     frontend:
-        build: ./frontend/
+        build:
+          context: .
+          dockerfile: ./frontend/Dockerfile
         container_name: frontend
         ports:
             - ${FRONTEND_PORT}:5173
@@ -16,7 +18,9 @@ services:
           - ./frontend/:/frontend/
           - /frontend/node_modules
     backend:
-        build: ./food_db/
+        build:
+          context: ./
+          dockerfile: ./food_db/Dockerfile
         container_name: backend
         ports:
             - ${BACKEND_PORT}:8000

@@ -88,7 +88,6 @@ func main() {
 
 	// doc path
 	e.GET(config.App.DocPath+"/*", echoSwagger.WrapHandler)
-	fmt.Println(config.App.DocPath + "/*")
 	e.GET("/", func(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, config.App.DocPath+"/")
 	})

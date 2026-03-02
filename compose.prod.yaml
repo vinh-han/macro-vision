@@ -12,8 +12,8 @@ services:
     frontend:
         init: true
         build:
-          context: ./frontend
-          dockerfile: ./Dockerfile.prod
+          context: ./
+          dockerfile: ./frontend/Dockerfile.prod
         container_name: frontend
         develop:
             watch:
@@ -27,7 +27,9 @@ services:
           - ./frontend/:/frontend/
           - /frontend/node_modules
     backend:
-        build: ./food_db/
+        build:
+          context: .
+          dockerfile: ./food_db/Dockerfile
         container_name: backend
         restart: unless-stopped
         volumes:
