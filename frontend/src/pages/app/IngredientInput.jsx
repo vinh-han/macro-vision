@@ -1,10 +1,13 @@
 import {Box, Button, Text, SimpleGrid, Center} from "@chakra-ui/react"
 import { useState } from 'react'
 import IngredientCard from "../../components/IngredientCard"
+import AddIngredientModal from "../../components/AddIngredientModal"
 
 export default function IngredientInputPage() {
     const [isEdit, setIsEdit] = useState(false)
-    
+    const [inputModal, setInputModal] = useState(false)
+
+
     return (
         <>
             <Box
@@ -12,7 +15,7 @@ export default function IngredientInputPage() {
                 padding="1.2rem 1rem 1rem"
                 background="black"
                 roundedBottom="18px"
-                position="sticky" // changed from fixed to sticky 
+                position="sticky"
                 top="0"
                 zIndex="1">
                 <Button
@@ -101,7 +104,9 @@ export default function IngredientInputPage() {
                                         gap="1rem">
                                         <Button 
                                             flex="1"
-                                            background="#4d7eb3"
+                                            background="white"
+                                            border="solid"
+                                            color="black"
                                             rounded="7px"
                                             fontSize="1.2em"
                                             fontWeight="semibold">Select All</Button>
@@ -138,11 +143,8 @@ export default function IngredientInputPage() {
                     <IngredientCard />
                     <IngredientCard />
                     <IngredientCard />
-                    <IngredientCard />
-                    <Center
-                        className="custom-dashed-border">
-                            <i className="ri-add-large-line" style={{fontSize: "25px", color: "#B0ABAB"}}></i>
-                    </Center>
+                
+                    <AddIngredientModal />
                 </SimpleGrid>
             </Box>
         </>

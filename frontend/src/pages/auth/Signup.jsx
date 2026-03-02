@@ -1,10 +1,10 @@
 import { Box, Text, Field, Input, Button, HStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { BASE_API_URL } from '../../constant';
 import { setCookie } from '../../components/Methods';
 
 export default function Signup() {
+    const apiUrl = import.meta.env.VITE_BASE_API_URL;
     let navigate = useNavigate();
 
     const [errorMsg, setErrorMsg] = useState("")
@@ -27,7 +27,7 @@ export default function Signup() {
             password: data.password
         }
 
-        fetch(`${BASE_API_URL}auth/signup`, {
+        fetch(`${apiUrl}auth/signup`, {
             method: "POST",
             body: JSON.stringify(signUpInfo),
             headers: {

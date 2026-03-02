@@ -1,9 +1,11 @@
-import { Box, Text, Field, Input, Button } from '@chakra-ui/react'
+import { Box, Text, Field, Input, Button, HStack } from '@chakra-ui/react'
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { BASE_API_URL } from '../../constant';
+import { setCookie } from '../../components/Methods';
 
 export default function Login() {
+    const apiUrl = import.meta.env.VITE_BASE_API_URL;
+
     let navigate = useNavigate();
     const [errorMsg, setErrorMsg] = useState("")
 
@@ -12,7 +14,38 @@ export default function Login() {
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData.entries());
 
-        console.log(data);
+        const logInInfo = {
+            username: data.username,
+            password: data.password
+        }
+
+        fetch(`${apiUrl}auth/login`, {
+            method: 'POST',
+            body: JSON.stringify(logInInfo),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            if (response.status === 200) {
+                console.log("??")
+                return response.json()
+            }
+
+            return Promise.reject(response)
+        }).then((data) => {
+            setCookie('token', data.token, 10)
+            navigate("/app")
+        }).catch((response) => {
+            let error = ""
+            if (response.status == 404 || response.status == 409) {
+                error = "Invalid Username or Password!"
+            } 
+            else if (response.status == 500) {
+                error = "Unexpected Error!"
+            }
+
+            setErrorMsg(error)
+        })
     }
 
     return (
@@ -80,6 +113,17 @@ export default function Login() {
                                 textDecoration="underline">
                                 Forgot Password?
                             </Text>
+                            {errorMsg && (
+                                <HStack justifyContent="center" alignContent="start" fontSize="1em" marginTop="1.4rem">
+                                    <i className="ri-error-warning-fill" style={{lineHeight: 1}}></i>
+                                    <Text 
+                                        textAlign="center"
+                                        fontWeight="bold">
+                                        {errorMsg}
+                                    </Text>
+                                </HStack>
+                                
+                            )}
                         </Box>
                         <Button 
                             type="submit"
