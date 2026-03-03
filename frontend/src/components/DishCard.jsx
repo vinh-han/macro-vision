@@ -15,7 +15,7 @@ export default function DishCard() {
 
     return (
         <Card.Root 
-        maxW="sm" borderRadius="md"
+        w="sm" borderRadius="md"
         cursor="pointer" onClick={() => navigate('/app/dish')}
         >
             <Image 
