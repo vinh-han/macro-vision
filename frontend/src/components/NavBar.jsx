@@ -12,7 +12,7 @@ const NavItems = [
 export default function NavBar() {
     return (
         <Box>
-            <HStack gap={{base: "3.5em", md:"5.5em", lg: "7.5em"}} >
+            <HStack gap={{base: "3em", md:"5.5em", lg: "7.5em"}} >
                 {NavItems.map((item) => (
                     <NavButton 
                         key={item.PathName}

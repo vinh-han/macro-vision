@@ -18,7 +18,6 @@ export default function NavButton({IconName, PathName, Path}) {
                 <Text 
                     display={{base: "none", md: "block"}}
                     color={isActive ?  "crimsonred.500" : "gray.600"} 
-                    fontWeight={isActive ? "bold" : "normal"}
                     fontSize="sm"
                 >
                     {PathName}

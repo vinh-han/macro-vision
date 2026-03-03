@@ -12,35 +12,51 @@ import { useState, useEffect } from "react";
 
 export default function DishInfoPage() {
     const navigate = useNavigate();
+    const apiUrl = import.meta.env.VITE_BASE_API_URL;
 
     const [data, setData] = useState(null); 
     const [loading, setLoading] = useState(true); 
     const [error, setError] = useState(null); 
 
     useEffect(() => {
+
+        // STEP 2: Component mounted
+        const controller = new AbortController(); 
+
+        setLoading(true); 
+        setError(null)
+
         const fetchData = async () => {
             try {
-                const reponse = await fetch('http://127.0.0.1:8000/v1/dishes/706a4960-e53e-4120-9708-5b60cc135f03'); 
+                const response = await fetch(`${apiUrl}dishes/faee2d47-410d-4939-bbd5-d755f50269f1`, { signal: controller.signal })
 
-                if(!reponse.ok) {
-                    throw new Error('Network error'); 
+                if(!response.ok) {
+                    throw new Error('error'); 
                 }
 
-                const result = await reponse.json();
+                // STEP 3a: Success 
+                const result = await response.json();
                 setData(result); 
 
             } catch (err) {
-                setError(err.message); 
+                // STEP 3b: Error 
+                if (err.name !== 'AbortError') setError(err.message);
             } finally {
                 setLoading(false); 
             }
         };
 
         fetchData();
+
+        // STEP 4: Cleanup 
+        return () => controller.abort(); 
+
     },[]);
 
+    // STEP 1: Initial render 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
+
 
     return (
         <Box bg="white" minH="100vh">
@@ -65,11 +81,11 @@ export default function DishInfoPage() {
 
             {/* Content area */}
             <Container mt={6}>
-                <Heading size="lg" mb={2}>{data.dish_name} ({data.alt_name?.String})</Heading>
+                <Heading size="lg" mb={2}>{data?.dish_name} ({data?.alt_name?.String})</Heading>
                 
                 {/* Meta Data  */}
                 <Text color="gray.500" fontSize="lg">
-                    {data.description}
+                    {data?.description}
                 </Text>
 
                 {/* Buttons */}
@@ -90,7 +106,7 @@ export default function DishInfoPage() {
                 <Heading size="md" mb={4} mt={4}>Steps</Heading>
                 <Button
                     isDisabled={!data?.source}
-                    onClick={() => {window.open(data.source, "_blank"); }}
+                    onClick={() => {window.open(data?.source, "_blank"); }}
                 >Link to steps</Button>
             </Container>
         </Box>
