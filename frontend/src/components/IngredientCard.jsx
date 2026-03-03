@@ -9,7 +9,7 @@ export default function IngredientCard({ingred}) {
             flexDirection="column"
             boxShadow="0 0 0.2rem 0.05rem #0000004d"
             rounded="8px">
-            <Image src="/src/assets/images/ingredient/egg.png" />
+            <Image src="/public/assets/images/ingredient/egg.png" />
             <Text fontWeight="bold" fontSize="1.1em" overflow="hidden" whiteSpace="nowrap"> 
                 {ingred.ingredient_name}
             </Text>
