@@ -211,6 +211,51 @@ class YOLOVisualizer:
 
         cv2.destroyAllWindows()
 
+    def visualize_single_image(
+        self,
+        split: str,
+        image_name: str,
+        save_output: bool = False,
+        output_dir: str = "labeled_images"
+    ):
+        images_dir = self.dataset_dir / split / 'images'
+        labels_dir = self.dataset_dir / split / 'labels'
+
+        img_path = images_dir / image_name
+        if not img_path.exists():
+            self.logger.error(f"Image not found: {img_path}")
+            return
+
+        label_path = labels_dir / f"{img_path.stem}.txt"
+        viz_img = self.visualize_image(img_path, label_path)
+
+        if viz_img is None:
+            return
+
+        info_text = f"{split.upper()} | {image_name}"
+        cv2.putText(
+            viz_img,
+            info_text,
+            (10, 30),
+            cv2.FONT_HERSHEY_COMPLEX,
+            0.7,
+            (0, 255, 0),
+            2
+        )
+
+        cv2.imshow("YOLO Label Visualization", viz_img)
+        self.logger.info("Press any key to close, 's' to save")
+        key = cv2.waitKey(0)
+
+        if key == ord('s') and save_output:
+            output_path = Path(__file__).parent / output_dir
+            output_path.mkdir(exist_ok=True)
+            save_path = output_path / f"{split}_{image_name}"
+            cv2.imwrite(str(save_path), viz_img)
+            self.logger.info(f"Saved to {save_path}")
+
+        cv2.destroyAllWindows()
+
 def main():
     import argparse
 
@@ -223,7 +268,7 @@ def main():
     parser.add_argument(
         '--split',
         default='train',
-        choices=['train', 'val', 'test']
+        # choices=['train', 'val', 'test']
     )
     parser.add_argument(
         '--num-samples',
@@ -243,6 +288,11 @@ def main():
         help='Randomize image selection'
     )
     parser.add_argument(
+        '--image',
+        type=str,
+        help='Specific image filename to visualize'
+    )
+    parser.add_argument(
         '--save',
         action='store_true'
     )
@@ -250,13 +300,21 @@ def main():
     args = parser.parse_args()
 
     visualizer = YOLOVisualizer(dataset_dir=args.dataset)
-    visualizer.visualize_dataset(
-        split=args.split,
-        num_samples=args.num_samples,
-        save_output=args.save,
-        start_index=args.start_index,
-        randomize=args.random
-    )
+
+    if args.image:
+        visualizer.visualize_single_image(
+            split=args.split,
+            image_name=args.image,
+            save_output=args.save
+        )
+    else:
+        visualizer.visualize_dataset(
+            split=args.split,
+            num_samples=args.num_samples,
+            save_output=args.save,
+            start_index=args.start_index,
+            randomize=args.random
+        )
 
 if __name__ == "__main__":
     main()
