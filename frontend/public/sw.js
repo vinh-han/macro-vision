@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open("simple-cache").then((cache) => {
@@ -15,4 +16,12 @@ self.addEventListener("fetch", (event) => {
       return response || fetch(event.request);
     })
   );
+=======
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+>>>>>>> Stashed changes
 });
