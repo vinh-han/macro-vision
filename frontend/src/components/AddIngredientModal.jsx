@@ -1,14 +1,21 @@
 import { Button, CloseButton, Dialog, Portal, Center } from "@chakra-ui/react"
-import IngredientSelect from "./IngredientSelect"
+import IngredientComboBox from "./IngredientComboBox"
+import { useIngredInputContext } from "../context/IngredientInputContext"
 
-export default function AddIngredientModal() {
+export default function AddIngredientModal({staticIngredList}) {
+    const {addIngred} = useIngredInputContext();
+    
     return (
         <Dialog.Root
             size={{ mdDown: "xs", md: "xl" }}
             placement="center">
             <Dialog.Trigger asChild>
                 <Center
-                    className="custom-dashed-border">
+                    className="custom-dashed-border"
+                    justifySelf="start"
+                    width="100%"
+                    height="full"
+                    minH="9rem">
                         <i className="ri-add-large-line" style={{fontSize: "25px", color: "#B0ABAB"}}></i>
                 </Center>
             </Dialog.Trigger>
@@ -20,13 +27,8 @@ export default function AddIngredientModal() {
                             <Dialog.Title>Select Ingredient</Dialog.Title>
                         </Dialog.Header>
                         <Dialog.Body>
-                            <IngredientSelect />
+                            <IngredientComboBox staticIngredList={staticIngredList}/>
                         </Dialog.Body>
-                        <Dialog.Footer>
-                            <Dialog.ActionTrigger asChild>
-                                <Button width="100%">Select</Button>
-                            </Dialog.ActionTrigger>
-                        </Dialog.Footer>
                         <Dialog.CloseTrigger asChild>
                             <CloseButton size="xl" />
                         </Dialog.CloseTrigger>

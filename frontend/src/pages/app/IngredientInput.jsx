@@ -1,12 +1,11 @@
 import {Box, Button, Text, SimpleGrid, Center} from "@chakra-ui/react"
 import { useState } from 'react'
-import IngredientCard from "../../components/IngredientCard"
-import AddIngredientModal from "../../components/AddIngredientModal"
+import IngredientInputList from "../../components/IngredientInputList"
+import IngredInputContextProvider from "../../context/IngredientInputContext"
+import { useIngredInputContext } from "../../context/IngredientInputContext"
 
 export default function IngredientInputPage() {
     const [isEdit, setIsEdit] = useState(false)
-    const [inputModal, setInputModal] = useState(false)
-
 
     return (
         <>
@@ -123,29 +122,10 @@ export default function IngredientInputPage() {
                         }
                     })()
                 }
+                <IngredInputContextProvider>
+                    <IngredientInputList />
+                </IngredInputContextProvider>
                 
-                <SimpleGrid 
-                    minChildWidth={{base: "7rem", md: "10rem"}}
-                    gap="0.8rem" 
-                    marginTop="0.9rem"
-                    gridAutoRows="1fr">
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                    <IngredientCard />
-                
-                    <AddIngredientModal />
-                </SimpleGrid>
             </Box>
         </>
     )
