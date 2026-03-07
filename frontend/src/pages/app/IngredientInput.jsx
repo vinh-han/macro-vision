@@ -2,13 +2,15 @@ import {Box, Button, Text, SimpleGrid, Center} from "@chakra-ui/react"
 import { useState } from 'react'
 import IngredientInputList from "../../components/IngredientInputList"
 import IngredInputContextProvider from "../../context/IngredientInputContext"
-import { useIngredInputContext } from "../../context/IngredientInputContext"
+import IngredientInputActionBox from "../../components/IngredientInputActionBox"
 
 export default function IngredientInputPage() {
     const [isEdit, setIsEdit] = useState(false)
+    const [selectedIngred, setSelectedIngred] = useState([]);
 
+    
     return (
-        <>
+        <IngredInputContextProvider>
             <Box
                 width="100%"
                 padding="1.2rem 1rem 1rem"
@@ -89,44 +91,24 @@ export default function IngredientInputPage() {
                                             padding="0.4rem 0.5rem"
                                             rounded="7px"
                                             fontSize="1rem"
-                                            onClick={() => setIsEdit(false)}>
+                                            onClick={() => {
+                                                setIsEdit(false)
+                                                setSelectedIngred([])
+                                            }}>
                                             <Text fontSize="1.2em" fontWeight="semibold">
                                                 Done
                                             </Text>
                                             <i className="ri-check-line" style={{fontSize: "1.5em", lineHeight: 1}}></i>
                                         </Button>
                                     </Box>
-                                    <Box
-                                        width="100%"
-                                        display="flex"
-                                        justifyContent="space-between"
-                                        gap="1rem">
-                                        <Button 
-                                            flex="1"
-                                            background="white"
-                                            border="solid"
-                                            color="black"
-                                            rounded="7px"
-                                            fontSize="1.2em"
-                                            fontWeight="semibold">Select All</Button>
-                                        <Button 
-                                            flex="1"
-                                            background="#d62d3a"
-                                            rounded="7px"
-                                            fontSize="1.2em"
-                                            fontWeight="semibold">Delete</Button>
-                                    </Box>
+                                    <IngredientInputActionBox selectedIngred = {selectedIngred} setSelectedIngred={setSelectedIngred} />
                                 </Box>
-                                
                             )
                         }
                     })()
                 }
-                <IngredInputContextProvider>
-                    <IngredientInputList />
-                </IngredInputContextProvider>
-                
+                <IngredientInputList selectedIngred={selectedIngred} setSelectedIngred={setSelectedIngred} isEdit={isEdit}/>
             </Box>
-        </>
+        </IngredInputContextProvider>
     )
 }

@@ -4,7 +4,7 @@ import AddIngredientModal from "./AddIngredientModal"
 import { useIngredInputContext } from "../context/IngredientInputContext";
 import { useState, useEffect } from "react";
 
-export default function IngredientInputList() {
+export default function IngredientInputList({selectedIngred, setSelectedIngred, isEdit}) {
     const apiUrl = import.meta.env.VITE_BASE_API_URL
     const {ingredList} = useIngredInputContext();
 
@@ -12,6 +12,16 @@ export default function IngredientInputList() {
         const data = localStorage.getItem("ingred-list")
         return data ? JSON.parse(data) : []
     })
+
+    function addIngred(ingredId) {
+      setSelectedIngred([...selectedIngred, ingredId])
+    }
+
+    function removeIngred(ingredId) {
+      setSelectedIngred(selectedIngred.filter((id) => (
+        id !== ingredId
+      )))
+    }
     
       useEffect(() => {
         if (staticIngredList.length == 0) {
@@ -39,9 +49,12 @@ export default function IngredientInputList() {
             marginTop="0.9rem"
             gridAutoRows="1fr">
             {ingredList.map((ingred) => (
-                <IngredientCard ingred={ingred} />
+                <IngredientCard key={ingred.ingredient_id} addIngred={addIngred} removeIngred={removeIngred} isEdit={isEdit} isSelected={selectedIngred.includes(ingred.ingredient_id)} ingred={ingred} />
             ))}
-            <AddIngredientModal staticIngredList={staticIngredList}/>
+            {!isEdit && (
+              <AddIngredientModal staticIngredList={staticIngredList}/>
+            )}
+            
         </SimpleGrid>
     )
 }
