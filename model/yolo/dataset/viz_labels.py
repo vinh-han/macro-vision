@@ -126,6 +126,17 @@ class YOLOVisualizer:
                     2
                 )
 
+                coord_text = f"x:{x_center:.3f} y:{y_center:.3f} w:{width:.3f} h:{height:.3f}"
+                cv2.putText(
+                    img,
+                    coord_text,
+                    (x1, y2 + 12),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.35,
+                    color,
+                    1
+                )
+
         return img
 
     # Viz random samples from dataset

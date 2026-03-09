@@ -17,9 +17,9 @@ class Settings(BaseSettings):
 
     links_folder: str
     user_agent: str
-    db_path: str
-    recipe_db_name: str
-    sessions_db_name: str
+    # db_path: str
+    # recipe_db_name: str
+    # sessions_db_name: str
     token_expiration: str
     session_cookie_name: str
 
@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     postgres_db: str
 
     ingredients_list_path: str = './assets/classes.txt'
+
+    postgres_port: int
+    domain: str
 
     @property
     def ingredients_list(self) -> str:

@@ -6,7 +6,6 @@ banana
 banana blossom
 banana leaf
 basil
-bean
 bean sprout
 beef ball
 beef bone
@@ -184,24 +183,19 @@ shrimp chips
 soda
 soy sauce
 spearmint
-spring roll wrapper
 sprouts
 squid
 sriracha sauce
 star anise
-steak
 sugar
 sweet potato
 tamarind powder
 tamarind pulp
 tapioca ball
-tapioca flour
 tapioca starch
-taro stem
 tofu
 tomato
 vanilla extract
-vinegar
 water chestnut
 water spinach
 watercress
