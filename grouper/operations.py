@@ -1,14 +1,17 @@
-import asyncio
 import os
+from datetime import datetime, timezone
+import uuid
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Dict, List
 
 import asyncpg
 
 from grouper.utils.logger import setup_logger
+from grouper.utils.config import settings
 
 logger = setup_logger(__name__, "operations.log")
+
 
 async def get_ingredients(use_sqlite: Optional[bool] = True) -> List[str]:
     """Fetch all ingredient names from food_db."""
@@ -19,7 +22,9 @@ async def get_ingredients(use_sqlite: Optional[bool] = True) -> List[str]:
 
         if not sqlite_path.exists():
             logger.error(f"SQLite database not found at {sqlite_path}")
-            logger.info("Please ensure the SQLite database exists or use PostgreSQL instead")
+            logger.info(
+                "Please ensure the SQLite database exists or use PostgreSQL instead"
+            )
             return []
 
         try:
@@ -32,7 +37,9 @@ async def get_ingredients(use_sqlite: Optional[bool] = True) -> List[str]:
             rows = cursor.fetchall()
 
             ingredients = [row[0] for row in rows]
-            logger.info(f"Successfully loaded {len(ingredients)} ingredients from SQLite")
+            logger.info(
+                f"Successfully loaded {len(ingredients)} ingredients from SQLite"
+            )
 
             conn.close()
 
@@ -45,11 +52,11 @@ async def get_ingredients(use_sqlite: Optional[bool] = True) -> List[str]:
         logger.info("Using PostgreSQL database for ingredients...")
 
         connection_params = {
-            'host': os.getenv('POSTGRES_HOST', 'localhost'),
-            'port': int(os.getenv('POSTGRES_PORT', '5432')),
-            'user': os.getenv('POSTGRES_USER', 'username'),
-            'password': os.getenv('POSTGRES_PASSWORD', 'password'),
-            'database': os.getenv('POSTGRES_DB', 'default_database')
+            "host": settings.postgres_host,
+            "port": int(os.getenv("POSTGRES_PORT", "5432")),
+            "user": os.getenv("POSTGRES_USER", "username"),
+            "password": os.getenv("POSTGRES_PASSWORD", "password"),
+            "database": os.getenv("POSTGRES_DB", "default_database"),
         }
 
         try:
@@ -58,8 +65,10 @@ async def get_ingredients(use_sqlite: Optional[bool] = True) -> List[str]:
             query = "SELECT ingredient_name FROM ingredients ORDER BY ingredient_name"
             rows = await conn.fetch(query)
 
-            ingredients = [row['ingredient_name'] for row in rows]
-            logger.info(f"Successfully loaded {len(ingredients)} ingredients from PostgreSQL")
+            ingredients = [row["ingredient_name"] for row in rows]
+            logger.info(
+                f"Successfully loaded {len(ingredients)} ingredients from PostgreSQL"
+            )
 
             await conn.close()
 
@@ -71,8 +80,7 @@ async def get_ingredients(use_sqlite: Optional[bool] = True) -> List[str]:
 
 
 async def update_ingredient_names(
-    flat_mapping: Dict[str, str],
-    use_sqlite: Optional[bool] = True
+    flat_mapping: Dict[str, str], use_sqlite: Optional[bool] = True
 ) -> int:
     """Update ingredient names in the database based on grouping mappings by merging ingredients."""
 
@@ -98,32 +106,47 @@ async def update_ingredient_names(
                     grouped_ingredients[grouped_name].append(original_name)
 
             for grouped_name, original_names in grouped_ingredients.items():
-                cursor.execute("SELECT id FROM ingredients WHERE name = ?", (grouped_name,))
+                cursor.execute(
+                    "SELECT id FROM ingredients WHERE name = ?", (grouped_name,)
+                )
                 # cursor.execute("SELECT id FROM ingredients WHERE ingredient_name = ?", (grouped_name,))
 
                 target_row = cursor.fetchone()
 
                 if target_row:
                     target_id = target_row[0]
-                    logger.info(f"Target ingredient '{grouped_name}' already exists with id {target_id}")
+                    logger.info(
+                        f"Target ingredient '{grouped_name}' already exists with id {target_id}"
+                    )
                 else:
-                    cursor.execute("SELECT id FROM ingredients WHERE name = ? LIMIT 1", (original_names[0],))
+                    cursor.execute(
+                        "SELECT id FROM ingredients WHERE name = ? LIMIT 1",
+                        (original_names[0],),
+                    )
                     first_row = cursor.fetchone()
                     if first_row:
                         target_id = first_row[0]
-                        cursor.execute("UPDATE ingredients SET name = ? WHERE id = ?", (grouped_name, target_id))
-                        logger.info(f"Updated first ingredient '{original_names[0]}' -> '{grouped_name}' (id: {target_id})")
+                        cursor.execute(
+                            "UPDATE ingredients SET name = ? WHERE id = ?",
+                            (grouped_name, target_id),
+                        )
+                        logger.info(
+                            f"Updated first ingredient '{original_names[0]}' -> '{grouped_name}' (id: {target_id})"
+                        )
                         original_names = original_names[1:]
                     else:
                         continue
 
                 for original_name in original_names:
-                    cursor.execute("SELECT id FROM ingredients WHERE name = ?", (original_name,))
+                    cursor.execute(
+                        "SELECT id FROM ingredients WHERE name = ?", (original_name,)
+                    )
                     source_row = cursor.fetchone()
                     if source_row:
                         source_id = source_row[0]
 
-                        cursor.execute("""
+                        cursor.execute(
+                            """
                             UPDATE dish_ingredients
                             SET ingredient_id = ?
                             WHERE ingredient_id = ?
@@ -132,7 +155,9 @@ async def update_ingredient_names(
                                 WHERE di2.dish_id = dish_ingredients.dish_id
                                 AND di2.ingredient_id = ?
                             )
-                        """, (target_id, source_id, target_id))
+                        """,
+                            (target_id, source_id, target_id),
+                        )
 
                         # cursor.execute("""
                         #     UPDATE dish_ingredients
@@ -145,11 +170,15 @@ async def update_ingredient_names(
                         #     )
                         # """, (target_id, source_id, target_id))
 
-                        cursor.execute("DELETE FROM ingredients WHERE id = ?", (source_id,))
+                        cursor.execute(
+                            "DELETE FROM ingredients WHERE id = ?", (source_id,)
+                        )
                         # cursor.execute("DELETE FROM ingredients WHERE ingredient_id = ?", (source_id,))
 
                         updated_count += 1
-                        logger.info(f"Merged ingredient '{original_name}' into '{grouped_name}'")
+                        logger.info(
+                            f"Merged ingredient '{original_name}' into '{grouped_name}'"
+                        )
 
             conn.commit()
             conn.close()
@@ -164,16 +193,15 @@ async def update_ingredient_names(
         logger.info("Updating ingredient names in PostgreSQL database...")
 
         connection_params = {
-            'host': os.getenv('POSTGRES_HOST', 'localhost'),
-            'port': int(os.getenv('POSTGRES_PORT', '5432')),
-            'user': os.getenv('POSTGRES_USER', 'username'),
-            'password': os.getenv('POSTGRES_PASSWORD', 'password'),
-            'database': os.getenv('POSTGRES_DB', 'default_database')
+            "host": settings.postgres_host,
+            "port": int(os.getenv("POSTGRES_PORT", "5432")),
+            "user": os.getenv("POSTGRES_USER", "username"),
+            "password": os.getenv("POSTGRES_PASSWORD", "password"),
+            "database": os.getenv("POSTGRES_DB", "default_database"),
         }
 
         try:
             conn = await asyncpg.connect(**connection_params)
-
             grouped_ingredients = {}
             for original_name, grouped_name in flat_mapping.items():
                 if original_name != grouped_name:
@@ -181,68 +209,83 @@ async def update_ingredient_names(
                         grouped_ingredients[grouped_name] = []
                     grouped_ingredients[grouped_name].append(original_name)
 
-            for grouped_name, original_names in grouped_ingredients.items():
-                target_row = await conn.fetchrow("SELECT ingredient_id FROM ingredients WHERE ingredient_name = $1", grouped_name)
-                # target_row = await conn.fetchrow("SELECT id FROM ingredients WHERE name = $1", grouped_name)
+            # insert new ingredients (without dupes with old ingre)
+            new_ingredients = []
+            for grouped_name, _ in grouped_ingredients.items():
+                new_ingredients.append(
+                    (uuid.uuid4(), grouped_name, datetime.now(timezone.utc))
+                )
+            await conn.executemany(
+                """
+                INSERT INTO ingredients (
+                    ingredient_id,
+                    ingredient_name,
+                    date_created
+                )
+                SELECT $1, $2, $3
+                WHERE NOT EXISTS (
+                  SELECT 1 FROM ingredients WHERE ingredient_name = $2
+                );
+                """,
+                new_ingredients,
+            )
+            # make temp table for ref old vs new id
+            await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS old_new_id (
+                        old_id UUID PRIMARY KEY,
+                        new_id UUID NOT NULL
+                    );
+                    """)
+            # get ids according to name for map
+            rows = await conn.fetch("""
+                SELECT ingredient_id, ingredient_name
+                FROM ingredients
+                """)
+            name_to_id = {
+                    r["ingredient_name"]: r["ingredient_id"] for r in rows
+                    }
+            # map old ids to new id (new id from)
+            old_to_new = [
+                (name_to_id[old_name], name_to_id[i[1]])
+                for i in new_ingredients
+                for old_name in grouped_ingredients[i[1]]
+            ]
+            await conn.executemany(
+                """
+                    INSERT INTO old_new_id(
+                        old_id,
+                        new_id
+                        )
+                    VALUES($1, $2);
+                    """,
+                old_to_new,
+            )
+            # update the dish_ingredient based on the temp table
+            await conn.execute("""
+                    UPDATE dish_ingredients di
+                    SET ingredient_id = map.new_id
+                    FROM old_new_id map
+                    WHERE di.ingredient_id = map.old_id;
+                    """)
+            # clean up dupes dish_ingredients
+            await conn.execute("""
+                    DELETE FROM dish_ingredients di
+                    USING dish_ingredients di2
+                    WHERE di.dish_id = di2.dish_id
+                    AND di.ingredient_id = di2.ingredient_id
+                    AND di.ctid > di2.ctid;
+                    """)
+            # clean up old ingredients
+            await conn.execute("""
+                    DELETE FROM ingredients i
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM dish_ingredients di
+                        WHERE di.ingredient_id = i.ingredient_id
+                    );
+                    """)
 
-                if target_row:
-                    target_id = target_row['ingredient_id']
-                    # target_id = target_row['id']
-                    logger.info(f"Target ingredient '{grouped_name}' already exists with id {target_id}")
-                else:
-                    first_row = await conn.fetchrow("SELECT ingredient_id FROM ingredients WHERE ingredient_name = $1", original_names[0])
-                    # first_row = await conn.fetchrow("SELECT id FROM ingredients WHERE name = $1", original_names[0])
-
-                    if first_row:
-                        target_id = first_row['ingredient_id']
-                        # target_id = first_row['id']
-
-                        await conn.execute("UPDATE ingredients SET ingredient_name = $1 WHERE ingredient_id = $2", grouped_name, target_id)
-                        # await conn.execute("UPDATE ingredients SET name = $1 WHERE id = $2", grouped_name, target_id)
-
-                        logger.info(f"Updated first ingredient '{original_names[0]}' -> '{grouped_name}' (id: {target_id})")
-                        original_names = original_names[1:]
-                    else:
-                        continue
-
-                for original_name in original_names:
-                    source_row = await conn.fetchrow("SELECT ingredient_id FROM ingredients WHERE ingredient_name = $1", original_name)
-                    # source_row = await conn.fetchrow("SELECT id FROM ingredients WHERE name = $1", original_name)
-
-                    if source_row:
-                        source_id = source_row['ingredient_id']
-                        # source_id = source_row['id']
-
-                        await conn.execute("""
-                            UPDATE dish_ingredients
-                            SET ingredient_id = $1
-                            WHERE ingredient_id = $2
-                            AND NOT EXISTS (
-                                SELECT 1 FROM dish_ingredients di2
-                                WHERE di2.dish_id = dish_ingredients.dish_id
-                                AND di2.ingredient_id = $1
-                            )
-                        """, target_id, source_id)
-
-                        # await conn.execute("""
-                        #     UPDATE dish_ingredients
-                        #     SET id = $1
-                        #     WHERE id = $2
-                        #     AND NOT EXISTS (
-                        #         SELECT 1 FROM dish_ingredients di2
-                        #         WHERE di2.id = dish_ingredients.id
-                        #         AND di2.id = $1
-                        #     )
-                        # """, target_id, source_id)
-
-                        await conn.execute("DELETE FROM ingredients WHERE ingredient_id = $1", source_id)
-                        # await conn.execute("DELETE FROM ingredients WHERE id = $1", source_id)
-                        updated_count += 1
-                        logger.info(f"Merged ingredient '{original_name}' into '{grouped_name}'")
-
-            await conn.close()
-
-            logger.info(f"Successfully merged {updated_count} ingredients in PostgreSQL")
+            logger.info(f"Successfully merged {updated_count}")
             return updated_count
 
         except Exception as e:
@@ -250,7 +293,9 @@ async def update_ingredient_names(
             return 0
 
 
-async def get_dishes_with_ingredients(use_sqlite: Optional[bool] = True, limit: Optional[int] = None) -> List[Dict]:
+async def get_dishes_with_ingredients(
+    use_sqlite: Optional[bool] = True, limit: Optional[int] = None
+) -> List[Dict]:
     """Fetch dishes with their ingredients from the database."""
 
     if use_sqlite:
@@ -303,18 +348,16 @@ async def get_dishes_with_ingredients(use_sqlite: Optional[bool] = True, limit: 
 
                 if dish_id not in dishes_dict:
                     dishes_dict[dish_id] = {
-                        'dish_id': dish_id,
-                        'dish_name': dish_name,
-                        'course': course,
-                        'ingredients': []
+                        "dish_id": dish_id,
+                        "dish_name": dish_name,
+                        "course": course,
+                        "ingredients": [],
                     }
 
                 if ingredient_name:
-                    dishes_dict[dish_id]['ingredients'].append({
-                        'name': ingredient_name,
-                        'amount': amount,
-                        'unit': unit
-                    })
+                    dishes_dict[dish_id]["ingredients"].append(
+                        {"name": ingredient_name, "amount": amount, "unit": unit}
+                    )
 
             dishes = list(dishes_dict.values())
             logger.info(f"Successfully loaded {len(dishes)} dishes from SQLite")
@@ -329,11 +372,11 @@ async def get_dishes_with_ingredients(use_sqlite: Optional[bool] = True, limit: 
         logger.info("Fetching dishes with ingredients from PostgreSQL database...")
 
         connection_params = {
-            'host': os.getenv('POSTGRES_HOST', 'localhost'),
-            'port': int(os.getenv('POSTGRES_PORT', '5432')),
-            'user': os.getenv('POSTGRES_USER', 'username'),
-            'password': os.getenv('POSTGRES_PASSWORD', 'password'),
-            'database': os.getenv('POSTGRES_DB', 'default_database')
+            "host": os.getenv("POSTGRES_HOST", "database"),
+            "port": int(os.getenv("POSTGRES_PORT", "5432")),
+            "user": os.getenv("POSTGRES_USER", "username"),
+            "password": os.getenv("POSTGRES_PASSWORD", "password"),
+            "database": os.getenv("POSTGRES_DB", "default_database"),
         }
 
         try:
@@ -372,27 +415,25 @@ async def get_dishes_with_ingredients(use_sqlite: Optional[bool] = True, limit: 
 
             dishes_dict = {}
             for row in rows:
-                dish_id = row['dish_id']
-                dish_name = row['dish_name']
-                course = row['course']
-                ingredient_name = row['ingredient_name']
-                amount = row['amount']
-                unit = row['unit']
+                dish_id = row["dish_id"]
+                dish_name = row["dish_name"]
+                course = row["course"]
+                ingredient_name = row["ingredient_name"]
+                amount = row["amount"]
+                unit = row["unit"]
 
                 if dish_id not in dishes_dict:
                     dishes_dict[dish_id] = {
-                        'dish_id': dish_id,
-                        'dish_name': dish_name,
-                        'course': course,
-                        'ingredients': []
+                        "dish_id": dish_id,
+                        "dish_name": dish_name,
+                        "course": course,
+                        "ingredients": [],
                     }
 
                 if ingredient_name:
-                    dishes_dict[dish_id]['ingredients'].append({
-                        'name': ingredient_name,
-                        'amount': amount,
-                        'unit': unit
-                    })
+                    dishes_dict[dish_id]["ingredients"].append(
+                        {"name": ingredient_name, "amount": amount, "unit": unit}
+                    )
 
             dishes = list(dishes_dict.values())
             logger.info(f"Successfully loaded {len(dishes)} dishes from PostgreSQL")

@@ -1,8 +1,8 @@
 services:
     frontend:
         build:
-          context: .
-          dockerfile: ./frontend/Dockerfile
+            context: .
+            dockerfile: ./frontend/Dockerfile
         container_name: frontend
         ports:
             - ${FRONTEND_PORT}:5173
@@ -15,12 +15,12 @@ services:
                 - action: rebuild
                   path: ./frontend/eslint.config.js
         volumes:
-          - ./frontend/:/frontend/
-          - /frontend/node_modules
+            - ./frontend/:/frontend/
+            - /frontend/node_modules
     backend:
         build:
-          context: ./
-          dockerfile: ./food_db/Dockerfile
+            context: ./
+            dockerfile: ./food_db/Dockerfile
         container_name: backend
         ports:
             - ${BACKEND_PORT}:8000
@@ -32,7 +32,7 @@ services:
                 - action: rebuild
                   path: ./food_db
                   ignore:
-                    - ./food_db/links
+                      - ./food_db/links
         depends_on:
             database:
                 condition: service_healthy
@@ -47,7 +47,7 @@ services:
             retries: 3
             start_period: 1s
         volumes:
-            - postgres_data:/var/lib/postgresql
+            - postgres_data:/var/lib/postgresql/data
     adminer:
         image: adminer
         container_name: adminer
@@ -55,6 +55,11 @@ services:
             - 8080:8080
         environment:
             ADMINER_DEFAULT_SERVER: database
+    grouper:
+        profiles: [grouper]
+        build:
+            context: ./
+            dockerfile: ./grouper/Dockerfile
 
 volumes:
     postgres_data:
