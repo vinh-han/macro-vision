@@ -107,8 +107,25 @@ export default function IngredientInputPage() {
                         }
                     })()
                 }
-                <IngredientInputList selectedIngred={selectedIngred} setSelectedIngred={setSelectedIngred} isEdit={isEdit}/>
+                <Box
+                    minH="30rem">
+                    <IngredientInputList selectedIngred={selectedIngred} setSelectedIngred={setSelectedIngred} isEdit={isEdit}/>
+                </Box>
+                
+                {!isEdit && (
+                    <Button
+                        width="100%"
+                        height="3rem"
+                        marginTop="3rem"
+                        rounded="10px"
+                        fontWeight="bold"
+                        fontSize="1.4rem">
+                            Suggest Recipe
+                    </Button>
+                )}
+                
             </Box>
+            
         </IngredInputContextProvider>
     )
 }
