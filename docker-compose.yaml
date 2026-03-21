@@ -48,6 +48,7 @@ services:
             start_period: 1s
         volumes:
             - postgres_data:/var/lib/postgresql/data
+
     adminer:
         image: adminer
         container_name: adminer
@@ -55,11 +56,27 @@ services:
             - 8080:8080
         environment:
             ADMINER_DEFAULT_SERVER: database
+
     grouper:
         profiles: [grouper]
         build:
             context: ./
             dockerfile: ./grouper/Dockerfile
+        depends_on:
+            database:
+                condition: service_healthy
+                
+    img_scraper:
+        profiles: [scraper]
+        build:
+            context: ./
+            dockerfile: ./img_scraper/Dockerfile
+        volumes:
+            - ./img_scraper/tmp/:/img_scraper/tmp/
+            - ./img_scraper/images/:/img_scraper/images/
+        depends_on:
+            database:
+                condition: service_healthy
 
 volumes:
     postgres_data:
