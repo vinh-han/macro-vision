@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     ingredients_list_path: str = './assets/classes.txt'
 
     postgres_port: int
-    domain: str
 
     @property
     def ingredients_list(self) -> str:

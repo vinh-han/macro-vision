@@ -284,6 +284,10 @@ async def update_ingredient_names(
                         WHERE di.ingredient_id = i.ingredient_id
                     );
                     """)
+            # clean temp table
+            await conn.execute("""
+                    DROP TABLE IF EXISTS old_new_id;
+                               """)
 
             logger.info(f"Successfully merged {updated_count}")
             return updated_count
