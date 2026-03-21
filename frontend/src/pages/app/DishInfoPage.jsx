@@ -10,7 +10,7 @@ import dish from  "../../assets/images/dish/dish_1.jpg"
 import { useNavigate } from "react-router"
 import { useState, useEffect } from "react";
 
-export default function DishInfoPage() {
+export default function DishInfoPage({dish}) {
     const navigate = useNavigate();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
 
@@ -19,25 +19,19 @@ export default function DishInfoPage() {
     const [error, setError] = useState(null); 
 
     useEffect(() => {
-
-        // STEP 2: Component mounted
         const controller = new AbortController(); 
-
         setLoading(true); 
         setError(null)
 
         const fetchData = async () => {
             try {
-                const response = await fetch(`${apiUrl}dishes/faee2d47-410d-4939-bbd5-d755f50269f1`, { signal: controller.signal })
-
+                const response = await fetch(`${apiUrl}dishes/dish.dish_id`, { signal: controller.signal })
                 if(!response.ok) {
                     throw new Error('error'); 
                 }
-
                 // STEP 3a: Success 
                 const result = await response.json();
                 setData(result); 
-
             } catch (err) {
                 // STEP 3b: Error 
                 if (err.name !== 'AbortError') setError(err.message);
@@ -45,23 +39,20 @@ export default function DishInfoPage() {
                 setLoading(false); 
             }
         };
-
         fetchData();
-
         // STEP 4: Cleanup 
         return () => controller.abort(); 
-
     },[]);
 
+// ==================================== View ===============================================
     // STEP 1: Initial render 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
-
-
+    
     return (
         <Box bg="white" minH="100vh">
             
-            {/* Top header */}
+            {/* ------------------------Top header------------------------ */}
             <Box bg="black" py={4} px={4}>
                 <Box 
                     as="span" 
@@ -72,14 +63,14 @@ export default function DishInfoPage() {
                 </Box>
             </Box>
 
-            {/* Dish Image */}
+            {/*------------------------Dish Image------------------------ */}
             <Image 
                 src={dish} alt="A bowl of bun cha Hanoi"
                 width="100%" height="250px" 
                 objectFit="cover" 
             />
 
-            {/* Content area */}
+            {/* ------------------------Content area------------------------ */}
             <Container mt={6}>
                 <Heading size="lg" mb={2}>{data?.dish_name} ({data?.alt_name?.String})</Heading>
                 

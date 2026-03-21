@@ -1,28 +1,111 @@
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
-    Container, Flex, Box, HStack, VStack,
-    Input, Button, Collapsible, Text, Separator,
-    Slider
+    // frame: 
+    Container, Flex, Box, HStack, VStack, Slider,
+    // functional: 
+    Input, Button, Collapsible, 
+    // typography: 
+    Text, Separator
 } from "@chakra-ui/react";
 import DishCard from "../../components/DishCard";
 
+{/* ARRAY OF DISH INFO */}
+const dishes = [
+    {
+        dish_name: "COM TAM", 
+        description: "BROKEN RICE WITH MEAT", 
+        course: "main dish"
+    }, 
+    {
+        dish_name: "Bun Cha Hanoi", 
+        description: "A tradiontional Hanoi dish", 
+        course: "main dish",
+    }, 
+    {
+        dish_name: "CAFE SUA DA", 
+        description: "CAFFEIN", 
+        course: "beverage",
+    }, 
+    {
+        dish_name: "CAFE SUA DA", 
+        description: "CAFFEIN", 
+        course: "beverage",
+    }
+]
+
 export default function SearchPage() {
-    
-    // --- Filter State ---
+    const apiUrl = import.meta.env.VITE_BASE_API_URL;
+
+    // --- Search Sate --- 
+    const [inputValue, setInputValue] = useState(''); 
+    const [query, setQuery] = useState(''); 
+
+    const [course, setCourse] = useState(''); 
+    const [ingredientCount, setIngredientCount] = useState(''); 
+
+    const [totalPage, setTotalPage] = useState(''); 
+    const [page, setPage] = useState(1); 
+
+    // --- Page State -- 
+    const [result, setResult] = useState([]); 
+    const [loading, setLoading] = useState(false); 
+    const [error, setError] = useState(null); 
+
+    // --- Filter Button  ---
     const [isOpen, setIsOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(''); 
     const [ingredientsNum, setIngredientsNum] = useState(6);
-
+    const handleClose = () => setIsOpen(false);
     const categories = [
         'appetizers', 'breakfast', 'desserts', 'drinks', 
         'salads', 'side-dishes', 'snacks', 'soups'
     ];
 
-    const handleClose = () => setIsOpen(false);
+    // --- Page Function --- 
+    // define a function which only run when component mount & whenever the variable in [] changes
+    useEffect(() => {
 
+        // enter loading state 
+        const controller = new AbortController(); 
+        setLoading(true); 
+        setError(null); 
+
+        // detach this function from the app 
+        const fetchResults = async () => {
+            // specify the search params 
+            const params = new URLSearchParams(); 
+            params.set('page', page); 
+            params.set('limit', 5); 
+
+            if (query) params.set('query', query); 
+            if (course) params.set('course', course); 
+            if (ingredientCount) params.set('ingredientCount', ingredientCount); 
+
+            // API CALL 
+            try {
+                // run these function sequentially 
+                const res = await fetch(`${apiUrl}dishes/search?${params.toString()}`, {signal: controller.signal}); 
+                const data = await res.json(); 
+                // get the dishes object 
+                setResult(data.dishes);
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+                setError('Something went wrong. Please try again.'); 
+            } finally {
+                setLoading(false);
+            }
+        };
+        // call the function and clean up 
+        fetchResults();
+        return () => controller.abort(); 
+    }, [query, course, ingredientCount, page]); 
+
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
     return (
         <Container centerContent maxW="container.xl">
-            {/* Search Box */}
+            {/* --- Search Box ---  */}
             <Container centerContent maxW="full">
                 <Input 
                     placeholder="Search for recipes..." 
@@ -32,7 +115,7 @@ export default function SearchPage() {
                 />
             </Container>
 
-            {/* Search Filter */}
+            {/* --- Search Filter --- */}
             <Container w={{ base: "95%", md: "70%", lg: "60%" }} mt={4}>
                 {/* Toggle Button & Active Tags */}
                 <HStack  gap={3}>
@@ -135,11 +218,16 @@ export default function SearchPage() {
                 </Collapsible.Root>
             </Container>
             
+
             {/* Dish cards */}
             <Flex gap="5" wrap="wrap" justify="center" maxW="80%" mt="2">
-                <DishCard/>
-                <DishCard/>
-                <DishCard/>
+                {result.map((dish, index) => (
+                    <DishCard key={index} 
+                    dishName={dish.dish_name}
+                    dishDescription={dish.description}
+                    dishCourse={dish.course} 
+                    dishImage={dish.image}/>
+                ))} 
             </Flex>
         </Container>
     );

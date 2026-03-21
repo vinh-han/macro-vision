@@ -9,7 +9,7 @@ import {
 
 import Logo from "../../assets/images/LogoHorizontal.svg"
 import MealCardMini from "../../components/MealCardMini"
-import DishCard from "../../components/DishCard"
+// import DishCard from "../../components/DishCard"
 
 export default function HomePage() {
     return (
@@ -29,7 +29,7 @@ export default function HomePage() {
                         <MealCardMini/>
                         {/* add new mmeal card button  */}
                         <Center border="dashed 2px" rounded="md" width="8rem" height="8rem" fontSize="4xl" >
-                                <i class="ri-add-line"></i>
+                                <i className="ri-add-line"></i>
                         </Center>
                     </HStack>
                 </Container>
@@ -38,7 +38,7 @@ export default function HomePage() {
             {/* Popular dishes area  */}
             <Container>
                 <Heading>Popular Dishes</Heading>
-                <DishCard/>
+                {/* <DishCard/> */}
             </Container>
         </Container>
     )
