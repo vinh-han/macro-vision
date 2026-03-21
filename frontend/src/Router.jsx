@@ -3,6 +3,7 @@ import {Route, createBrowserRouter, createRoutesFromElements} from 'react-router
 //import layouts
 import PublicLayout from './layouts/PublicLayout';
 import AppLayout from './layouts/AppLayout';
+import AddToMealPlanLayout from './layouts/AddToMealPlanLayout';
 
 //import public pages
 import Guide from './pages/guide/Guide';
@@ -12,8 +13,10 @@ import Signup from './pages/auth/Signup';
 // import app pages
 import HomePage from './pages/app/HomePage';
 import SearchPage from './pages/app/SearchPage';
-import IngredientInputPage from './pages/app/IngredientInput';
-import AddToMealPlanPage from './pages/app/AddToMealPlanPage';
+import IngredientInputPage from './pages/app/IngredientInputPage';
+import RecipeSuggestPage from './pages/app/RecipeSuggestPage';
+import AddToNewMealPlanPage from './pages/app/AddToNewMealPlanPage';
+import AddToExistingMealPlanPage from './pages/app/AddToExistingMealPlanPage';
 import DishInfoPage from './pages/app/DishInfoPage';
 import MealPlannerPage from './pages/app/MealPlannerPage';
 import MealCardPage from './pages/app/MealCardPage';
@@ -37,7 +40,11 @@ export const router = createBrowserRouter(
                 <Route index element={<HomePage />} />
                 <Route path="search" element={<SearchPage />} />
                 <Route path="ingredient-input" element={<IngredientInputPage />} />
-                <Route path="add-to-meal-plan" element={<AddToMealPlanPage />} />
+                <Route path="recipe-suggest" element={<RecipeSuggestPage />} />
+                <Route path="add-to-meal-plan" element={<AddToMealPlanLayout/>}>
+                    <Route path="new-meal-plan" element={<AddToNewMealPlanPage />} />
+                    <Route path="existing-meal-plan" element={<AddToExistingMealPlanPage />} />
+                </Route>
                 <Route path="dish" element={<DishInfoPage />} />
                 <Route path="meal-planner" element={<MealPlannerPage/>} />
                 <Route path="meal-card" element={<MealCardPage />} />

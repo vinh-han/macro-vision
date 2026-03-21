@@ -1,4 +1,5 @@
 import { Box, Image, Text } from "@chakra-ui/react"
+import { assetNameProcess } from "./Methods"
 
 export default function IngredientCard({addIngred, removeIngred, isEdit, isSelected, ingred}) {
 
@@ -21,7 +22,7 @@ export default function IngredientCard({addIngred, removeIngred, isEdit, isSelec
                     }
                 }
             }}>
-            <Image src="/assets/images/ingredient/egg.png" />
+            <Image src={`/assets/images/ingredients/${assetNameProcess(ingred.ingredient_name)}.webp`} />
             <Text fontWeight="bold" fontSize="1.1em" overflow="hidden" whiteSpace="nowrap"> 
                 {ingred.ingredient_name}
             </Text>

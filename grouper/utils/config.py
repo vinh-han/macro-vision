@@ -15,25 +15,14 @@ class Settings(BaseSettings):
     model_deployment_name: str = "extractor-mini"
     embedding_deployment_name: str = "embeddings"
 
-    links_folder: str
-    user_agent: str
-    # db_path: str
-    # recipe_db_name: str
-    # sessions_db_name: str
-    token_expiration: str
-    session_cookie_name: str
-
-    frontend_port: int
-    backend_port: int
-
     postgres_user: str
     postgres_password: str
     postgres_db: str
+    postgres_host: str
 
     ingredients_list_path: str = './assets/classes.txt'
 
     postgres_port: int
-    domain: str
 
     @property
     def ingredients_list(self) -> str:
@@ -42,5 +31,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 settings = Settings()

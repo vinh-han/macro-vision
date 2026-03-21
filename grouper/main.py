@@ -125,4 +125,4 @@ def get_groupings_sync(use_sqlite: Optional[bool] = True, update_db: bool = Fals
 
 
 if __name__ == "__main__":
-    asyncio.run(main(update_db=True))
+    asyncio.run(main(use_sqlite=False, update_db=True))

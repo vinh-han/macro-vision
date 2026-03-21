@@ -6,7 +6,6 @@ type EnvConfig struct {
 	LINKS_FOLDER        string
 	USER_AGENT          string
 	BACKEND_PORT        string
-	DOMAIN              string
 	FRONTEND_PORT       string
 	POSTGRES_PORT       string
 	POSTGRES_USER       string

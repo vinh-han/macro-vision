@@ -19,3 +19,25 @@ export function getCookie(cookie_name) {
 export function deleteCookie(cookie_name) {
     document.cookie = `${cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
 }
+
+export function assetNameProcess(raw_name) {
+    if (!raw_name) {
+        console.log("String is NULL")
+        return
+    }
+
+    if (raw_name.length == 0) {
+        console.log("String is empty")
+        return
+    }
+
+    let item_name = raw_name.toLowerCase()
+    item_name = item_name.replaceAll(" / ", "_")
+    item_name = item_name.replaceAll("/", "_")
+    item_name = item_name.replaceAll(" ", "_")
+    item_name = item_name.trim()
+
+    console.log(item_name)
+    
+    return item_name
+}
