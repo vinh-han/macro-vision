@@ -93,9 +93,7 @@ func (q *Queries) Change_password(ctx context.Context, arg Change_passwordParams
 const count_session = `-- name: Count_session :one
 select count(*)
 from sessions
-where user_id = (
-    select user_id from users where username=$1
-)
+where user_id = (select user_id from users where username = $1)
 `
 
 // ----SESSION-----
@@ -222,7 +220,8 @@ func (q *Queries) Get_all_dishes(ctx context.Context) ([]Dish, error) {
 }
 
 const get_all_ingredients = `-- name: Get_all_ingredients :many
-select ingredient_id, ingredient_name, date_created from ingredients
+select ingredient_id, ingredient_name, date_created
+from ingredients
 `
 
 // ============ Ingredients
@@ -250,8 +249,9 @@ func (q *Queries) Get_all_ingredients(ctx context.Context) ([]Ingredient, error)
 }
 
 const get_card_with_id = `-- name: Get_card_with_id :one
-select card_id, user_id, title, meal_date, date_created from meal_cards
-where card_id = $1 and user_id=$2
+select card_id, user_id, title, meal_date, date_created
+from meal_cards
+where card_id = $1 and user_id = $2
 `
 
 type Get_card_with_idParams struct {
@@ -273,7 +273,8 @@ func (q *Queries) Get_card_with_id(ctx context.Context, arg Get_card_with_idPara
 }
 
 const get_dish = `-- name: Get_dish :one
-select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created from dishes
+select dish_id, dish_name, course, alt_name, full_recipe, source, description, date_created
+from dishes
 where dish_id = $1
 `
 
@@ -348,7 +349,8 @@ func (q *Queries) Get_dishes_in_meal_card(ctx context.Context, cardID uuid.UUID)
 }
 
 const get_favorites = `-- name: Get_favorites :many
-select dishes.dish_id, dishes.dish_name from dishes
+select dishes.dish_id, dishes.dish_name
+from dishes
 inner join favorites on favorites.dish_id = dishes.dish_id
 where favorites.user_id = $1
 `
@@ -382,11 +384,9 @@ func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_fa
 }
 
 const get_meal_cards_daily = `-- name: Get_meal_cards_daily :many
-
-select card_id, user_id, title, meal_date, date_created from meal_cards
-WHERE meal_date >= $1
-  AND meal_date <  $1 + INTERVAL '1 day'
-  and user_id=$2
+select card_id, user_id, title, meal_date, date_created
+from meal_cards
+where meal_date >= $1 and meal_date < $1 + interval '1 day' and user_id = $2
 `
 
 type Get_meal_cards_dailyParams struct {
@@ -425,11 +425,12 @@ func (q *Queries) Get_meal_cards_daily(ctx context.Context, arg Get_meal_cards_d
 }
 
 const get_meal_cards_monthly = `-- name: Get_meal_cards_monthly :many
-SELECT card_id, user_id, title, meal_date, date_created
-FROM meal_cards
-WHERE meal_date >= date_trunc('month', $1::timestamptz)
-  AND meal_date <  date_trunc('month', $1::timestamptz) + INTERVAL '1 month'
-  and user_id=$2
+select card_id, user_id, title, meal_date, date_created
+from meal_cards
+where
+    meal_date >= date_trunc('month', $1::timestamptz)
+    and meal_date < date_trunc('month', $1::timestamptz) + interval '1 month'
+    and user_id = $2
 `
 
 type Get_meal_cards_monthlyParams struct {
@@ -467,7 +468,8 @@ func (q *Queries) Get_meal_cards_monthly(ctx context.Context, arg Get_meal_cards
 }
 
 const get_one_ingredient = `-- name: Get_one_ingredient :one
-select ingredient_id, ingredient_name, date_created from ingredients
+select ingredient_id, ingredient_name, date_created
+from ingredients
 where ingredient_id = $1
 `
 
@@ -554,8 +556,7 @@ const get_user_from_token = `-- name: Get_user_from_token :one
 select users.user_id, users.username, users.display_name, users.email, users.password_hash, users.date_created
 from sessions
 join users on users.user_id = sessions.user_id
-where sessions.token = $1
-and sessions.expires_at > NOW()
+where sessions.token = $1 and sessions.expires_at > now()
 `
 
 // ----users-----
@@ -728,7 +729,7 @@ func (q *Queries) Remove_card(ctx context.Context, arg Remove_cardParams) (uuid.
 
 const remove_dish_from_card = `-- name: Remove_dish_from_card :one
 delete from meal_cards_dishes
-where card_id=$1 and dish_id=$2
+where card_id = $1 and dish_id = $2
 returning card_id
 `
 
@@ -745,8 +746,8 @@ func (q *Queries) Remove_dish_from_card(ctx context.Context, arg Remove_dish_fro
 }
 
 const remove_favorite = `-- name: Remove_favorite :one
-DELETE FROM favorites
-WHERE user_id = $1 AND dish_id = $2
+delete from favorites
+where user_id = $1 and dish_id = $2
 returning dish_id
 `
 
@@ -773,31 +774,29 @@ func (q *Queries) Remove_session(ctx context.Context, token string) error {
 }
 
 const search_dishes = `-- name: Search_dishes :many
-
-SELECT
+select
     d.dish_id,
     d.dish_name,
     d.course,
     d.alt_name,
     d.description,
-    COUNT(*) OVER () AS matches
-FROM dishes d
-JOIN dish_ingredients di
-    ON di.dish_id = d.dish_id
-WHERE
-    d.dish_name ILIKE $1
-    AND (
+    count(*) over () as matches
+from dishes d
+join dish_ingredients di on di.dish_id = d.dish_id
+where
+    d.dish_name ilike $1
+    and (
         array_length($2::text[], 1) is null
-        OR d.course = ANY($2::text[])
-)
+        or d.course = any($2::text[])
+    )
 
-GROUP BY
-    d.dish_id
-HAVING
-    COUNT(di.ingredient_id)
+group by d.dish_id
+having
+    count(di.ingredient_id)
 
-BETWEEN $3::int AND $4::int
-LIMIT $6::int offset $5::int
+    between $3::int and $4::int
+limit $6::int
+offset $5::int
 `
 
 type Search_dishesParams struct {
@@ -857,8 +856,9 @@ func (q *Queries) Search_dishes(ctx context.Context, arg Search_dishesParams) ([
 }
 
 const search_ingredients = `-- name: Search_ingredients :many
-select ingredient_id, ingredient_name, date_created from ingredients
-where ingredient_name ILIKE $1
+select ingredient_id, ingredient_name, date_created
+from ingredients
+where ingredient_name ilike $1
 `
 
 func (q *Queries) Search_ingredients(ctx context.Context, ingredientName string) ([]Ingredient, error) {
@@ -871,6 +871,88 @@ func (q *Queries) Search_ingredients(ctx context.Context, ingredientName string)
 	for rows.Next() {
 		var i Ingredient
 		if err := rows.Scan(&i.IngredientID, &i.IngredientName, &i.DateCreated); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const suggest_dish_from_ingredients = `-- name: Suggest_dish_from_ingredients :many
+select
+    d.dish_id,
+    d.alt_name,
+    d.description,
+    d.course,
+    d.dish_name,
+    count(di.ingredient_id) as matched_count,
+    total.total_ingredients,
+    (count(di.ingredient_id) * 1.0 / total.total_ingredients)::float8 as score
+from dishes d
+join dish_ingredients di on d.dish_id = di.dish_id
+join
+    ingredients i
+    on di.ingredient_id = i.ingredient_id
+    and i.ingredient_name = ANY($1::text[])
+join
+    (
+        select dish_id, count(*) as total_ingredients
+        from dish_ingredients
+        group by dish_id
+    ) total
+    on total.dish_id = d.dish_id
+
+group by d.dish_id, total.total_ingredients
+
+having count(di.ingredient_id) >= $2::int
+
+order by score desc
+limit 20
+offset $3::int
+`
+
+type Suggest_dish_from_ingredientsParams struct {
+	IngredientList []string `json:"ingredient_list"`
+	MatchTightness int32    `json:"match_tightness"`
+	PageOffset     int32    `json:"page_offset"`
+}
+
+type Suggest_dish_from_ingredientsRow struct {
+	DishID           uuid.UUID      `json:"dish_id"`
+	AltName          sql.NullString `json:"alt_name"`
+	Description      string         `json:"description"`
+	Course           string         `json:"course"`
+	DishName         string         `json:"dish_name"`
+	MatchedCount     int64          `json:"matched_count"`
+	TotalIngredients int64          `json:"total_ingredients"`
+	Score            float64        `json:"score"`
+}
+
+func (q *Queries) Suggest_dish_from_ingredients(ctx context.Context, arg Suggest_dish_from_ingredientsParams) ([]Suggest_dish_from_ingredientsRow, error) {
+	rows, err := q.db.QueryContext(ctx, suggest_dish_from_ingredients, pq.Array(arg.IngredientList), arg.MatchTightness, arg.PageOffset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Suggest_dish_from_ingredientsRow
+	for rows.Next() {
+		var i Suggest_dish_from_ingredientsRow
+		if err := rows.Scan(
+			&i.DishID,
+			&i.AltName,
+			&i.Description,
+			&i.Course,
+			&i.DishName,
+			&i.MatchedCount,
+			&i.TotalIngredients,
+			&i.Score,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
