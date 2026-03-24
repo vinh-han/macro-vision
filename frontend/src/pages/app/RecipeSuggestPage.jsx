@@ -1,49 +1,22 @@
 import { Box, Text, Button } from "@chakra-ui/react"
 import SuggestCard from "../../components/SuggestCard"
+import { useLocation, useNavigate } from "react-router"
+import { useEffect, useState } from "react";
 
 export default function RecipeSuggestPage() {
-    const mockData = [
-        {
-            dish_id: "7749",
-            dish_name: "Pepepopopipip",
-            description: "Lorem ipsum dolor sit amet",
-            date_created: "Testest",
-            course: "appetizer",
-            alt_name: "Pompompom"
-        },
-        {
-            dish_id: "7749",
-            dish_name: "Cupcakke Kimchi",
-            description: "Lorem ipsum dolor sit amet Dolor dolor ipsum",
-            date_created: "Testest",
-            course: "appetizer",
-            alt_name: "Pompompom"
-        },
-        {
-            dish_id: "7749",
-            dish_name: "Jiafei Remix",
-            description: "Lorem ipsum dolor sit amet asmmsld alslod lslams lslal dsdaj sslsl",
-            date_created: "Testest",
-            course: "main-dish",
-            alt_name: "Pompompom"
-        },
-        {
-            dish_id: "7749",
-            dish_name: "Pootaxie",
-            description: "Lorem ipsum dolor sit amet",
-            date_created: "Testest",
-            course: "breakfast",
-            alt_name: "Pompompom"
-        },
-        {
-            dish_id: "7749",
-            dish_name: "Deborah Rahh",
-            description: "Lorem ipsum dolor sit amet",
-            date_created: "Testest",
-            course: "soups",
-            alt_name: "Pompompom"
+    const navigate = useNavigate();
+    const [suggestedRecipe, setSuuggestedRecipe] = useState([]);
+    
+    useEffect(() => {
+        const data = localStorage.getItem("suggested-recipe")
+        if (data) {
+            setSuuggestedRecipe(JSON.parse(data))
+        } else {
+            navigate('../ingredient-input')
         }
-    ]
+    }, [])
+    
+
     return (
         <Box
             width="100%"
@@ -62,7 +35,8 @@ export default function RecipeSuggestPage() {
                                 fontSize: "2rem",
                                 position: "absolute",
                                 left: 15,
-                        }}></i>
+                        }}
+                        onClick={() => navigate('../ingredient-input')}></i>
                     <Text
                         color="white"
                         textAlign="center"
@@ -89,15 +63,15 @@ export default function RecipeSuggestPage() {
                     <Text
                         width="100%"
                         textAlign="right">
-                        10 Recipes
+                        {suggestedRecipe.length} Recipes
                     </Text>
                     <Box
                         marginTop="1rem"
                         display="flex"
                         flexDirection="column"
                         gap="5">
-                        {mockData.map((dish) => (
-                            <SuggestCard key={dish.id} dish={dish} />
+                        {suggestedRecipe.map((dish, index) => (
+                            <SuggestCard key={index} dish={dish} />      
                         ))}
                     </Box>
             </Box>

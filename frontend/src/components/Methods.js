@@ -36,8 +36,6 @@ export function assetNameProcess(raw_name) {
     item_name = item_name.replaceAll("/", "_")
     item_name = item_name.replaceAll(" ", "_")
     item_name = item_name.trim()
-
-    console.log(item_name)
     
     return item_name
 }

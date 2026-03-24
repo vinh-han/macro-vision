@@ -3,6 +3,7 @@ import { useState } from 'react'
 import IngredientInputList from "../../components/IngredientInputList"
 import IngredInputContextProvider from "../../context/IngredientInputContext"
 import IngredientInputActionBox from "../../components/IngredientInputActionBox"
+import SuggestRecipeButton from "../../components/SuggestRecipeButton"
 
 export default function IngredientInputPage() {
     const [isEdit, setIsEdit] = useState(false)
@@ -35,7 +36,7 @@ export default function IngredientInputPage() {
             </Box>
             <Box
                 width="100%"
-                padding="0.8rem 1.1rem 2rem" // reduce bottom padding from 8rem to 2rem
+                padding="0.8rem 1.1rem 2rem"
                 fontSize="1rem">
                 {
                     (() => {
@@ -113,15 +114,7 @@ export default function IngredientInputPage() {
                 </Box>
                 
                 {!isEdit && (
-                    <Button
-                        width="100%"
-                        height="3rem"
-                        marginTop="3rem"
-                        rounded="10px"
-                        fontWeight="bold"
-                        fontSize="1.4rem">
-                            Suggest Recipe
-                    </Button>
+                    <SuggestRecipeButton />
                 )}
                 
             </Box>

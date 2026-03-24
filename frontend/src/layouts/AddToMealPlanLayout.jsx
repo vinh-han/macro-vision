@@ -1,12 +1,17 @@
 import { Outlet, useLocation } from "react-router";
 import { Box, Text, Center } from "@chakra-ui/react";
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AddToMealPlanLayout() {
     const navigate = useNavigate()
     const location = useLocation()
-    const [selectedRecipe, setSelectedRecipe] = useState(location.state)
+    const data = localStorage.getItem("selected-recipe")
+    if (!data) {
+        navigate('../recipe-suggest')
+    }
+    const [selectedRecipe, setSelectedRecipe] = useState(JSON.parse(data))
+    
     return (
         <Box
             width="100%"
@@ -31,7 +36,7 @@ export default function AddToMealPlanLayout() {
                                         position: "absolute",
                                         left: 15,
                                     }}
-                                onClick={() => {navigate(-1)}}></i>
+                                onClick={() => {navigate('../recipe-suggest')}}></i>
                         <Text
                             color="white"
                             textAlign="center"
