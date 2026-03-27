@@ -3,6 +3,7 @@ package dishes
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"macro_vision/custom_errors"
 	"macro_vision/database"
@@ -29,12 +30,52 @@ func GetDish(ctx context.Context, dish_id string) (dish database.Dish, err error
 }
 
 type SuggestDishesParam struct {
-	IngredientId   string `json:"ingredient_id"`
-	IngredientName string `json:"ingredient_name"`
+	IngredientList []string `json:"ingredient_list"`
+	MatchTightness int      `json:"match_tightness" validate:"omitempty"`
+	Page           int      `json:"page" validate:"omitempty"`
 }
 
-// waiting api
-func SuggestDishes(ctx context.Context, param SuggestDishesParam) (dishes []database.Dish, err error) {
+type SuggestedDish struct {
+	DishID           uuid.UUID `json:"dish_id"`
+	DishName         string    `json:"dish_name"`
+	Course           string    `json:"course"`
+	AltName          string    `json:"alt_name"`
+	Description      string    `json:"description"`
+	MatchCount       int       `json:"match_count"`
+	TotalIngredients int       `json:"total_ingredients"`
+	Score            float32   `json:"score"`
+}
+
+func SuggestDishes(ctx context.Context, param SuggestDishesParam) (dishes []SuggestedDish, err error) {
+	tmp, err := database.DB.Queries.Suggest_dish_from_ingredients(ctx, database.Suggest_dish_from_ingredientsParams{
+		IngredientList: param.IngredientList,
+		MatchTightness: int32(param.MatchTightness),
+		PageOffset:     int32(param.Page),
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+		return []SuggestedDish{}, err
+	}
+	if err != nil {
+		return []SuggestedDish{}, err
+	}
+	for _, tmp_dish := range tmp {
+		var dish SuggestedDish
+		if tmp_dish.AltName.Valid {
+			dish.AltName = tmp_dish.AltName.String
+		} else {
+			dish.AltName = ""
+		}
+		dish.DishID = tmp_dish.DishID
+		dish.DishName = tmp_dish.DishName
+		dish.Course = tmp_dish.Course
+		dish.Description = tmp_dish.Description
+		dish.MatchCount = int(tmp_dish.MatchedCount)
+		dish.TotalIngredients = int(tmp_dish.TotalIngredients)
+		dish.Score = float32(tmp_dish.Score)
+
+		dishes = append(dishes, dish)
+	}
 	return
 }
 

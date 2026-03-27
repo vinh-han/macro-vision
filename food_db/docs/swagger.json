@@ -223,6 +223,67 @@
                 }
             }
         },
+        "/dishes/suggestion": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Get the dishes matching at least one of the ingredients, and ranked",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dishes"
+                ],
+                "summary": "Suggest dishes based on the ingredients given",
+                "parameters": [
+                    {
+                        "description": "ingredient names",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dishes.SuggestDishesParam"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "dish suggestions",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dishes.SuggestedDish"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/dishes/{dish_id}": {
             "get": {
                 "description": "Retrieve a single dish by its UUID. If the dish does not exist, an empty object is returned.",
@@ -1386,6 +1447,52 @@
                 },
                 "dish_name": {
                     "type": "string"
+                }
+            }
+        },
+        "dishes.SuggestDishesParam": {
+            "type": "object",
+            "properties": {
+                "ingredient_list": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "match_tightness": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dishes.SuggestedDish": {
+            "type": "object",
+            "properties": {
+                "alt_name": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dish_id": {
+                    "type": "string"
+                },
+                "dish_name": {
+                    "type": "string"
+                },
+                "match_count": {
+                    "type": "integer"
+                },
+                "score": {
+                    "type": "number"
+                },
+                "total_ingredients": {
+                    "type": "integer"
                 }
             }
         },

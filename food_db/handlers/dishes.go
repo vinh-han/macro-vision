@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4/middleware"
 
+	custom_middleware "macro_vision/middleware"
 	dish_service "macro_vision/services/dishes"
 
 	"github.com/labstack/echo/v4"
@@ -24,7 +25,9 @@ func DishesRouter(api *echo.Group) (err error) {
 	)
 	group.GET("/search", search_dishes)
 	group.GET("/:dish_id", get_dish)
-	group.POST("/suggestion", suggest_dish)
+	group.POST("/suggestion", suggest_dishes,
+		middleware.KeyAuthWithConfig(custom_middleware.Auth_config),
+	)
 	return
 }
 
@@ -94,9 +97,37 @@ func search_dishes(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, response)
 }
 
-// waiting api
-func suggest_dish(c echo.Context) (err error) {
-	return
+// Get dishes matching ingredients names
+//
+//	@Summary		Suggest dishes based on the ingredients given
+//	@Description	Get the dishes matching at least one of the ingredients, and ranked
+//	@Tags			dishes
+//	@Accept			json
+//	@Produce		json
+//	@Param			Request			body		dish_service.SuggestDishesParam	true	"ingredient names"
+//	@Param			Authorization	header		string							true	"auth"
+//	@Success		200				{object}	[]dish_service.SuggestedDish	"dish suggestions"
+//	@Failure		400				{string}	string							"bad request"
+//	@Failure		500				{string}	string							"Server error"
+//	@Router			/dishes/suggestion [post]
+//	@Security		BasicAuth
+func suggest_dishes(c echo.Context) (err error) {
+	var param dish_service.SuggestDishesParam
+	var response []dish_service.SuggestedDish
+	if err = c.Bind(&param); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if param.Page < 1 {
+		param.Page = 1
+	}
+	if param.MatchTightness < 1 {
+		param.MatchTightness = 1
+	}
+	response, err = dish_service.SuggestDishes(c.Request().Context(), param)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, response)
 }
 
 // Get dish by ID

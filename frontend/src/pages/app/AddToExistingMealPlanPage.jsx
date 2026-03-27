@@ -3,7 +3,6 @@ import { Box, Text, Button } from "@chakra-ui/react";
 
 export default function AddToExistingMealPlanPage() {
     const selectedRecipe = useOutletContext();
-    console.log(selectedRecipe)
     return (
         <Box
             width="100%">

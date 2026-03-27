@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -112,10 +113,31 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 	if dish.DishName == "" {
 		return nil
 	}
+	var recipe string
 	doc.Find("div.tasty-recipes-ingredients").Each(func(i int, s *goquery.Selection) {
-		dish.FullRecipe, _ = goquery.OuterHtml(s)
+		s.Find("ul").Each(
+			func(i int, s *goquery.Selection) {
+				if s.Length() == 0 {
+					return
+				}
+				recipe = strings.TrimSpace(s.Text())
+			},
+		)
+		if recipe == "" {
+			return
+		}
+		dish.FullRecipe = recipe
 	})
-
+	doc.Find("h2").Each(func(i int, s *goquery.Selection) {
+		if strings.Contains(strings.ToLower(s.Text()), "Ingredients") {
+			s.Find("ul").Each(func(i int, s *goquery.Selection) {
+				recipe = s.Text()
+				if recipe != "" {
+					dish.FullRecipe = recipe
+				}
+			})
+		}
+	})
 	doc.Find("div.tasty-recipes-entry-content").Each(func(i int, s *goquery.Selection) {
 		s.Find("h4").Each(func(i int, h4 *goquery.Selection) {
 			// Find the <ul> right after <h4>
@@ -164,7 +186,7 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 			})
 		})
 	})
-	ingredient_list, err := Proccess_Ingredient(ingredient_list)
+	ingredient_list, err := Process_Ingredient(ingredient_list)
 	if err != nil {
 		return err
 	}
@@ -252,15 +274,38 @@ func strip_unicode(input string) string {
 	return strings.Join(strings.Fields(b.String()), " ")
 }
 
-func Proccess_Ingredient(ings []*Ingredient_macro_temp) ([]*Ingredient_macro_temp, error) {
-	var result []*Ingredient_macro_temp
-	var err error
-	for _, ing := range ings {
-		ing.Name, err = name_processor.Process_name(ing.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, ing)
+func Process_Ingredient(ings []*Ingredient_macro_temp) ([]*Ingredient_macro_temp, error) {
+	result := make([]*Ingredient_macro_temp, len(ings))
+
+	var wg sync.WaitGroup
+	errCh := make(chan error, 1)
+
+	for i, ing := range ings {
+		wg.Add(1)
+
+		go func(i int, ing *Ingredient_macro_temp) {
+			defer wg.Done()
+
+			name, err := name_processor.Process_name(ing.Name)
+			if err != nil {
+				select {
+				case errCh <- err:
+				default:
+				}
+				return
+			}
+
+			ing.Name = name
+			result[i] = ing
+		}(i, ing)
+	}
+
+	wg.Wait()
+
+	select {
+	case err := <-errCh:
+		return nil, err
+	default:
 	}
 
 	return result, nil
