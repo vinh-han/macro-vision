@@ -8,11 +8,12 @@ model/yolo/dataset/pretrained
 model/yolo/dataset/visualizations
 model/yolo/dataset/train
 model/yolo/dataset/val
-model/yolo/dataset/ingredients_dataset
 model/yolo/labeled_images
 model/yolo/ingredients/out
 grouper/sample
 grouper/out
+ingredients_dataset
+vis_out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

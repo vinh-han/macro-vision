@@ -1,3 +1,4 @@
+import argparse
 import base64
 import json
 import time
@@ -84,8 +85,6 @@ class AzureLLMDetector:
                         ]
                     }
                 ],
-                # temperature=0.0,
-                # max_tokens=2000
             )
 
             content = response.choices[0].message.content.strip()
@@ -116,18 +115,66 @@ class AzureLLMDetector:
         return outputs
 
 
-if __name__ == "__main__":
-    detector = AzureLLMDetector()
+def main():
+    parser = argparse.ArgumentParser()
 
-    img = Path(__file__).parent / "../c.jpg"
+    parser.add_argument(
+        '--image',
+        required=True,
+        type=Path,
+        help='Image file or directory of images'
+    )
+    parser.add_argument(
+        '--classes_path',
+        type=Path,
+        default=Path(__file__).resolve().parent.parent.parent / "assets" / "classes.txt",
+        help='Path to classes text file'
+    )
+    parser.add_argument(
+        '--model_name',
+        type=str,
+        default=None,
+        help='Azure OpenAI deployment name (default: from .env)'
+    )
+    parser.add_argument(
+        '--output',
+        type=Path,
+        default=None,
+        help='Save JSON results to this file'
+    )
 
-    if img.exists():
-        preds = detector.predict_ingredients(img)
+    args = parser.parse_args()
 
-        print("\nDetected ingredients:")
-        # for name in preds:
-        #     print(f"  - {name}")
+    detector = AzureLLMDetector(
+        classes_path=args.classes_path,
+        model_name=args.model_name,
+    )
 
-        print(preds)
+    if args.image.is_dir():
+        exts = {'.jpg', '.jpeg', '.png', '.bmp', '.webp'}
+        img_paths = sorted(p for p in args.image.iterdir() if p.suffix.lower() in exts)
     else:
-        print(f"Test image not found: {img}")
+        img_paths = [args.image]
+
+    print(f'\nRunning on {len(img_paths)} image(s)...\n')
+
+    all_results = {}
+    for path in img_paths:
+        t0 = time.time()
+        detections = detector.predict_ingredients(path)
+        elapsed = time.time() - t0
+
+        print(f'{path.name}  [{elapsed:.1f}s]  {len(detections)} detections')
+        for name in detections:
+            print(f'  - {name}')
+
+        all_results[path.name] = detections
+
+    if args.output:
+        with open(args.output, 'w') as f:
+            json.dump(all_results, f, indent=2)
+        print(f'\nResults saved to: {args.output}')
+
+
+if __name__ == "__main__":
+    main()
