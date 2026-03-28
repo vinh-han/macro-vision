@@ -31,24 +31,27 @@ def _save_temp(upload: UploadFile) -> Path:
     return Path(tmp.name)
 
 
+def _get_detector(name: str):
+    if name not in detectors:
+        logger.info(f"Lazy-loading {name} detector...")
+        if name == "yolo":
+            detectors["yolo"] = YOLODetector()
+        elif name == "azure":
+            detectors["azure"] = AzureLLMDetector()
+        elif name == "clip":
+            detectors["clip"] = CLIPDetector()
+        elif name == "main":
+            model_dir = Path(__file__).resolve().parent / "main" / "assets"
+            detectors["main"] = Pipeline(model_dir=model_dir)
+        logger.info(f"{name} detector loaded")
+    return detectors[name]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Loading detectors...")
-
-    detectors["yolo"] = YOLODetector()
-    logger.info("YOLO detector loaded")
-
-    detectors["azure"] = AzureLLMDetector()
-    logger.info("Azure LLM detector loaded")
-
-    detectors["clip"] = CLIPDetector()
-    logger.info("CLIP detector loaded")
-
-    model_dir = Path(__file__).resolve().parent / "main" / "assets"
-    detectors["main"] = Pipeline(model_dir=model_dir)
-    logger.info("Main pipeline loaded")
-
-    logger.info("All detectors ready")
+    logger.info("Loading main pipeline...")
+    _get_detector("main")
+    logger.info("Main pipeline ready (other detectors will lazy-load on first request)")
     yield
     detectors.clear()
 
@@ -61,7 +64,7 @@ async def detect_yolo(file: UploadFile = File(...)):
     path = _save_temp(file)
     try:
         t0 = time.time()
-        detector = detectors["yolo"]
+        detector = _get_detector("yolo")
         raw = detector.predict_detailed(path)
         detections = list(dict.fromkeys(d["class"] for d in raw))
         logger.info(f"YOLO: {len(detections)} detections in {time.time() - t0:.2f}s")
@@ -78,7 +81,7 @@ async def detect_azure(file: UploadFile = File(...)):
     path = _save_temp(file)
     try:
         t0 = time.time()
-        detector = detectors["azure"]
+        detector = _get_detector("azure")
         detections = detector.predict_ingredients(path)
         logger.info(f"Azure: {len(detections)} detections in {time.time() - t0:.2f}s")
         return DetectResponse(detections=detections)
@@ -94,7 +97,7 @@ async def detect_clip(file: UploadFile = File(...)):
     path = _save_temp(file)
     try:
         t0 = time.time()
-        detector = detectors["clip"]
+        detector = _get_detector("clip")
         results = detector.predict_detailed(path)
         detections = list(dict.fromkeys(name for name, _ in results))
         logger.info(f"CLIP: {len(detections)} detections in {time.time() - t0:.2f}s")
@@ -111,7 +114,7 @@ async def detect_main(file: UploadFile = File(...)):
     path = _save_temp(file)
     try:
         t0 = time.time()
-        pipeline = detectors["main"]
+        pipeline = _get_detector("main")
         img_bgr = cv2.imread(str(path))
         if img_bgr is None:
             raise HTTPException(status_code=400, detail="Could not read image")

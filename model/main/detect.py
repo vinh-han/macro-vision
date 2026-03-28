@@ -216,17 +216,27 @@ class Pipeline:
         if not proposal_boxes:
             return []
 
-        detections = []
+        # Collect valid crops and their corresponding boxes
+        crop_tensors = []
+        valid_boxes = []
         for box in proposal_boxes:
             crop = extract_crop(img_rgb, box)
-
             if crop is None:
                 continue
+            crop_tensors.append(CLASSIFY_TRANSFORM(crop))
+            valid_boxes.append(box)
 
-            crop_t = CLASSIFY_TRANSFORM(crop).unsqueeze(0).to(self.device)
-            emb = self.classifier.embed(crop_t)
-            sims = torch.mm(emb, self.prototypes.T)[0]
+        if not crop_tensors:
+            return []
 
+        # Batch classify all crops in a single forward pass
+        batch = torch.stack(crop_tensors).to(self.device)
+        embeddings = self.classifier.embed(batch)
+        all_sims = torch.mm(embeddings, self.prototypes.T)
+        del batch, embeddings
+
+        detections = []
+        for sims, box in zip(all_sims, valid_boxes):
             if top_k == 1:
                 pred_idx = sims.argmax().item()
                 confidence = torch.softmax(sims, dim=0)[pred_idx].item()
