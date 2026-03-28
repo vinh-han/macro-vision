@@ -79,7 +79,7 @@ services:
                 condition: service_healthy
 
     model_api:
-        profile: [model]
+        profiles: [model]
         build:
             context: ./
             dockerfile: ./model/Dockerfile
