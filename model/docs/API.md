@@ -36,33 +36,13 @@ All `/detect/*` endpoints return the same shape:
 
 ```json
 {
-  "detections": [
-    {
-      "ingredient": "string",
-      "confidence": 0.0,
-      "box": [x1, y1, x2, y2]
-    }
-  ],
-  "elapsed": 0.0
+  "detections": ["tomato", "onion", "garlic"]
 }
 ```
 
-| Field                    | Type              | Description                                          |
-|--------------------------|-------------------|------------------------------------------------------|
-| `detections`             | array             | List of detected ingredients                         |
-| `detections[].ingredient`| string            | Ingredient name from the class list                  |
-| `detections[].confidence`| float \| null     | Model confidence score (null if not available)        |
-| `detections[].box`       | [float] \| null   | Bounding box `[x1, y1, x2, y2]` (null if not available) |
-| `elapsed`                | float             | Inference time in seconds                            |
-
-Which fields are populated depends on the detector:
-
-| Endpoint         | `ingredient` | `confidence` | `box`  |
-|------------------|:------------:|:------------:|:------:|
-| `/detect/yolo`   | yes          | yes          | yes    |
-| `/detect/main`   | yes          | yes          | yes    |
-| `/detect/clip`   | yes          | yes          | null   |
-| `/detect/azure`  | yes          | null         | null   |
+| Field        | Type     | Description                          |
+|--------------|----------|--------------------------------------|
+| `detections` | string[] | List of detected ingredient names    |
 
 ---
 
@@ -73,7 +53,6 @@ All endpoints accept `multipart/form-data` with a `file` field containing an ima
 ### *2.1. POST /detect/main*
 
 Two-stage pipeline: Grounding DINO proposes regions, DINOv2+ArcFace classifies each crop.
-Returns bounding boxes with class and confidence.
 
 ```bash
 curl -X POST http://localhost:8001/detect/main \
@@ -82,20 +61,13 @@ curl -X POST http://localhost:8001/detect/main \
 
 ```json
 {
-  "detections": [
-    {
-      "ingredient": "tomato",
-      "confidence": 0.9234,
-      "box": [55.2, 30.0, 200.1, 180.5]
-    }
-  ],
-  "elapsed": 1.205
+  "detections": ["tomato", "garlic", "onion"]
 }
 ```
 
 ### *2.2. POST /detect/yolo*
 
-YOLO object detection. Returns per-object bounding boxes with class and confidence.
+YOLO object detection.
 
 ```bash
 curl -X POST http://localhost:8001/detect/yolo \
@@ -104,27 +76,13 @@ curl -X POST http://localhost:8001/detect/yolo \
 
 ```json
 {
-  "detections": [
-    {
-      "ingredient": "garlic",
-      "confidence": 0.8712,
-      "box": [120.3, 45.1, 280.7, 190.4]
-    },
-    {
-      "ingredient": "onion",
-      "confidence": 0.7531,
-      "box": [310.0, 60.2, 450.5, 210.8]
-    }
-  ],
-  "elapsed": 0.342
+  "detections": ["garlic", "onion"]
 }
 ```
 
-
 ### *2.3. POST /detect/clip*
 
-CLIP zero-shot similarity matching. Returns ingredients above the similarity threshold.
-No bounding boxes (whole-image classification).
+CLIP zero-shot similarity matching (whole-image classification).
 
 ```bash
 curl -X POST http://localhost:8001/detect/clip \
@@ -133,25 +91,13 @@ curl -X POST http://localhost:8001/detect/clip \
 
 ```json
 {
-  "detections": [
-    {
-      "ingredient": "rice noodle",
-      "confidence": 0.3812,
-      "box": null
-    },
-    {
-      "ingredient": "bean sprout",
-      "confidence": 0.2917,
-      "box": null
-    }
-  ],
-  "elapsed": 0.518
+  "detections": ["rice noodle", "bean sprout"]
 }
 ```
 
 ### *2.4. POST /detect/azure*
 
-Azure OpenAI vision model (GPT). Returns ingredient names only (no confidence or boxes).
+Azure OpenAI vision model (GPT).
 
 ```bash
 curl -X POST http://localhost:8001/detect/azure \
@@ -160,19 +106,7 @@ curl -X POST http://localhost:8001/detect/azure \
 
 ```json
 {
-  "detections": [
-    {
-      "ingredient": "pork shoulder",
-      "confidence": null,
-      "box": null
-    },
-    {
-      "ingredient": "fish sauce",
-      "confidence": null,
-      "box": null
-    }
-  ],
-  "elapsed": 2.841
+  "detections": ["pork shoulder", "fish sauce"]
 }
 ```
 

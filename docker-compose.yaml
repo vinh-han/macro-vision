@@ -88,6 +88,12 @@ services:
             - ${MODEL_API_PORT:-8001}:8001
         env_file: ./model/.env
         restart: unless-stopped
+        volumes:
+            - ./model/clip/.clip_text_embeds.pt:/app/model/clip/.clip_text_embeds.pt:ro
+            - model_hf_cache:/root/.cache/huggingface
+            - model_torch_cache:/root/.cache/torch
 
 volumes:
     postgres_data:
+    model_hf_cache:
+    model_torch_cache:

@@ -2,7 +2,7 @@ import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import cv2
 import uvicorn
@@ -18,15 +18,8 @@ from model.yolo.detect import YOLODetector
 logger = setup_logger(__name__, "api.log")
 
 
-class Detection(BaseModel):
-    ingredient: str
-    confidence: Optional[float] = None
-    box: Optional[List[float]] = None
-
-
 class DetectResponse(BaseModel):
-    detections: List[Detection]
-    elapsed: float
+    detections: List[str]
 
 detectors = {}
 
@@ -70,13 +63,9 @@ async def detect_yolo(file: UploadFile = File(...)):
         t0 = time.time()
         detector = detectors["yolo"]
         raw = detector.predict_detailed(path)
-        elapsed = time.time() - t0
-        detections = [
-            Detection(ingredient=d["class"], confidence=d["confidence"], box=d["box"])
-            for d in raw
-        ]
-        logger.info(f"YOLO: {len(detections)} detections in {elapsed:.2f}s")
-        return DetectResponse(detections=detections, elapsed=round(elapsed, 3))
+        detections = list(dict.fromkeys(d["class"] for d in raw))
+        logger.info(f"YOLO: {len(detections)} detections in {time.time() - t0:.2f}s")
+        return DetectResponse(detections=detections)
     except Exception as e:
         logger.error(f"YOLO error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -90,14 +79,9 @@ async def detect_azure(file: UploadFile = File(...)):
     try:
         t0 = time.time()
         detector = detectors["azure"]
-        ingredients = detector.predict_ingredients(path)
-        elapsed = time.time() - t0
-        detections = [
-            Detection(ingredient=name)
-            for name in ingredients
-        ]
-        logger.info(f"Azure: {len(detections)} detections in {elapsed:.2f}s")
-        return DetectResponse(detections=detections, elapsed=round(elapsed, 3))
+        detections = detector.predict_ingredients(path)
+        logger.info(f"Azure: {len(detections)} detections in {time.time() - t0:.2f}s")
+        return DetectResponse(detections=detections)
     except Exception as e:
         logger.error(f"Azure error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -112,13 +96,9 @@ async def detect_clip(file: UploadFile = File(...)):
         t0 = time.time()
         detector = detectors["clip"]
         results = detector.predict_detailed(path)
-        elapsed = time.time() - t0
-        detections = [
-            Detection(ingredient=name, confidence=round(score, 4))
-            for name, score in results
-        ]
-        logger.info(f"CLIP: {len(detections)} detections in {elapsed:.2f}s")
-        return DetectResponse(detections=detections, elapsed=round(elapsed, 3))
+        detections = list(dict.fromkeys(name for name, _ in results))
+        logger.info(f"CLIP: {len(detections)} detections in {time.time() - t0:.2f}s")
+        return DetectResponse(detections=detections)
     except Exception as e:
         logger.error(f"CLIP error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -137,24 +117,15 @@ async def detect_main(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Could not read image")
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
         raw = pipeline.predict(img_rgb)
-        elapsed = time.time() - t0
         detections = []
         for d in raw:
             if "class" in d:
-                detections.append(Detection(
-                    ingredient=d["class"],
-                    confidence=d["confidence"],
-                    box=d["box"],
-                ))
+                detections.append(d["class"])
             else:
-                top = d["predictions"][0]
-                detections.append(Detection(
-                    ingredient=top["class"],
-                    confidence=top["confidence"],
-                    box=d["box"],
-                ))
-        logger.info(f"Main: {len(detections)} detections in {elapsed:.2f}s")
-        return DetectResponse(detections=detections, elapsed=round(elapsed, 3))
+                detections.append(d["predictions"][0]["class"])
+        detections = list(dict.fromkeys(detections))
+        logger.info(f"Main: {len(detections)} detections in {time.time() - t0:.2f}s")
+        return DetectResponse(detections=detections)
     except HTTPException:
         raise
     except Exception as e:
