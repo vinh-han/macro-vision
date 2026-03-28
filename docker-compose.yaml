@@ -79,6 +79,7 @@ services:
                 condition: service_healthy
 
     model_api:
+        profile: [model]
         build:
             context: ./
             dockerfile: ./model/Dockerfile
@@ -87,9 +88,6 @@ services:
             - ${MODEL_API_PORT:-8001}:8001
         env_file: ./model/.env
         restart: unless-stopped
-        volumes:
-            - ./model/:/app/model/
-            - ./assets/:/app/assets/
 
 volumes:
     postgres_data:

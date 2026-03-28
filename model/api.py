@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import cv2
+import uvicorn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
@@ -166,3 +167,7 @@ async def detect_main(file: UploadFile = File(...)):
 @app.get("/health")
 async def health():
     return {"status": "ok", "detectors": list(detectors.keys())}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8001)
