@@ -69,8 +69,8 @@ type GetMealCardsDailyParam struct {
 
 func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_cards []database.MealCard, err error) {
 	meal_cards, err = database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
-		UserID:   param.UserID,
-		MealDate: param.Date,
+		UserID:    param.UserID,
+		Timestamp: param.Date,
 	})
 	if err == sql.ErrNoRows {
 		err = nil
@@ -88,9 +88,9 @@ type GetMealCardsMonthlyParam struct {
 }
 
 func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (meal_cards []database.MealCard, err error) {
-	meal_cards, err = database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
-		MealDate: param.Date,
-		UserID:   param.UserID,
+	meal_cards, err = database.DB.Queries.Get_meal_cards_monthly(ctx, database.Get_meal_cards_monthlyParams{
+		Timestamp: param.Date,
+		UserID:    param.UserID,
 	})
 	if err == sql.ErrNoRows {
 		err = nil

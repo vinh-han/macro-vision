@@ -72,7 +72,7 @@ func get_meal_card(c echo.Context) (err error) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			date			query		string	true	"Meal date (YYYY-MM-DD)"
-//	@Param			Authorization	header		string	true	"Meal date (YYYY-MM-DD)"
+//	@Param			Authorization	header		string	true	"token"
 //	@Success		200				{array}		database.MealCard
 //	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
 //	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
@@ -88,6 +88,7 @@ func get_meal_cards_daily(c echo.Context) (err error) {
 	if err = c.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	c.Logger().Error(request.Date)
 	request.UserID = user.UserID
 	meal_cards, err := mealcard_service.GetMealCardsDaily(c.Request().Context(), request)
 	if err != nil {
@@ -134,7 +135,7 @@ func get_meal_cards_monthly(c echo.Context) (err error) {
 //	@Summary		Create meal card
 //	@Description	Create a new meal card for the authenticated user.
 //	@Tags			meal-cards
-//	@Router			/meal-cards [post]
+//	@Router			/meal-cards/ [post]
 //	@Accept			json
 //	@Produce		json
 //	@Param			request			body		mealcard_service.CreateMealCardParam	true	"Meal card payload"

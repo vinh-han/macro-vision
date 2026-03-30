@@ -543,68 +543,6 @@ const docTemplate = `{
                     }
                 }
             },
-            "post": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
-                ],
-                "description": "Create a new meal card for the authenticated user.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meal-cards"
-                ],
-                "summary": "Create meal card",
-                "parameters": [
-                    {
-                        "description": "Meal card payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/mealcards.CreateMealCardParam"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "auth",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "new card uuid",
-                        "schema": {
-                            "$ref": "#/definitions/mealcards.MealCardDishID"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "security": [
                     {
@@ -672,6 +610,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/meal-cards/": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Create a new meal card for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meal-cards"
+                ],
+                "summary": "Create meal card",
+                "parameters": [
+                    {
+                        "description": "Meal card payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mealcards.CreateMealCardParam"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "new card uuid",
+                        "schema": {
+                            "$ref": "#/definitions/mealcards.MealCardDishID"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/meal-cards/daily": {
             "get": {
                 "security": [
@@ -700,7 +702,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Meal date (YYYY-MM-DD)",
+                        "description": "token",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
