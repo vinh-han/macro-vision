@@ -387,7 +387,8 @@ const get_meal_cards_daily = `-- name: Get_meal_cards_daily :many
 select card_id, user_id, title, meal_date, date_created
 from meal_cards
 where
-    meal_date >= ($1::timestamptz) - INTERVAL '1 day'
+    meal_date between ($1::date)
+    and ($1::date) + interval '1 day'
     and user_id = $2::uuid
 `
 
@@ -430,7 +431,8 @@ const get_meal_cards_monthly = `-- name: Get_meal_cards_monthly :many
 select card_id, user_id, title, meal_date, date_created
 from meal_cards
 where
-    meal_date >= ($1::timestamptz) - INTERVAL '1 month'
+    meal_date between date_trunc('month', $1::timestamptz)
+    and date_trunc('month', $1::timestamptz) + interval '1 month'
     and user_id = $2::uuid
 `
 

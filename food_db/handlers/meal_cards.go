@@ -88,7 +88,6 @@ func get_meal_cards_daily(c echo.Context) (err error) {
 	if err = c.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	c.Logger().Error(request.Date)
 	request.UserID = user.UserID
 	meal_cards, err := mealcard_service.GetMealCardsDaily(c.Request().Context(), request)
 	if err != nil {

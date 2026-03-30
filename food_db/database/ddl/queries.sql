@@ -237,14 +237,17 @@ where dish_id = $1
 select *
 from meal_cards
 where
-    meal_date >= (@timestamp::timestamptz) - INTERVAL '1 day'
+    meal_date between (@timestamp::date)
+    and (@timestamp::date) + interval '1 day'
     and user_id = @user_id::uuid
 ;
+
 -- name: Get_meal_cards_monthly :many
 select *
 from meal_cards
 where
-    meal_date >= (@timestamp::timestamptz) - INTERVAL '1 month'
+    meal_date between date_trunc('month', @timestamp::timestamptz)
+    and date_trunc('month', @timestamp::timestamptz) + interval '1 month'
     and user_id = @user_id::uuid
 ;
 

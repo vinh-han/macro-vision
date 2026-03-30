@@ -64,13 +64,17 @@ func GetMealCardWithDishes(ctx context.Context, request GetMealCardWithDishesPar
 
 type GetMealCardsDailyParam struct {
 	UserID uuid.UUID `json:"-"`
-	Date   time.Time `json:"meal_date"`
+	Date   string    `query:"date"`
 }
 
 func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_cards []database.MealCard, err error) {
+	meal_date, err := time.Parse("2006-01-02", param.Date)
+	if err != nil {
+		return nil, err
+	}
 	meal_cards, err = database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
 		UserID:    param.UserID,
-		Timestamp: param.Date,
+		Timestamp: meal_date,
 	})
 	if err == sql.ErrNoRows {
 		err = nil
@@ -84,12 +88,16 @@ func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_
 
 type GetMealCardsMonthlyParam struct {
 	UserID uuid.UUID `json:"-"`
-	Date   time.Time `json:"meal_date"`
+	Date   string `query:"date"`
 }
 
 func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (meal_cards []database.MealCard, err error) {
+	meal_date, err := time.Parse("2006-01-02", param.Date)
+	if err != nil {
+		return nil, err
+	}
 	meal_cards, err = database.DB.Queries.Get_meal_cards_monthly(ctx, database.Get_meal_cards_monthlyParams{
-		Timestamp: param.Date,
+		Timestamp: meal_date,
 		UserID:    param.UserID,
 	})
 	if err == sql.ErrNoRows {
