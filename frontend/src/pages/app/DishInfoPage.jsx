@@ -1,9 +1,9 @@
 import { 
-    // wrapping components: 
+    // frame: 
     Box, Container, HStack,
-    // typography components: 
+    // typography: 
     Heading, Text,
-    // functional components: 
+    // functional: 
     Image, Button
 } from "@chakra-ui/react"
 import dish from  "../../assets/images/dish/dish_1.jpg"

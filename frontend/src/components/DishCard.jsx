@@ -19,7 +19,9 @@ export default function DishCard({dishImage = NO_IMAGE_PLACEHOLDER_URL, dishName
 
     return (
         <Card.Root 
-            w="sm" borderRadius="md"
+            w="sm" rounded="2xl" 
+            boxShadow="4px 4px 12px rgba(0, 0, 0, 0.2)"
+
             // cursor="pointer" onClick={() => navigate('/app/dish/dish_name')}
         >
             <Image 

@@ -1,227 +1,267 @@
 import { use, useEffect, useState } from "react";
 import {
     // frame: 
-    Container, Flex, Box, HStack, VStack, Slider,
+    Container, Flex, Box, HStack, VStack, Slider, ButtonGroup,
     // functional: 
-    Input, Button, Collapsible, 
+    Input, Button, Collapsible, Pagination,IconButton, 
     // typography: 
     Text, Separator
 } from "@chakra-ui/react";
 import DishCard from "../../components/DishCard";
 
-{/* ARRAY OF DISH INFO */}
-const dishes = [
-    {
-        dish_name: "COM TAM", 
-        description: "BROKEN RICE WITH MEAT", 
-        course: "main dish"
-    }, 
-    {
-        dish_name: "Bun Cha Hanoi", 
-        description: "A tradiontional Hanoi dish", 
-        course: "main dish",
-    }, 
-    {
-        dish_name: "CAFE SUA DA", 
-        description: "CAFFEIN", 
-        course: "beverage",
-    }, 
-    {
-        dish_name: "CAFE SUA DA", 
-        description: "CAFFEIN", 
-        course: "beverage",
-    }
-]
 
 export default function SearchPage() {
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
 
-    // --- Search Sate --- 
+    // --- Search box state --- 
     const [inputValue, setInputValue] = useState(''); 
     const [query, setQuery] = useState(''); 
 
-    const [course, setCourse] = useState(''); 
-    const [ingredientCount, setIngredientCount] = useState(''); 
-
-    const [totalPage, setTotalPage] = useState(''); 
-    const [page, setPage] = useState(1); 
-
-    // --- Page State -- 
-    const [result, setResult] = useState([]); 
+    // --- Page state -- 
+    const [result, setResult] = useState([])
     const [loading, setLoading] = useState(false); 
     const [error, setError] = useState(null); 
 
-    // --- Filter Button  ---
+    // --- Filter Box state  ---
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(''); 
-    const [ingredientsNum, setIngredientsNum] = useState(6);
     const handleClose = () => setIsOpen(false);
-    const categories = [
-        'appetizers', 'breakfast', 'desserts', 'drinks', 
-        'salads', 'side-dishes', 'snacks', 'soups'
+    // recheck these course later in databse, some might not exist 
+    const courseTag = [
+    'appetizers', 'breakfast', 'desserts', 'drinks', 
+    'salads', 'side-dishes', 'snacks', 'soups'
     ];
 
-    // --- Page Function --- 
-    // define a function which only run when component mount & whenever the variable in [] changes
+    // Course state  & function 
+    const [inputCourse, setInputCourse] = useState('');
+    const [course, setCourse] = useState(''); 
+    const togggleInputCourse = (tag) => {
+        const isSelected = inputCourse === tag 
+
+        if(isSelected) {
+            setInputCourse('')
+        } else {
+            setInputCourse(tag)
+        }
+    }
+    // Ingredients count state 
+    // const [minIgredients, setMinIngredients] = useState(''); 
+    const [inputMaxIngredients, setInputMaxIngredients] = useState(''); 
+    const [maxIngredients, setMaxIngredients] = useState(''); 
+    const marks = [
+        {value: 1, label: "1"},
+        {value: 10, label: "10"}
+    ]
+
+    //  -- Pagination state & function --- 
+    const [dishes, setDishes] = useState([]);
+    const [page, setPage] = useState(1); // current page 
+    const limit = 6; // items per page 
+    useEffect(() => {
+        setPage(1);
+    }, [query, course])
+
+
+    // --- Searching Function --- 
     useEffect(() => {
 
-        // enter loading state 
         const controller = new AbortController(); 
-        setLoading(true); 
-        setError(null); 
 
-        // detach this function from the app 
         const fetchResults = async () => {
+
             // specify the search params 
             const params = new URLSearchParams(); 
-            params.set('page', page); 
-            params.set('limit', 5); 
+            params.set('limit', limit);
+            params.set('page', page)
+            if (query) params.set('q', query); 
+            if (course && course.length > 0) params.set('course', course); 
+            // if (minIgredients) params.set('min_ingredients', minIgredients); 
+            if (maxIngredients) params.set('max_ingredients', maxIngredients); 
 
-            if (query) params.set('query', query); 
-            if (course) params.set('course', course); 
-            if (ingredientCount) params.set('ingredientCount', ingredientCount); 
-
-            // API CALL 
             try {
-                // run these function sequentially 
+                //  API call 
+                setLoading(true); 
+                setError(null); 
                 const res = await fetch(`${apiUrl}dishes/search?${params.toString()}`, {signal: controller.signal}); 
-                const data = await res.json(); 
-                // get the dishes object 
-                setResult(data.dishes);
+
+                // TESTING (DELETE LATER): 
+                console.log(`${apiUrl}dishes/search?${params.toString()}`);
+
+                // Error handle: 
+                if (!res.ok) {
+                    if (res.status >= 400 && res.status < 500) {
+                        let errorMessage = 'Invalid search. Please check your input'; 
+                        try {
+                            const body = await res.json(); 
+                            errorMessage = body.message || errorMessage;
+                        } catch(err) {       
+                        }
+                        setError(errorMessage); 
+                    } else {
+                        setError(`Server error: ${res.status}`);
+                    }
+                    return; 
+                }
+
+                // Succeed 
+                const data = await res.json();
+                setResult(data);
+                setDishes(data.dishes);
             } catch (err) {
                 if (err.name === 'AbortError') return;
-                setError('Something went wrong. Please try again.'); 
+                console.error(err);
+                setError('Could not connect. Check your internet connection.'); 
             } finally {
                 setLoading(false);
             }
         };
-        // call the function and clean up 
+
         fetchResults();
         return () => controller.abort(); 
-    }, [query, course, ingredientCount, page]); 
+    }, [query, course, page, maxIngredients]); 
 
-
+    // --- Page View --- 
+    // Create these components later 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
+
     return (
         <Container centerContent maxW="container.xl">
+            
             {/* --- Search Box ---  */}
             <Container centerContent maxW="full">
                 <Input 
+                    type="text"
+                    // save input value 
+                    onChange={(e) => setInputValue(e.target.value)}
+                    // transform input value into query and send it 
+                    onKeyDown={(e) => {
+                        if(e.key === 'Enter') {
+                            setQuery(inputValue)
+                        }
+                    }}
                     placeholder="Search for recipes..." 
                     size="lg" 
                     w={{ base: "95%", md: "70%", lg: "60%" }}
                     mt={10}
+                    rounded="md"
+                    boxShadow="4px 4px 12px rgba(0, 0, 0, 0.15)"
                 />
             </Container>
-
-            {/* --- Search Filter --- */}
-            <Container w={{ base: "95%", md: "70%", lg: "60%" }} mt={4}>
-                {/* Toggle Button & Active Tags */}
-                <HStack  gap={3}>
-                    <Button
-                        variant="outline"
-                        borderRadius="full"
-                        size="sm"
-                        onClick={() => setIsOpen(!isOpen)}
-                    >
-                        <i className="ri-equalizer-line"></i>
-                        Filter
-                    </Button>
-                    
-                    {/* Shows the applied tag when the panel is closed */}
-                    {!isOpen && selectedCategory && (
-                        <Box 
-                            px={3} py={1} 
-                            borderRadius="full" 
-                            bg="gray.400" 
-                            color="white" 
-                            fontSize="sm" 
-                            fontWeight="medium"
-                        >
-                            {selectedCategory}
-                        </Box>
-                    )}
-                </HStack>
-
-                {/* The Expanding Panel */}
-                <Collapsible.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
-                    <Collapsible.Content>
-                        <Box 
-                            p={5} 
-                            mt={2} 
-                            borderWidth="1px" 
-                            borderRadius="md" 
-                            borderColor="gray.300" 
-                            bg="white"
-                            mb={4}
-                        >
-                            <VStack align="stretch" gap={6}>
-                                {/* Categories Grid */}
+            
+            {/* --- Filter Box ---  */}
+            {/* Filter button */}
+            {/* Contain a button and an array of tag if exists */}
+            {/* Expanding panel */}
+            {/* A list of tags button which can be selected or deselected */}
+            {/* A slider to specify min ingredient and max ingredient */}
+            {/* Cancel and Done button */}
+            <Container w={{ base: "95%", md: "70%", lg: "60%" }} mt={4} mb={4}>
+                <Collapsible.Root 
+                    as="legend"
+                    boxShadow={isOpen ? "4px 4px 12px rgba(0, 0, 0, 0.15)" : "none"}
+                    border={isOpen ? "sm" : "none"} rounded="md"
+                    padding= "8px 8px"
+                    open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}
+                >
+                        <Collapsible.Trigger cursor="pointer">
+                        <HStack>
+                            {/* Filter Button */}
+                            <Button 
+                                variant={isOpen ? "ghost" : "outline"}
+                                size="sm" rounded="md" 
+                                onClick={() => setIsOpen(!isOpen)}
+                                fontWeight={isOpen ? "bold" : "none"}
+                                boxShadow={isOpen ? "none" : "4px 4px 12px rgba(0, 0, 0, 0.15)"}
+                            >
+                                <i className="ri-equalizer-line"></i>
+                                Filter
+                            </Button>    
+                        </HStack>
+                        </Collapsible.Trigger>
+                        
+                        <Collapsible.Content >
+                            <VStack align="stretch" gap={6} padding="3">
+                                {/* Course Selection */}
                                 <Box>
                                     <Text fontWeight="bold" mb={3} fontSize="sm">Categories</Text>
                                     <Flex wrap="wrap" gap={2}>
-                                        {categories.map(cat => (
+                                        {courseTag.map(tag => (
                                             <Button
-                                                key={cat}
+                                                key={tag}
                                                 size="sm"
-                                                variant={selectedCategory === cat ? 'solid' : 'outline'}
-                                                bg={selectedCategory === cat ? 'gray.400' : 'transparent'}
-                                                color={selectedCategory === cat ? 'white' : 'black'}
+                                                variant={inputCourse === tag ? 'solid' : 'outline'}
+                                                bg={inputCourse === tag ? 'gray.400' : 'transparent'}
+                                                color={inputCourse === tag ? 'white' : 'black'}
                                                 borderColor="gray.300"
                                                 borderRadius="full"
-                                                onClick={() => setSelectedCategory(cat)}
+                                                onClick={() => togggleInputCourse(tag)}
                                             >
-                                                {cat}
+                                                {tag}
                                             </Button>
                                         ))}
                                     </Flex>
                                 </Box>
 
-                                {/* Ingredients Slider */}
-                                <Box>
-                                    <Text fontWeight="bold" mb={6} fontSize="sm">Ingredients Number</Text>
-                                    
-                                    <Slider.Root
-                                        defaultValue={[6]}
-                                        min={4}
-                                        max={15}
-                                        step={1}
-                                        onValueChange={(details) => setIngredientsNum(details.value[0])} 
+                                {/* Ingredient Count Slider */}
+                                <Box >
+                                    <Text fontWeight="bold" mb={3} fontSize="sm">Ingredient Number</Text>
+                                    <Slider.Root 
+                                        min={1} max={10} step={1}
+                                        value = {[inputMaxIngredients]}
+                                        onValueChange={(details) => setInputMaxIngredients(details.value[0])}
                                     >
                                         <Slider.Control>
                                             <Slider.Track bg="gray.200">
-                                                <Slider.Range bg="red.500" />
+                                                <Slider.Range bg="gray.200" />
                                             </Slider.Track>
-                                            <Slider.Thumb index={0} bg="red.500" />
+                                            
+                                            <Slider.Thumb idex={1} bg="red.700">
+                                                <Slider.DraggingIndicator
+                                                    layerStyle="fill.solid"
+                                                    top="6"
+                                                    rounded="sm"
+                                                    px="1.5"
+                                                >
+                                                    <Slider.ValueText/>
+                                                </Slider.DraggingIndicator>
+                                            </Slider.Thumb>
+
+                                            <Slider.Marks marks={marks}/>
                                         </Slider.Control>
-                                        
-                                        {/* Minimal Value Display under slider */}
-                                        <HStack justify="space-between" mt={2}>
-                                            <Text fontSize="xs" color="gray.500">4</Text>
-                                            <Text fontSize="sm" fontWeight="bold" bg="gray.200" px={2} py={0.5} borderRadius="md">
-                                                {ingredientsNum}
-                                            </Text>
-                                            <Text fontSize="xs" color="gray.500">15</Text>
-                                        </HStack>
                                     </Slider.Root>
                                 </Box>
-
+                                
                                 {/* Action Buttons */}
-                                <HStack justify="space-evenly" pt={4}>
+                                <HStack justify="space-evenly">
                                     <Button variant="ghost" size="sm" onClick={handleClose}>Cancel</Button>
-                                    <Button variant="ghost" size="sm" onClick={handleClose}>Done</Button>
+                                    <Button 
+                                        variant="ghost" size="sm" 
+                                        onClick={() => {
+                                            // close panel 
+                                            handleClose()
+                                            setTimeout(() => {
+                                            // sent course 
+                                            if (inputCourse) {setCourse(inputCourse)}
+                                            // sent max ingredients 
+                                            if (inputMaxIngredients) {setMaxIngredients(inputMaxIngredients)}
+                                            }, 300)
+                                        }}
+                                    >Done</Button>
                                 </HStack>
                             </VStack>
-                        </Box>
-                    </Collapsible.Content>
+                        </Collapsible.Content>
                 </Collapsible.Root>
             </Container>
             
+            {/* --- Search results count ----  */}
+            {/* DELETE THE QUERY LATER */}
+            { query && (
+                <Text color="gray.600" fontStyle="italic">{result.total_results} recipes found for "{query}"</Text>
+            )}
 
-            {/* Dish cards */}
-            <Flex gap="5" wrap="wrap" justify="center" maxW="80%" mt="2">
-                {result.map((dish, index) => (
+            {/* --- Dish cards --- */}
+            <Flex gap="5" wrap="wrap" justify="center" maxW="100%" mt="2">
+                {dishes.map((dish, index) => (
                     <DishCard key={index} 
                     dishName={dish.dish_name}
                     dishDescription={dish.description}
@@ -229,6 +269,31 @@ export default function SearchPage() {
                     dishImage={dish.image}/>
                 ))} 
             </Flex>
+
+            {/* --- Pagination control --- */}
+            <Pagination.Root 
+                count={result.total_results || 0} // total num of data items 
+                pageSize={limit} //  num of data per page 
+                page = {page}
+                onPageChange={(e) =>setPage(e.page)}
+            >
+                <ButtonGroup gap="4" size="sm" variant="ghost">
+                    <Pagination.PrevTrigger asChild>
+                        <IconButton>
+                            <Text> Prev </Text>
+                        </IconButton>
+                    </Pagination.PrevTrigger>
+
+                    <Pagination.PageText />
+
+                    <Pagination.NextTrigger asChild>
+                        <IconButton>
+                            <Text> Next </Text>
+                        </IconButton>
+                    </Pagination.NextTrigger>
+                </ButtonGroup>
+            </Pagination.Root>
+
         </Container>
     );
 }
