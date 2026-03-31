@@ -66,7 +66,11 @@ export default function MealCardHorizontal({dish_id, card_id, setIsExpired}) {
                     setFetchMealCard(true)
                 }
             }).catch((response) => {
-                console.log(response)
+                if (response.status == 500) {
+                    setIsExpired(true)
+                } else {
+                    console.log(response)
+                }
             })
         }
     }
