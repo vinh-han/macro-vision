@@ -19,13 +19,18 @@ type MealCardDish struct {
 
 type GetMealCardWithDishesParam struct {
 	UserID uuid.UUID `json:"-"`
-	CardID uuid.UUID `json:"card_id"`
+	CardID string    `param:"card_id"`
 }
 
 func GetMealCardWithDishes(ctx context.Context, request GetMealCardWithDishesParam) (meal_card MealCardDish, err error) {
+	card_id, err := uuid.Parse(request.CardID)
+	if err != nil {
+		return MealCardDish{}, err
+	}
+
 	mc, err := database.DB.Queries.Get_card_with_id(ctx, database.Get_card_with_idParams{
 		UserID: request.UserID,
-		CardID: request.CardID,
+		CardID: card_id,
 	})
 	if err == sql.ErrNoRows {
 		err = nil
@@ -34,7 +39,7 @@ func GetMealCardWithDishes(ctx context.Context, request GetMealCardWithDishesPar
 	if err != nil {
 		return
 	}
-	d, err := database.DB.Queries.Get_dishes_in_meal_card(ctx, request.CardID)
+	d, err := database.DB.Queries.Get_dishes_in_meal_card(ctx, card_id)
 	if err == sql.ErrNoRows {
 		err = nil
 		return
@@ -88,7 +93,7 @@ func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_
 
 type GetMealCardsMonthlyParam struct {
 	UserID uuid.UUID `json:"-"`
-	Date   string `query:"date"`
+	Date   string    `query:"date"`
 }
 
 func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (meal_cards []database.MealCard, err error) {

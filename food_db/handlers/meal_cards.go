@@ -35,10 +35,10 @@ func MealCardRouter(api *echo.Group) (err error) {
 //	@Summary		Get meal card with dishes
 //	@Description	Retrieve a meal card and its dishes belonging to the authenticated user.
 //	@Tags			meal-cards
-//	@Router			/meal-cards [get]
+//	@Router			/meal-cards/{card_id} [get]
 //	@Accept			json
 //	@Produce		json
-//	@Param			card_id			query		string	true	"Meal card ID (UUID)"
+//	@Param			card_id			path		string	true	"Meal card ID (UUID)"
 //	@Param			Authorization	header		string	true	"auth"
 //	@Success		200				{object}	mealcard_service.MealCardDish
 //	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
