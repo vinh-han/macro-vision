@@ -10,12 +10,16 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/time/rate"
 )
 
+const (
+    AuthRateLimit float32 = 5
+)
 func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup,
 		middleware.RemoveTrailingSlash(),
-		middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1)),
+		middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(AuthRateLimit))),
 	)
 	group.POST(config.Auth.LoginPath, login)
 	group.POST(config.Auth.RegisterPath, signup)
