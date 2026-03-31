@@ -262,6 +262,9 @@ func add_dish_to_card(c echo.Context) (err error) {
 	if !ok {
 		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
+	if err = c.Bind(&request); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 	request.UserID = user.UserID
 	added_id, err := mealcard_service.AddDishToCard(c.Request().Context(), request)
 	if errors.Is(err, custom_errors.UnauthorizedOperation) {

@@ -197,23 +197,37 @@ func UpdateMealCard(ctx context.Context, param UpdateMealCardParam) (meal_card d
 
 type AddDishToCardParam struct {
 	UserID uuid.UUID `json:"-"`
-	CardID uuid.UUID `json:"card_id"`
-	DishID uuid.UUID `json:"dish_id"`
+	CardID string    `json:"card_id"`
+	DishID string    `json:"dish_id"`
 }
 
 func AddDishToCard(ctx context.Context, param AddDishToCardParam) (card_id uuid.UUID, err error) {
+	fmt.Println(param)
+	c_id, err := uuid.Parse(param.CardID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	d_id, err := uuid.Parse(param.DishID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
 	_, err = database.DB.Queries.Get_card_with_id(ctx, database.Get_card_with_idParams{
-		CardID: param.CardID,
+		CardID: c_id,
 		UserID: param.UserID,
 	})
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = fmt.Errorf("%w, %v", custom_errors.UnauthorizedOperation, err)
 		return
 	}
 	card_id, err = database.DB.Queries.Add_dish_to_card(ctx, database.Add_dish_to_cardParams{
-		CardID: param.CardID,
-		DishID: param.DishID,
+		CardID: c_id,
+		DishID: d_id,
 	})
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+		return
+	}
 	if err != nil {
 		return
 	}
