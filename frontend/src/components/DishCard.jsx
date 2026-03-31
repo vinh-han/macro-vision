@@ -45,8 +45,8 @@ export default function DishCard({dishImage = NO_IMAGE_PLACEHOLDER_URL, dishName
                 </Card.Description>
             </Card.Body>
             <Card.Footer  mt="auto">
-                <Tag.Root>
-                    <Tag.Label> {dishCourse} </Tag.Label>
+                <Tag.Root size="lg">
+                    <Tag.Label >{dishCourse} </Tag.Label>
                 </Tag.Root>
             </Card.Footer>
         </Card.Root>

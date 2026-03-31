@@ -123,7 +123,7 @@ export default function SearchPage() {
     return (
         <Container maxW="container.xl" centerContent>
             
-           <Flex direction="column" align="left" w={{base:"83%", md: "75%", lg:"75"}}>
+           <Flex direction="column" align="left" w={{base:"95%", lg:"75%"}}>
                 {/* --- Search Box ---  */}
                 <Box>
                     <Input 
@@ -275,7 +275,7 @@ export default function SearchPage() {
 
             {/* --- Dish cards --- */}
             <Flex 
-                gap="5" w="80%"      
+                gap="5" w="95%"      
                 mt="2" mb="5"
                 wrap="wrap" 
                 justify="center"
