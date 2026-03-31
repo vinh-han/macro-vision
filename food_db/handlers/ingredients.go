@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	IngredientsRateLimit float32 = 1
+	IngredientsRateLimit float32 = 5
 )
 
 func IngredientsRouter(api *echo.Group) (err error) {
