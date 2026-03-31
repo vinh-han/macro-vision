@@ -1,3 +1,4 @@
+import argparse
 import random
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -268,7 +269,6 @@ class YOLOVisualizer:
         cv2.destroyAllWindows()
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser(description='Visualize YOLO labels')
     parser.add_argument(

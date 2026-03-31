@@ -19,13 +19,18 @@ type MealCardDish struct {
 
 type GetMealCardWithDishesParam struct {
 	UserID uuid.UUID `json:"-"`
-	CardID uuid.UUID `json:"card_id"`
+	CardID string    `param:"card_id"`
 }
 
 func GetMealCardWithDishes(ctx context.Context, request GetMealCardWithDishesParam) (meal_card MealCardDish, err error) {
+	card_id, err := uuid.Parse(request.CardID)
+	if err != nil {
+		return MealCardDish{}, err
+	}
+
 	mc, err := database.DB.Queries.Get_card_with_id(ctx, database.Get_card_with_idParams{
 		UserID: request.UserID,
-		CardID: request.CardID,
+		CardID: card_id,
 	})
 	if err == sql.ErrNoRows {
 		err = nil
@@ -34,7 +39,7 @@ func GetMealCardWithDishes(ctx context.Context, request GetMealCardWithDishesPar
 	if err != nil {
 		return
 	}
-	d, err := database.DB.Queries.Get_dishes_in_meal_card(ctx, request.CardID)
+	d, err := database.DB.Queries.Get_dishes_in_meal_card(ctx, card_id)
 	if err == sql.ErrNoRows {
 		err = nil
 		return
@@ -64,13 +69,17 @@ func GetMealCardWithDishes(ctx context.Context, request GetMealCardWithDishesPar
 
 type GetMealCardsDailyParam struct {
 	UserID uuid.UUID `json:"-"`
-	Date   time.Time `json:"meal_date"`
+	Date   string    `query:"date"`
 }
 
 func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_cards []database.MealCard, err error) {
+	meal_date, err := time.Parse("2006-01-02", param.Date)
+	if err != nil {
+		return nil, err
+	}
 	meal_cards, err = database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
-		UserID:   param.UserID,
-		MealDate: param.Date,
+		UserID:    param.UserID,
+		Timestamp: meal_date,
 	})
 	if err == sql.ErrNoRows {
 		err = nil
@@ -84,13 +93,17 @@ func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_
 
 type GetMealCardsMonthlyParam struct {
 	UserID uuid.UUID `json:"-"`
-	Date   time.Time `json:"meal_date"`
+	Date   string    `query:"date"`
 }
 
 func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (meal_cards []database.MealCard, err error) {
-	meal_cards, err = database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
-		MealDate: param.Date,
-		UserID:   param.UserID,
+	meal_date, err := time.Parse("2006-01-02", param.Date)
+	if err != nil {
+		return nil, err
+	}
+	meal_cards, err = database.DB.Queries.Get_meal_cards_monthly(ctx, database.Get_meal_cards_monthlyParams{
+		Timestamp: meal_date,
+		UserID:    param.UserID,
 	})
 	if err == sql.ErrNoRows {
 		err = nil
@@ -184,23 +197,36 @@ func UpdateMealCard(ctx context.Context, param UpdateMealCardParam) (meal_card d
 
 type AddDishToCardParam struct {
 	UserID uuid.UUID `json:"-"`
-	CardID uuid.UUID `json:"card_id"`
-	DishID uuid.UUID `json:"dish_id"`
+	CardID string    `json:"card_id"`
+	DishID string    `json:"dish_id"`
 }
 
 func AddDishToCard(ctx context.Context, param AddDishToCardParam) (card_id uuid.UUID, err error) {
+	c_id, err := uuid.Parse(param.CardID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	d_id, err := uuid.Parse(param.DishID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
 	_, err = database.DB.Queries.Get_card_with_id(ctx, database.Get_card_with_idParams{
-		CardID: param.CardID,
+		CardID: c_id,
 		UserID: param.UserID,
 	})
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = fmt.Errorf("%w, %v", custom_errors.UnauthorizedOperation, err)
 		return
 	}
 	card_id, err = database.DB.Queries.Add_dish_to_card(ctx, database.Add_dish_to_cardParams{
-		CardID: param.CardID,
-		DishID: param.DishID,
+		CardID: c_id,
+		DishID: d_id,
 	})
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+		return
+	}
 	if err != nil {
 		return
 	}
@@ -209,13 +235,21 @@ func AddDishToCard(ctx context.Context, param AddDishToCardParam) (card_id uuid.
 
 type RemoveDishFromCardParam struct {
 	UserID uuid.UUID `json:"-"`
-	CardID uuid.UUID `json:"card_id"`
-	DishID uuid.UUID `json:"dish_id"`
+	CardID string    `json:"card_id"`
+	DishID string    `json:"dish_id"`
 }
 
 func RemoveDishFromCard(ctx context.Context, param RemoveDishFromCardParam) (removed_id uuid.UUID, err error) {
+	c_id, err := uuid.Parse(param.CardID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	d_id, err := uuid.Parse(param.DishID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
 	_, err = database.DB.Queries.Get_card_with_id(ctx, database.Get_card_with_idParams{
-		CardID: param.CardID,
+		CardID: c_id,
 		UserID: param.UserID,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
@@ -223,9 +257,13 @@ func RemoveDishFromCard(ctx context.Context, param RemoveDishFromCardParam) (rem
 		return
 	}
 	removed_id, err = database.DB.Queries.Remove_dish_from_card(ctx, database.Remove_dish_from_cardParams{
-		CardID: param.CardID,
-		DishID: param.DishID,
+		CardID: c_id,
+		DishID: d_id,
 	})
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+		return
+	}
 	if err != nil {
 		return
 	}

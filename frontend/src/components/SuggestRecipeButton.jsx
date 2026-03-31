@@ -40,15 +40,35 @@ export default function SuggestRecipeButton() {
     }
 
     return (
-        <Button
-            width="100%"
-            height="3rem"
-            marginTop="3rem"
-            rounded="10px"
-            fontWeight="bold"
-            fontSize="1.4rem"
-            onClick={recipeSuggest}>
-                Suggest Recipe
-        </Button>
+        <>
+            {(ingredList.length > 0) ? (
+                <Button
+                    width="100%"
+                    height="3rem"
+                    marginTop="3rem"
+                    rounded="10px"
+                    fontWeight="bold"
+                    fontSize="1.4rem"
+                    onClick={recipeSuggest}
+                    >
+                        Suggest Recipe
+                </Button>
+            ) : (
+                <Button
+                    width="100%"
+                    height="3rem"
+                    marginTop="3rem"
+                    rounded="10px"
+                    fontWeight="bold"
+                    fontSize="1.4rem"
+                    onClick={recipeSuggest}
+                    disabled
+                    >
+                        Suggest Recipe
+                </Button>
+            )}
+        </>
+        
+        
     )
 }

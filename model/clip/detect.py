@@ -1,3 +1,5 @@
+import argparse
+import json
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -36,17 +38,18 @@ class CLIPDetector:
         ]
 
         self.ingredients = self._load_ingredients()
-        self.model, self.preprocess, self.tokenizer = self._load_model()
-        self.text_embeds = self._build_or_load_text_embeddings()
 
         self.logger = setup_logger(__name__, "clip.log")
 
+        self.model, self.preprocess, self.tokenizer = self._load_model()
+        self.text_embeds = self._build_or_load_text_embeddings()
+
     def _load_ingredients(self) -> List[str]:
-        with open(self.classes_path, "r") as f:
+        with open(self.classes_path, "r", encoding="utf-8") as f:
             return [line.strip() for line in f if line.strip()]
 
     def _load_model(self):
-        print("Loading CLIP model...")
+        self.logger.info("Loading CLIP model...")
         model, preprocess, _ = open_clip.create_model_and_transforms(
             self.model_name,
             pretrained=self.pretrained
@@ -57,10 +60,10 @@ class CLIPDetector:
 
     def _build_or_load_text_embeddings(self) -> torch.Tensor:
         if self.embed_cache.exists():
-            print("Loading cached text embeddings...")
+            self.logger.info("Loading cached text embeddings...")
             return torch.load(self.embed_cache, map_location=self.device)
 
-        print("Building text embeddings (one-time)...")
+        self.logger.info("Building text embeddings (one-time)...")
         prompts = []
         for ingredient in self.ingredients:
             for tmpl in self.prompt_templates:
@@ -84,7 +87,10 @@ class CLIPDetector:
         torch.save(text_embeds.cpu(), self.embed_cache)
         return text_embeds.to(self.device)
 
-    def predict_ingredients(self, image_path: Path, debug: bool = False) -> List[Tuple[str, float]]:
+    def predict_ingredients(self, image_path: Path) -> List[str]:
+        return [name for name, _ in self.predict_detailed(image_path)]
+
+    def predict_detailed(self, image_path: Path, debug: bool = False) -> List[Tuple[str, float]]:
         start_time = time.time()
         self.logger.info(f"CLIP analyzing image: {image_path}")
 
@@ -120,7 +126,7 @@ class CLIPDetector:
 
         return results
 
-    def predict_folder(self, folder: Path) -> Dict[str, List[Tuple[str, float]]]:
+    def predict_folder(self, folder: Path) -> Dict[str, List[str]]:
         outputs = {}
         for img in folder.iterdir():
             if img.suffix.lower() in self.image_exts:
@@ -128,17 +134,102 @@ class CLIPDetector:
         return outputs
 
 
-if __name__ == "__main__":
-    detector = CLIPDetector()
+def main():
+    parser = argparse.ArgumentParser()
 
-    img = Path(__file__).parent / "../c.jpg"
-    preds = detector.predict_ingredients(
-        img,
-        # debug=True
+    parser.add_argument(
+        '--image',
+        required=True,
+        type=Path,
+        help='Image file or directory of images'
+    )
+    parser.add_argument(
+        '--classes_path',
+        type=Path,
+        default=Path(__file__).resolve().parent.parent.parent / "assets" / "classes.txt",
+        help='Path to classes text file'
+    )
+    parser.add_argument(
+        '--model_name',
+        type=str,
+        default='ViT-L-14',
+        help='CLIP model name (default: ViT-L-14)'
+    )
+    parser.add_argument(
+        '--pretrained',
+        type=str,
+        default='laion2b_s32b_b82k',
+        help='Pretrained weights tag (default: laion2b_s32b_b82k)'
+    )
+    parser.add_argument(
+        '--sim_threshold',
+        type=float,
+        default=0.25,
+        help='Similarity threshold (default: 0.25)'
+    )
+    parser.add_argument(
+        '--top_k',
+        type=int,
+        default=None,
+        help='Return only top-k results per image'
+    )
+    parser.add_argument(
+        '--device',
+        type=str,
+        default=None,
+        help='Device to run on (default: auto)'
+    )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Print top-10 similarity scores per image'
+    )
+    parser.add_argument(
+        '--output',
+        type=Path,
+        default=None,
+        help='Save JSON results to this file'
     )
 
-    print("\nDetected ingredients:")
-    # for name, score in preds:
-    #     print(f"{name:25s} {score:.3f}")
+    args = parser.parse_args()
 
-    print(preds)
+    detector = CLIPDetector(
+        model_name=args.model_name,
+        pretrained=args.pretrained,
+        classes_path=args.classes_path,
+        sim_threshold=args.sim_threshold,
+        top_k=args.top_k,
+        device=args.device,
+    )
+
+    if args.image.is_dir():
+        exts = {'.jpg', '.jpeg', '.png', '.bmp', '.webp'}
+        img_paths = sorted(p for p in args.image.iterdir() if p.suffix.lower() in exts)
+    else:
+        img_paths = [args.image]
+
+    print(f'\nRunning on {len(img_paths)} image(s)...\n')
+
+    all_results = {}
+    for path in img_paths:
+        t0 = time.time()
+        detections = detector.predict_detailed(path, debug=args.debug)
+        elapsed = time.time() - t0
+
+        print(f'{path.name}  [{elapsed:.1f}s]  {len(detections)} detections')
+        for name, score in detections:
+            print(f'  {name:25s} {score:.3f}')
+
+        all_results[path.name] = [
+            {"class": name, "confidence": round(score, 4)}
+            for name, score in detections
+        ]
+
+    if args.output:
+        with open(args.output, 'w') as f:
+            json.dump(all_results, f, indent=2)
+        print(f'\nResults saved to: {args.output}')
+
+
+if __name__ == "__main__":
+    main()

@@ -25,8 +25,8 @@ func MealCardRouter(api *echo.Group) (err error) {
 	group.POST("/", create_meal_card)
 	group.PUT("/:card_id", update_meal_card_info)
 	group.DELETE("/:card_id", remove_meal_card)
-	group.PATCH("/:card_id/dishes", add_dish_to_card)
-	group.DELETE("/:card_id/dishes", remove_dish_from_card)
+	group.POST("/dishes", add_dish_to_card)
+	group.DELETE("/dishes", remove_dish_from_card)
 	return
 }
 
@@ -35,10 +35,10 @@ func MealCardRouter(api *echo.Group) (err error) {
 //	@Summary		Get meal card with dishes
 //	@Description	Retrieve a meal card and its dishes belonging to the authenticated user.
 //	@Tags			meal-cards
-//	@Router			/meal-cards [get]
+//	@Router			/meal-cards/{card_id} [get]
 //	@Accept			json
 //	@Produce		json
-//	@Param			card_id			query		string	true	"Meal card ID (UUID)"
+//	@Param			card_id			path		string	true	"Meal card ID (UUID)"
 //	@Param			Authorization	header		string	true	"auth"
 //	@Success		200				{object}	mealcard_service.MealCardDish
 //	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
@@ -72,7 +72,7 @@ func get_meal_card(c echo.Context) (err error) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			date			query		string	true	"Meal date (YYYY-MM-DD)"
-//	@Param			Authorization	header		string	true	"Meal date (YYYY-MM-DD)"
+//	@Param			Authorization	header		string	true	"token"
 //	@Success		200				{array}		database.MealCard
 //	@Failure		400				{object}	echo.HTTPError	"Invalid request parameters"
 //	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
@@ -134,7 +134,7 @@ func get_meal_cards_monthly(c echo.Context) (err error) {
 //	@Summary		Create meal card
 //	@Description	Create a new meal card for the authenticated user.
 //	@Tags			meal-cards
-//	@Router			/meal-cards [post]
+//	@Router			/meal-cards/ [post]
 //	@Accept			json
 //	@Produce		json
 //	@Param			request			body		mealcard_service.CreateMealCardParam	true	"Meal card payload"
@@ -262,6 +262,9 @@ func add_dish_to_card(c echo.Context) (err error) {
 	if !ok {
 		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
+	if err = c.Bind(&request); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 	request.UserID = user.UserID
 	added_id, err := mealcard_service.AddDishToCard(c.Request().Context(), request)
 	if errors.Is(err, custom_errors.UnauthorizedOperation) {
@@ -290,16 +293,20 @@ type RemoveDishFromCardResponse struct {
 //	@Param			request			body		mealcard_service.RemoveDishFromCardParam	true	"Remove dish from meal card payload"
 //	@Param			Authorization	header		string										true	"auth"
 //	@Success		200				{object}	RemoveDishFromCardResponse
-//	@Failure		400				{object}	echo.HTTPError	"Invalid request or unauthorized operation"
-//	@Failure		401				{object}	echo.HTTPError	"Unauthorized"
-//	@Failure		404				{object}	echo.HTTPError	"Meal card or dish not found"
-//	@Failure		500				{object}	echo.HTTPError	"Internal server error"
+//	@Success		204
+//	@Failure		400	{object}	echo.HTTPError	"Invalid request or unauthorized operation"
+//	@Failure		401	{object}	echo.HTTPError	"Unauthorized"
+//	@Failure		404	{object}	echo.HTTPError	"Meal card or dish not found"
+//	@Failure		500	{object}	echo.HTTPError	"Internal server error"
 //	@Security		BasicAuth
 func remove_dish_from_card(c echo.Context) (err error) {
 	var request mealcard_service.RemoveDishFromCardParam
 	user, ok := c.Get("user").(database.User)
 	if !ok {
 		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
+	}
+	if err = c.Bind(&request); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	request.UserID = user.UserID
 	removed_id, err := mealcard_service.RemoveDishFromCard(c.Request().Context(), request)
@@ -308,6 +315,9 @@ func remove_dish_from_card(c echo.Context) (err error) {
 	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if removed_id == uuid.Nil {
+		return c.NoContent(http.StatusNoContent)
 	}
 	return c.JSON(http.StatusOK, RemoveDishFromCardResponse{
 		RemovedID: removed_id,

@@ -386,17 +386,20 @@ func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_fa
 const get_meal_cards_daily = `-- name: Get_meal_cards_daily :many
 select card_id, user_id, title, meal_date, date_created
 from meal_cards
-where meal_date >= $1 and meal_date < $1 + interval '1 day' and user_id = $2
+where
+    meal_date between ($1::date)
+    and ($1::date) + interval '1 day'
+    and user_id = $2::uuid
 `
 
 type Get_meal_cards_dailyParams struct {
-	MealDate time.Time `json:"meal_date"`
-	UserID   uuid.UUID `json:"user_id"`
+	Timestamp time.Time `json:"timestamp"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
 // Meal cards --
 func (q *Queries) Get_meal_cards_daily(ctx context.Context, arg Get_meal_cards_dailyParams) ([]MealCard, error) {
-	rows, err := q.db.QueryContext(ctx, get_meal_cards_daily, arg.MealDate, arg.UserID)
+	rows, err := q.db.QueryContext(ctx, get_meal_cards_daily, arg.Timestamp, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -428,18 +431,18 @@ const get_meal_cards_monthly = `-- name: Get_meal_cards_monthly :many
 select card_id, user_id, title, meal_date, date_created
 from meal_cards
 where
-    meal_date >= date_trunc('month', $1::timestamptz)
-    and meal_date < date_trunc('month', $1::timestamptz) + interval '1 month'
-    and user_id = $2
+    meal_date between date_trunc('month', $1::timestamptz)
+    and date_trunc('month', $1::timestamptz) + interval '1 month'
+    and user_id = $2::uuid
 `
 
 type Get_meal_cards_monthlyParams struct {
-	Column1 time.Time `json:"column_1"`
-	UserID  uuid.UUID `json:"user_id"`
+	Timestamp time.Time `json:"timestamp"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) Get_meal_cards_monthly(ctx context.Context, arg Get_meal_cards_monthlyParams) ([]MealCard, error) {
-	rows, err := q.db.QueryContext(ctx, get_meal_cards_monthly, arg.Column1, arg.UserID)
+	rows, err := q.db.QueryContext(ctx, get_meal_cards_monthly, arg.Timestamp, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -899,7 +902,7 @@ join dish_ingredients di on d.dish_id = di.dish_id
 join
     ingredients i
     on di.ingredient_id = i.ingredient_id
-    and i.ingredient_name = ANY($1::text[])
+    and i.ingredient_name = any($1::text[])
 join
     (
         select dish_id, count(*) as total_ingredients

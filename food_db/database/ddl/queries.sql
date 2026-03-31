@@ -33,7 +33,7 @@ join dish_ingredients di on d.dish_id = di.dish_id
 join
     ingredients i
     on di.ingredient_id = i.ingredient_id
-    and i.ingredient_name = ANY(@ingredient_list::text[])
+    and i.ingredient_name = any(@ingredient_list::text[])
 join
     (
         select dish_id, count(*) as total_ingredients
@@ -236,16 +236,19 @@ where dish_id = $1
 -- name: Get_meal_cards_daily :many
 select *
 from meal_cards
-where meal_date >= $1 and meal_date < $1 + interval '1 day' and user_id = $2
+where
+    meal_date between (@timestamp::date)
+    and (@timestamp::date) + interval '1 day'
+    and user_id = @user_id::uuid
 ;
 
 -- name: Get_meal_cards_monthly :many
 select *
 from meal_cards
 where
-    meal_date >= date_trunc('month', $1::timestamptz)
-    and meal_date < date_trunc('month', $1::timestamptz) + interval '1 month'
-    and user_id = $2
+    meal_date between date_trunc('month', @timestamp::timestamptz)
+    and date_trunc('month', @timestamp::timestamptz) + interval '1 month'
+    and user_id = @user_id::uuid
 ;
 
 -- name: Get_card_with_id :one
