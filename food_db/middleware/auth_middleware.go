@@ -16,7 +16,7 @@ func session_validator(token string, c echo.Context) (bool, error) {
 	switch {
 	case err == sql.ErrNoRows:
 		// Invalid token.
-		return false, nil
+		return false, echo.NewHTTPError(http.StatusUnauthorized)
 
 	case err != nil:
 		return false, echo.NewHTTPError(http.StatusInternalServerError, err)
