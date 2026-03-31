@@ -64,7 +64,7 @@ export default function HomePage() {
     }, []); 
 
     return (
-        <Container centerContent>
+        <Container centerContent  maxW="container.xl">
             {/* Logo */}
             <Box >
                 <Image src={Logo}  height="3rem" m="30px" ></Image>
@@ -87,15 +87,21 @@ export default function HomePage() {
             </Container>
 
             {/* Popular dishes area  */}
-            <Flex direction="column" align="left" w="95%">
-                <Heading>Popular Dishes</Heading>
+            <Flex direction="column" align="left" w="90%">
+                <Heading ml={4}>Popular Dishes</Heading>
 
                 <Box centerContent>
-                    <Carousel.Root align="center" slideCount={popularDishes.length} maxW="xl" mx="auto">
-                        <Carousel.ItemGroup>
+                    <Carousel.Root
+                     align="center"  mx="auto" 
+                     slideCount={popularDishes.length} 
+          
+                    >
+                        <Carousel.ItemGroup overflow="hidden"
+                        >
                             {popularDishes.map((dish, index) => (
                                 <Carousel.Item 
                                     m={4}
+                                    px={2}
                                     key={dish.dish_id} index={index}>
                                     <DishCard 
                                     dishName={dish.dish_name}
