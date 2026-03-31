@@ -25,7 +25,7 @@ func MealCardRouter(api *echo.Group) (err error) {
 	group.POST("/", create_meal_card)
 	group.PUT("/:card_id", update_meal_card_info)
 	group.DELETE("/:card_id", remove_meal_card)
-	group.POST("/:card_id/dishes", add_dish_to_card)
+	group.POST("/dishes", add_dish_to_card)
 	group.DELETE("/:card_id/dishes", remove_dish_from_card)
 	return
 }
