@@ -285,7 +285,8 @@ export default function SearchPage() {
                     dishName={dish.dish_name}
                     dishDescription={dish.description}
                     dishCourse={dish.course} 
-                    dishImage={dish.image}/>
+                    dishImage={dish.image}
+                    dishID={dish.dish_id}/>
                 ))} 
             </Flex>
 

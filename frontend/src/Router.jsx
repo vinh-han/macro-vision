@@ -45,7 +45,7 @@ export const router = createBrowserRouter(
                     <Route path="new-meal-plan" element={<AddToNewMealPlanPage />} />
                     <Route path="existing-meal-plan" element={<AddToExistingMealPlanPage />} />
                 </Route>
-                <Route path="dish" element={<DishInfoPage />} />
+                <Route path="dish/:dishID" element={<DishInfoPage />} />
                 <Route path="meal-planner" element={<MealPlannerPage/>} />
                 <Route path="meal-card" element={<MealCardPage />} />
                 <Route path="profile" element={<ProfilePage />} />
