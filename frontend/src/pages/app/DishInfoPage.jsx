@@ -50,7 +50,6 @@ export default function DishInfoPage() {
                 if(!response.ok) {
                     throw new Error('error'); 
                 }
-                // Suceed
                 const result = await response.json();
                 setData(result); 
                 setDishName(result.dish_name);
@@ -65,7 +64,7 @@ export default function DishInfoPage() {
     },[dishID]);
 
 // ==================================== View ===============================================
-    if (loading) return <div>Loading...</div>;
+    // if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
     
     return (
@@ -99,7 +98,7 @@ export default function DishInfoPage() {
                     {data?.description}
                 </Text>
 
-                <Tag.Root mt={5} size="lg">
+                <Tag.Root mt={5} size="xl">
                     <Tag.Label> {data?.course} </Tag.Label>
                 </Tag.Root>
  
