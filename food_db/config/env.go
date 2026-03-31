@@ -11,6 +11,7 @@ type EnvConfig struct {
 	POSTGRES_USER       string
 	POSTGRES_PASSWORD   string
 	POSTGRES_DB         string
+	PRODUCTION          string `env:"ignoreempty"`
 }
 
 var Env *EnvConfig = &EnvConfig{}
