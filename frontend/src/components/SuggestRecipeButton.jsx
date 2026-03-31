@@ -16,6 +16,7 @@ export default function SuggestRecipeButton() {
             match_tightness: 0,
             page: 0
         }
+        console.log(data)
         
         fetch(`${apiUrl}dishes/suggestion`, {
             method: 'POST',
@@ -32,6 +33,9 @@ export default function SuggestRecipeButton() {
 
             return Promise.reject(response)
         }).then((data) => {
+            if (!data) {
+                return
+            }
             localStorage.setItem("suggested-recipe", JSON.stringify(data))
             navigate('../recipe-suggest')
         }).catch((response) => {

@@ -55,14 +55,15 @@ export default function AddToMealPlanLayout() {
                         >
                             <Center flex="1" zIndex="2" onClick={location.pathname != "/app/add-to-meal-plan/new-meal-plan" ? () => {navigate('./new-meal-plan')} : () => {}}>
                                 <Text
-                                    textDecoration={location.pathname == "/app/add-to-meal-plan/new-meal-plan" ? "white solid underline 2px" : ""}
+                                    textDecorationThickness="2px"                                    textDecorationLine={location.pathname == "/app/add-to-meal-plan/new-meal-plan" ? "underline" : ""}
                                     textUnderlineOffset={location.pathname == "/app/add-to-meal-plan/new-meal-plan" ? "5px" : ""}>
                                     New Meal Plan
                                 </Text>
                             </Center>
                             <Center flex="1" zIndex="2" onClick={location.pathname != "/app/add-to-meal-plan/existing-meal-plan" ? () => {navigate('./existing-meal-plan')} : () => {}}>
-                                <Text 
-                                    textDecoration={location.pathname == "/app/add-to-meal-plan/existing-meal-plan" ? "white solid underline 2px" : ""}
+                                <Text
+                                    textDecorationThickness="2px"  
+                                    textDecorationLine={location.pathname == "/app/add-to-meal-plan/existing-meal-plan" ? "underline" : ""}
                                     textUnderlineOffset={location.pathname == "/app/add-to-meal-plan/existing-meal-plan" ? "5px" : ""}>
                                     Existing Meal Plan
                                 </Text>

@@ -117,8 +117,8 @@ func suggest_dishes(c echo.Context) (err error) {
 	if err = c.Bind(&param); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if param.Page < 1 {
-		param.Page = 1
+	if param.Page < 0 {
+		param.Page = 0
 	}
 	if param.MatchTightness < 1 {
 		param.MatchTightness = 1
