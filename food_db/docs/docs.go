@@ -790,6 +790,9 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.RemoveDishFromCardResponse"
                         }
                     },
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Invalid request or unauthorized operation",
                         "schema": {
