@@ -91,7 +91,6 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, config.App.DocPath+"/")
 	})
-
 	api := e.Group(config.App.BasePath)
 
 	handlers.InitRouters(api)

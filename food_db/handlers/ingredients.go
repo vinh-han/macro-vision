@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"io"
+	"macro_vision/config"
 	ingredients_service "macro_vision/services/ingredients"
+	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -69,5 +73,29 @@ func search_ingredients(c echo.Context) (err error) {
 
 // waiting api
 func detect_ingredients(c echo.Context) (err error) {
+	file, err := c.FormFile("img-file")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "cannot find file input")
+	}
+	if config.Env.PRODUCTION == "" || config.Env.PRODUCTION != "true" {
+		return detect_mock(c, file)
+	}
 	return
+}
+
+func detect_mock(c echo.Context, file *multipart.FileHeader) (err error) {
+	src, err := file.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "cannot read file input")
+	}
+	defer src.Close()
+	dst, err := os.Create(file.Filename)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

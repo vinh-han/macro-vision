@@ -1,22 +1,36 @@
-import {Box, Button, Text, SimpleGrid, Center, Input, FileUpload} from "@chakra-ui/react"
+import {Box, Button, Text, SimpleGrid, Center, Input, FileUpload, Dialog} from "@chakra-ui/react"
 import { useState } from 'react'
 import IngredientInputList from "../../components/IngredientInputList"
 import IngredInputContextProvider from "../../context/IngredientInputContext"
 import IngredientInputActionBox from "../../components/IngredientInputActionBox"
 import SuggestRecipeButton from "../../components/SuggestRecipeButton"
+import { getCookie } from "../../components/Methods"
 
 export default function IngredientInputPage() {
+    const baseUrl = import.meta.env.VITE_BASE_API_URL
     const [isEdit, setIsEdit] = useState(false)
     const [selectedIngred, setSelectedIngred] = useState([]);
 
     function handleFileAccept(e) {
         const file = e.files[0]
 
-        if (file) {
-            console.log("File Name:", file.name)
-            console.log("File Size:", file.size)
-
+        if (!file) {
+            return
         }
+
+        const data = new FormData();
+        data.append('img-file', file)
+
+        fetch(`${baseUrl}ingredients/detection`, {
+            method: 'POST',
+            body: data,
+            headers: {
+                'Authorization': `Bearer ${getCookie("token")}`,
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            console.log(response)
+        })
     }
     
     return (
@@ -30,7 +44,7 @@ export default function IngredientInputPage() {
                 top="0"
                 zIndex="1">
                 <FileUpload.Root onFileAccept={handleFileAccept} accept="image/*">
-                    <FileUpload.HiddenInput />
+                    <FileUpload.HiddenInput name="img-file" />
                     <FileUpload.Trigger asChild>
                          <Button
                             width="100%"
@@ -130,7 +144,6 @@ export default function IngredientInputPage() {
                 {!isEdit && (
                     <SuggestRecipeButton />
                 )}
-                
             </Box>
             
         </IngredInputContextProvider>

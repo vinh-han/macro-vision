@@ -55,12 +55,22 @@ func LoadConfig(filepath string) error {
 	for i := 0; i < field_values.NumField(); i++ {
 		field := field_values.Field(i)
 		field_name := field_structs.Field(i).Name
+		field_type := field_structs.Field(i)
+		tag := field_type.Tag.Get("env")
+
+		ignore_empty := false
+		if tag == "ignoreempty" {
+			ignore_empty = true
+		}
 
 		if field.CanSet() && field.Kind() == reflect.String {
 			val := os.Getenv(field_name)
-			if val == "" {
+			if val == "" && !ignore_empty {
 				return fmt.Errorf("%w: var_name:%s: %v", custom_errors.EnvEmpty, field_name, err)
-			}
+			} else if val == "" && ignore_empty {
+                fmt.Printf("ignoring %s, since ignoreempty is on", field_name)
+                return nil
+            }
 			field.SetString(val)
 		}
 	}

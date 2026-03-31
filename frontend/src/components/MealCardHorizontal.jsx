@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCookie } from "./Methods";
 
 
-export default function MealCardHorizontal({dish_id, card_id}) {
+export default function MealCardHorizontal({dish_id, card_id, setIsExpired}) {
     const baseUrl = import.meta.env.VITE_BASE_API_URL
     const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const [fetchMealCard, setFetchMealCard] = useState(true)
@@ -30,7 +30,11 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                     setMealCard(data)
                 }
             }).catch((response) => {
-                console.log(response)
+                if (response.status == 500) {
+                    setIsExpired(true)
+                } else {
+                    console.log(response)
+                }
             })
 
             setFetchMealCard(false)
@@ -62,7 +66,11 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                     setFetchMealCard(true)
                 }
             }).catch((response) => {
-                console.log(response)
+                if (response.status == 500) {
+                    setIsExpired(true)
+                } else {
+                    console.log(response)
+                }
             })
         }
     }

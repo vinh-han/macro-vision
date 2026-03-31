@@ -1,12 +1,15 @@
-import { Button } from "@chakra-ui/react"
+import { Button, CloseButton, Dialog, DialogBackdrop, Portal, useDisclosure, useStepsItemContext } from "@chakra-ui/react"
 import { useIngredInputContext } from "../context/IngredientInputContext"
-import { getCookie } from "./Methods";
+import { getCookie, sessionCleanup } from "./Methods";
 import { Link, useNavigate } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import SessionExpireMsg from "./SessionExpireMsg";
 
 export default function SuggestRecipeButton() {
     const {ingredList} = useIngredInputContext();
     const apiUrl = import.meta.env.VITE_BASE_API_URL
     const navigate = useNavigate();
+    const [isExpired, setIsExpired] = useState(false);
     
     function recipeSuggest() {
         const ingredSubmit = ingredList.map((ingred) => (ingred.ingredient_name))
@@ -16,7 +19,6 @@ export default function SuggestRecipeButton() {
             match_tightness: 0,
             page: 0
         }
-        console.log(data)
         
         fetch(`${apiUrl}dishes/suggestion`, {
             method: 'POST',
@@ -39,7 +41,11 @@ export default function SuggestRecipeButton() {
             localStorage.setItem("suggested-recipe", JSON.stringify(data))
             navigate('../recipe-suggest')
         }).catch((response) => {
-            console.log(response)
+            if (response.status == 500) {
+                setIsExpired(true)
+            } else {
+                console.log(response)
+            }
         })
     }
 
@@ -69,8 +75,10 @@ export default function SuggestRecipeButton() {
                     disabled
                     >
                         Suggest Recipe
-                </Button>
+                </Button>  
             )}
+
+            <SessionExpireMsg isExpired={isExpired} setIsExpired={setIsExpired} />
         </>
         
         

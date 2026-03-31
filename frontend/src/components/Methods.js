@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 
 
 export function setCookie(cookie_name, cookie_value, timeout_days) {
@@ -38,4 +39,9 @@ export function assetNameProcess(raw_name) {
     item_name = item_name.trim()
     
     return item_name
+}
+
+export function sessionCleanup() {
+    deleteCookie('token')
+    localStorage.clear()
 }

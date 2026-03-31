@@ -89,7 +89,6 @@ services:
         env_file: ./model/.env
         restart: unless-stopped
         volumes:
-            - ./model/clip/.clip_text_embeds.pt:/app/model/clip/.clip_text_embeds.pt:ro
             - model_hf_cache:/root/.cache/huggingface
             - model_torch_cache:/root/.cache/torch
 

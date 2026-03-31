@@ -14,7 +14,7 @@ export default function IngredientInputList({selectedIngred, setSelectedIngred, 
     })
 
     function addIngred(ingredId) {
-      setSelectedIngred([...selectedIngred, ingredId])
+        setSelectedIngred([...selectedIngred, ingredId])
     }
 
     function removeIngred(ingredId) {
