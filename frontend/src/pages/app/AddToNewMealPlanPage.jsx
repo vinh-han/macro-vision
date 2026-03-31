@@ -17,6 +17,7 @@ export default function AddToNewMealPlanPage() {
     const selectedRecipe = useOutletContext();
     const navigate = useNavigate();
     const mealName = useRef();
+    const [isExpired, setIsExpired] = useState(false);
     
     const currentDate = new Date();
     const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
@@ -74,7 +75,11 @@ export default function AddToNewMealPlanPage() {
         }).then(() => {
             navigate('../../recipe-suggest')
         }).catch((response) => {
-            console.log(response)
+            if (response.status == 500) {
+                setIsExpired(true)
+            } else {
+                console.log(response)
+            }
         })
     }
 
@@ -177,6 +182,8 @@ export default function AddToNewMealPlanPage() {
                     </Button>
                 </Box>
             </form>
+
+            <SessionExpireMsg isExpired={isExpired} setIsExpired={setIsExpired} />
         </Box>
     )
 }

@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { getCookie } from "../../components/Methods";
 import RecipeCardSmall from "../../components/RecipeCardSmall";
 import MealCardHorizontal from "../../components/MealCardHorizontal";
+import SessionExpireMsg from "../../components/SessionExpireMsg";
 
 export default function AddToExistingMealPlanPage() {
     const baseUrl = import.meta.env.VITE_BASE_API_URL;
     const selectedRecipe = useOutletContext();
     const [mealList, setMealList] = useState([]);
+    const [isExpired, setIsExpired] = useState(false);
 
     const currentDate = new Date();
     const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
@@ -36,7 +38,11 @@ export default function AddToExistingMealPlanPage() {
             }
             
         }).catch((response) => {
-            console.log(response)
+            if (response.status == 500) {
+                setIsExpired(true)
+            } else {
+                console.log(response)
+            }
         })
     }, [selectedDate])
 
@@ -106,13 +112,13 @@ export default function AddToExistingMealPlanPage() {
                 maxHeight="28rem"
                 overflowY="scroll">
                 {mealList.map((meal, index) => (
-                    <MealCardHorizontal key={index} dish_id={selectedRecipe.dish_id} card_id={meal.card_id} />
+                    <MealCardHorizontal key={index} setIsExpired={setIsExpired} dish_id={selectedRecipe.dish_id} card_id={meal.card_id} />
                 ))}
 
                 
             </Box>
             
-
+            <SessionExpireMsg isExpired={isExpired} setIsExpired={setIsExpired} />
         </Box>
     )
 }
