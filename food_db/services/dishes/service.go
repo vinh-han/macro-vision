@@ -47,10 +47,11 @@ type SuggestedDish struct {
 }
 
 func SuggestDishes(ctx context.Context, param SuggestDishesParam) (dishes []SuggestedDish, err error) {
+    fmt.Println(param)
 	tmp, err := database.DB.Queries.Suggest_dish_from_ingredients(ctx, database.Suggest_dish_from_ingredientsParams{
 		IngredientList: param.IngredientList,
 		MatchTightness: int32(param.MatchTightness),
-		PageOffset:     int32(param.Page),
+        PageOffset:     int32(param.Page) * 20,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
