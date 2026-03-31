@@ -13,7 +13,6 @@ export default function SuggestCard({dish}) {
         width="100%" 
         height={{base: "22rem", md: "27rem", lg: "32rem"}}
         rounded="12px"
-        cursor="pointer"
         border="1.5px solid #d4d4d8"
         boxShadow="0.3rem 0.3rem 0.5rem #0000004d"
         display="flex"

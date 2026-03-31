@@ -1,7 +1,8 @@
-import { useOutletContext } from "react-router"
+import { useNavigate, useOutletContext } from "react-router"
 import { Box, Button, Field, DatePicker, Input, Portal } from "@chakra-ui/react";
 import RecipeCard from "../../components/RecipeCard";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { getCookie } from "../../components/Methods";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -12,11 +13,14 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 })
 
 export default function AddToNewMealPlanPage() {
+    const baseUrl = import.meta.env.VITE_BASE_API_URL;
     const selectedRecipe = useOutletContext();
-    const currentDate = new Date()
-
-    const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()))
-    const timeValue = `${String(selectedDate.getHours()).padStart(2, "0")}:${String(selectedDate.getMinutes()).padStart(2, "0")}`
+    const navigate = useNavigate();
+    const mealName = useRef();
+    
+    const currentDate = new Date();
+    const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
+    const timeValue = `${String(selectedDate.getHours()).padStart(2, "0")}:${String(selectedDate.getMinutes()).padStart(2, "0")}`;
 
     const onTimeChange = (e) => {
         const [hours, minutes] = e.currentTarget.value.split(":").map(Number)
@@ -38,16 +42,46 @@ export default function AddToNewMealPlanPage() {
         const nextDate = new Date(selectedDate)
         
         nextDate.setFullYear(newDateVal.year)
-        nextDate.setMonth(newDateVal.month - 1)
         nextDate.setDate(newDateVal.day)
+        nextDate.setMonth(newDateVal.month - 1)
+        
 
         setSelectedDate(nextDate)
+    }
+
+    function submitHandler(e) {
+        e.preventDefault()
+        
+        const mealCardInfo = {
+            dishes: [selectedRecipe.dish_id],
+            meal_date: selectedDate.toISOString(),
+            title: mealName.current.value
+        }
+
+        fetch(`${baseUrl}meal-cards/`, {
+            method: 'POST',
+            body: JSON.stringify(mealCardInfo),
+            headers: {
+                'Authorization': `Bearer ${getCookie('token')}`,
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            if (response.status == 201) {
+                return response.json()
+            }
+
+            return Promise.reject(response)
+        }).then(() => {
+            navigate('../../recipe-suggest')
+        }).catch((response) => {
+            console.log(response)
+        })
     }
 
     return (
         <Box
             width="100%">
-            <form>
+            <form onSubmit={submitHandler}>
                 <Box
                     width="100%"
                     fontSize="1rem"
@@ -63,7 +97,8 @@ export default function AddToNewMealPlanPage() {
                             placeholder="Enter here..." 
                             size="lg"
                             border="solid 1px #7A7A7A"
-                            background="#E7E7E7" />
+                            background="#E7E7E7"
+                            ref={mealName} />
                     </Field.Root>
                     <DatePicker.Root
                         onValueChange={onDateChange}
@@ -104,39 +139,44 @@ export default function AddToNewMealPlanPage() {
                         </Portal>
                     </DatePicker.Root>
                 </Box>
+                <Box
+                    marginTop="1.6rem"
+                    width="100%"
+                    height="2px"
+                    bgColor="black" />
+                <Box marginTop="1rem">
+                    {(selectedRecipe) && <RecipeCard dish={selectedRecipe} />}
+                </Box>
+
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    fontSize="1rem"
+                    marginTop="3rem">
+                    <Button 
+                        size="xl" 
+                        fontSize="1.5em"
+                        fontWeight="bold"
+                        padding="1.5rem 2.5rem"
+                        rounded="14px"
+                        boxShadow="0 6.33px 6.33px rgb(0 0 0 / 25%)"
+                        background="#7A7A7A"
+                        onClick={() => navigate('../../ingredient-input')}>
+                        Cancel
+                    </Button>
+
+                    <Button 
+                        type="submit"
+                        size="xl" 
+                        fontSize="1.5em"
+                        fontWeight="bold"
+                        padding="1.5rem 2.5rem"
+                        rounded="14px"
+                        boxShadow="0 6.33px 6.33px rgb(0 0 0 / 25%)">
+                        Create
+                    </Button>
+                </Box>
             </form>
-            <Box
-                marginTop="1.6rem"
-                width="100%"
-                height="2px"
-                bgColor="black" />
-            <Box marginTop="1.6rem">
-                {(selectedRecipe) && <RecipeCard dish={selectedRecipe} />}
-            </Box>
-
-            <Box
-                display="flex"
-                justifyContent="space-between"
-                fontSize="1rem"
-                marginTop="3rem"
-            >
-                <Button 
-                    size="xl" 
-                    fontSize="1.5em"
-                    fontWeight="bold"
-                    padding="1.5rem 2.5rem"
-                    rounded="14px"
-                    boxShadow="0 6.33px 6.33px rgb(0 0 0 / 25%)"
-                    background="#7A7A7A">Cancel</Button>
-
-                <Button 
-                    size="xl" 
-                    fontSize="1.5em"
-                    fontWeight="bold"
-                    padding="1.5rem 2.5rem"
-                    rounded="14px"
-                    boxShadow="0 6.33px 6.33px rgb(0 0 0 / 25%)">Create</Button>
-            </Box>
         </Box>
     )
 }
