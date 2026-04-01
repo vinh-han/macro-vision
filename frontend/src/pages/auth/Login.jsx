@@ -36,11 +36,12 @@ export default function Login() {
             navigate("/app")
         }).catch((response) => {
             let error = ""
-            if (response.status == 404 || response.status == 409) {
+            if (response.status == 404 || response.status == 400) {
                 error = "Invalid Username or Password!"
             } 
             else if (response.status == 500) {
                 error = "Unexpected Error!"
+                response.json().then((data) => console.log(data))
             }
 
             setErrorMsg(error)
@@ -106,12 +107,6 @@ export default function Login() {
                                     fontSize="1em" 
                                     color="black"/>
                             </Field.Root>
-                            <Text 
-                                marginTop="0.8rem" 
-                                textAlign="right" 
-                                textDecoration="underline">
-                                Forgot Password?
-                            </Text>
                             {errorMsg && (
                                 <HStack justifyContent="center" alignContent="start" fontSize="1em" marginTop="1.4rem">
                                     <i className="ri-error-warning-fill" style={{lineHeight: 1}}></i>
