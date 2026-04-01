@@ -16,5 +16,4 @@ FROM nginx:stable-alpine
 WORKDIR /www
 COPY ./deploy_conf/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist .
-EXPOSE 5173
 CMD ["nginx","-g", "daemon off;"]

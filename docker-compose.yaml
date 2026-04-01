@@ -10,13 +10,13 @@ services:
             watch:
                 - action: rebuild
                   path: ./frontend/package.json
+                - action: sync+restart
+                  path: ./frontend/src/
+                  target: /frontend/src/
                 - action: rebuild
                   path: ./frontend/vite.config.js
                 - action: rebuild
                   path: ./frontend/eslint.config.js
-        volumes:
-            - ./frontend/:/frontend/
-            - /frontend/node_modules
     backend:
         build:
             context: ./

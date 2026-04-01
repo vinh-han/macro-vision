@@ -15,17 +15,7 @@ services:
           context: ./
           dockerfile: ./frontend/Dockerfile.prod
         container_name: frontend
-        develop:
-            watch:
-                - action: rebuild
-                  path: ./frontend/package.json
-                - action: rebuild
-                  path: ./frontend/vite.config.js
-                - action: rebuild
-                  path: ./frontend/eslint.config.js
-        volumes:
-          - ./frontend/:/frontend/
-          - /frontend/node_modules
+
     backend:
         build:
           context: .
@@ -34,12 +24,6 @@ services:
         restart: unless-stopped
         volumes:
             - ./food_db/links:/backend/links:ro
-        develop:
-            watch:
-                - action: rebuild
-                  path: ./food_db
-                  ignore:
-                    - ./food_db/links
         depends_on:
             database:
                 condition: service_healthy
