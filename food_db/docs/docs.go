@@ -648,7 +648,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.MealCard"
+                                "$ref": "#/definitions/mealcards.GetMealCardsTimedResponse"
                             }
                         }
                     },
@@ -1660,6 +1660,14 @@ const docTemplate = `{
                 }
             }
         },
+        "mealcards.GetMealCardsTimedResponse": {
+            "type": "object",
+            "properties": {
+                "meal_card": {
+                    "$ref": "#/definitions/mealcards.MealCardWithDishes"
+                }
+            }
+        },
         "mealcards.MealCardDish": {
             "type": "object",
             "properties": {
@@ -1688,6 +1696,32 @@ const docTemplate = `{
                 }
             }
         },
+        "mealcards.MealCardWithDishes": {
+            "type": "object",
+            "properties": {
+                "card_id": {
+                    "type": "string"
+                },
+                "date_created": {
+                    "type": "string"
+                },
+                "dishes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mealcards.TruncDish"
+                    }
+                },
+                "meal_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "mealcards.RemoveDishFromCardParam": {
             "type": "object",
             "properties": {
@@ -1695,6 +1729,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "dish_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "mealcards.TruncDish": {
+            "type": "object",
+            "properties": {
+                "alt_name": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "dish_id": {
+                    "type": "string"
+                },
+                "dish_name": {
                     "type": "string"
                 }
             }

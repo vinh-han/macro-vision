@@ -68,9 +68,9 @@ func LoadConfig(filepath string) error {
 			if val == "" && !ignore_empty {
 				return fmt.Errorf("%w: var_name:%s: %v", custom_errors.EnvEmpty, field_name, err)
 			} else if val == "" && ignore_empty {
-                fmt.Printf("ignoring %s, since ignoreempty is on", field_name)
-                return nil
-            }
+				fmt.Printf("ignoring %s, since ignoreempty is on", field_name)
+				return nil
+			}
 			field.SetString(val)
 		}
 	}
