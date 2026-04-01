@@ -72,12 +72,27 @@ type GetMealCardsDailyParam struct {
 	Date   string    `query:"date"`
 }
 
-func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_cards []database.MealCard, err error) {
+type GetMealCardsTimedResponse struct {
+	MealCardWithDishes `json:"meal_card"`
+}
+type MealCardWithDishes struct {
+	database.MealCard
+	Dishes []TruncDish `json:"dishes"`
+}
+type TruncDish struct {
+	DishID   uuid.UUID `json:"dish_id"`
+	DishName string    `json:"dish_name"`
+	Course   string    `json:"course"`
+	AltName  string    `json:"alt_name"`
+}
+
+func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (response []MealCardWithDishes, err error) {
 	meal_date, err := time.Parse("2006-01-02", param.Date)
 	if err != nil {
-		return nil, err
+		return
 	}
-	meal_cards, err = database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
+
+	mc, err := database.DB.Queries.Get_meal_cards_daily(ctx, database.Get_meal_cards_dailyParams{
 		UserID:    param.UserID,
 		Timestamp: meal_date,
 	})
@@ -87,6 +102,36 @@ func GetMealCardsDaily(ctx context.Context, param GetMealCardsDailyParam) (meal_
 	}
 	if err != nil {
 		return
+	}
+	for _, meal_card := range mc {
+		var d []database.Get_dishes_in_meal_cardRow
+		d, err = database.DB.Queries.Get_dishes_in_meal_card(ctx, meal_card.CardID)
+		if err == sql.ErrNoRows {
+			err = nil
+			return
+		}
+		if err != nil {
+			return
+		}
+		dishes := make([]TruncDish, len(d))
+		for i, v := range d {
+			var an string
+			if v.AltName.Valid {
+				an = v.AltName.String
+			} else {
+				an = ""
+			}
+			dishes[i] = TruncDish{
+				DishID:   v.DishID,
+				DishName: v.DishName,
+				Course:   v.Course,
+				AltName:  an,
+			}
+		}
+		response = append(response, MealCardWithDishes{
+			MealCard: meal_card,
+			Dishes:   dishes,
+		})
 	}
 	return
 }

@@ -14,8 +14,9 @@ import (
 )
 
 const (
-    AuthRateLimit float32 = 5
+	AuthRateLimit float32 = 5
 )
+
 func AuthRouter(e *echo.Group) error {
 	group := e.Group(config.Auth.AuthGroup,
 		middleware.RemoveTrailingSlash(),
