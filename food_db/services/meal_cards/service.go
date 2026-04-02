@@ -141,13 +141,26 @@ type GetMealCardsMonthlyParam struct {
 	Date   string    `query:"date"`
 }
 
-func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (meal_cards []database.MealCard, err error) {
-	meal_date, err := time.Parse("2006-01-02", param.Date)
+type GetMealCardsMonthlyResponse struct {
+	Days []MealCardsMonthlyDay `json:"days"`
+}
+type MealCardsMonthlyDay struct {
+	Date  string          `json:"date"`
+	Cards []MealCardMonth `json:"cards"`
+}
+type MealCardMonth struct {
+	CardID   uuid.UUID `json:"card_id"`
+	Title    string    `json:"title"`
+	MealDate time.Time `json:"meal_date"`
+}
+
+func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (meal_cards []MealCardsMonthlyDay, err error) {
+	requested_date, err := time.Parse("2006-01-02", param.Date)
 	if err != nil {
 		return nil, err
 	}
-	meal_cards, err = database.DB.Queries.Get_meal_cards_monthly(ctx, database.Get_meal_cards_monthlyParams{
-		Timestamp: meal_date,
+	mcs, err := database.DB.Queries.Get_meal_cards_monthly(ctx, database.Get_meal_cards_monthlyParams{
+		Timestamp: requested_date,
 		UserID:    param.UserID,
 	})
 	if err == sql.ErrNoRows {
@@ -156,6 +169,24 @@ func GetMealCardsMonthly(ctx context.Context, param GetMealCardsMonthlyParam) (m
 	}
 	if err != nil {
 		return
+	}
+	var dates map[string]MealCardsMonthlyDay
+	dates = make(map[string]MealCardsMonthlyDay)
+	for _, card := range mcs {
+		date := card.MealDate.Format("2006-01-02")
+		mcd := dates[date] // zero value if not exists
+
+		mcd.Date = date
+		mcd.Cards = append(mcd.Cards, MealCardMonth{
+			CardID:   card.CardID,
+			Title:    card.Title,
+			MealDate: card.MealDate,
+		})
+
+		dates[date] = mcd
+	}
+	for _, meal_card := range dates {
+		meal_cards = append(meal_cards, meal_card)
 	}
 	return
 }

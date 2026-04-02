@@ -848,7 +848,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Meal date (YYYY-MM-DD)",
+                        "description": "token",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -858,10 +858,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.MealCard"
-                            }
+                            "$ref": "#/definitions/mealcards.GetMealCardsMonthlyResponse"
                         }
                     },
                     "400": {
@@ -1660,6 +1657,17 @@ const docTemplate = `{
                 }
             }
         },
+        "mealcards.GetMealCardsMonthlyResponse": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mealcards.MealCardsMonthlyDay"
+                    }
+                }
+            }
+        },
         "mealcards.GetMealCardsTimedResponse": {
             "type": "object",
             "properties": {
@@ -1696,6 +1704,20 @@ const docTemplate = `{
                 }
             }
         },
+        "mealcards.MealCardMonth": {
+            "type": "object",
+            "properties": {
+                "card_id": {
+                    "type": "string"
+                },
+                "meal_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "mealcards.MealCardWithDishes": {
             "type": "object",
             "properties": {
@@ -1718,6 +1740,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "mealcards.MealCardsMonthlyDay": {
+            "type": "object",
+            "properties": {
+                "cards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mealcards.MealCardMonth"
+                    }
+                },
+                "date": {
                     "type": "string"
                 }
             }
