@@ -243,7 +243,7 @@ where
 ;
 
 -- name: Get_meal_cards_monthly :many
-select *
+select card_id, title, meal_date
 from meal_cards
 where
     meal_date between date_trunc('month', @timestamp::timestamptz)

@@ -428,7 +428,7 @@ func (q *Queries) Get_meal_cards_daily(ctx context.Context, arg Get_meal_cards_d
 }
 
 const get_meal_cards_monthly = `-- name: Get_meal_cards_monthly :many
-select card_id, user_id, title, meal_date, date_created
+select card_id, title, meal_date
 from meal_cards
 where
     meal_date between date_trunc('month', $1::timestamptz)
@@ -441,22 +441,22 @@ type Get_meal_cards_monthlyParams struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
-func (q *Queries) Get_meal_cards_monthly(ctx context.Context, arg Get_meal_cards_monthlyParams) ([]MealCard, error) {
+type Get_meal_cards_monthlyRow struct {
+	CardID   uuid.UUID `json:"card_id"`
+	Title    string    `json:"title"`
+	MealDate time.Time `json:"meal_date"`
+}
+
+func (q *Queries) Get_meal_cards_monthly(ctx context.Context, arg Get_meal_cards_monthlyParams) ([]Get_meal_cards_monthlyRow, error) {
 	rows, err := q.db.QueryContext(ctx, get_meal_cards_monthly, arg.Timestamp, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []MealCard
+	var items []Get_meal_cards_monthlyRow
 	for rows.Next() {
-		var i MealCard
-		if err := rows.Scan(
-			&i.CardID,
-			&i.UserID,
-			&i.Title,
-			&i.MealDate,
-			&i.DateCreated,
-		); err != nil {
+		var i Get_meal_cards_monthlyRow
+		if err := rows.Scan(&i.CardID, &i.Title, &i.MealDate); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
