@@ -1,7 +1,7 @@
 FROM node:lts-alpine AS main
 WORKDIR /frontend
 COPY ./frontend/package.json ./frontend/package-lock.json ./
-RUN npm install
+RUN npm ci
 COPY ./frontend/ /frontend
 COPY ./.env ./
 EXPOSE 5173
