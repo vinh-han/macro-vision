@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -97,5 +98,6 @@ func detect_mock(c echo.Context, file *multipart.FileHeader) (err error) {
 	if _, err = io.Copy(dst, src); err != nil {
 		return err
 	}
+	time.Sleep(5 * time.Second)
 	return c.NoContent(http.StatusNoContent)
 }
