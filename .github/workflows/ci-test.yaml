@@ -70,12 +70,13 @@ jobs:
                     --output text)
 
                   echo "Command ID: $COMMAND_ID"
+                  echo $COMMAND_ID
 
             - name: Wait for Builder
               run: |
                 while true; do
                   STATUS=$(aws ssm list-command-invocations \
-                    --command-id $COMMAND_ID \
+                    --command-id "$COMMAND_ID" \
                     --query "CommandInvocations[0].Status" \
                     --output text)
             
@@ -159,7 +160,7 @@ jobs:
               run: |
                 while true; do
                   STATUS=$(aws ssm list-command-invocations \
-                    --command-id $COMMAND_ID \
+                    --command-id "$COMMAND_ID" \
                     --query "CommandInvocations[0].Status" \
                     --output text)
             
