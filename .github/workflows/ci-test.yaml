@@ -93,6 +93,12 @@ jobs:
         needs: build
         runs-on: ubuntu-latest
         steps:
+            - name: credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{secrets.IAM_ROLE_ARN}}
+                  aws-region: ap-south-2
+
             - name: Ensure main EC2 exists
               run: |
                   INSTANCE_ID=$(aws ec2 describe-instances \
