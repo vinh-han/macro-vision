@@ -44,7 +44,7 @@ jobs:
                           "VolumeSize": 40,
                           "VolumeType": "gp3",
                           "Iops": 3000,
-                          "Throughput": 375,
+                          "Throughput": 250,
                           "DeleteOnTermination": true
                         }
                       }
@@ -90,6 +90,7 @@ jobs:
               run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
 
     run:
+        needs: build
         runs-on: ubuntu-latest
         steps:
             - name: Ensure main EC2 exists
@@ -163,9 +164,6 @@ jobs:
                   docker compose -f compose.prod.yaml up --build --remove-orphans -d
                 EOF
 
-    ddns:
-        runs-on: ubuntu-latest
-        steps:
             - name: Update Cloudflare DNS
               run: |
                   curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
