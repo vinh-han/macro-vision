@@ -50,6 +50,27 @@ jobs:
             - name: Wait for instance
               run: aws ec2 wait instance-running --instance-ids $BUILDER_INSTANCE
 
+            - name: Wait for SSM to be ready
+              run: |
+                echo "Waiting for SSM registration..."
+            
+                for i in {1..30}; do
+                  FOUND=$(aws ssm describe-instance-information \
+                    --query "InstanceInformationList[?InstanceId=='$INSTANCE_ID'].InstanceId" \
+                    --output text)
+            
+                  if [ "$FOUND" = "$INSTANCE_ID" ]; then
+                    echo "SSM is ready!"
+                    exit 0
+                  fi
+            
+                  echo "Not ready yet... retrying"
+                  sleep 5
+                done
+            
+                echo "SSM did not become ready in time"
+                exit 1
+
             - name: build model_api image and push
               run: |
                   COMMAND_ID=$(aws ssm send-command \
@@ -74,26 +95,6 @@ jobs:
                   echo "Command ID: $COMMAND_ID"
                   echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
 
-            - name: Wait for SSM to be ready
-              run: |
-                echo "Waiting for SSM registration..."
-            
-                for i in {1..30}; do
-                  FOUND=$(aws ssm describe-instance-information \
-                    --query "InstanceInformationList[?InstanceId=='$INSTANCE_ID'].InstanceId" \
-                    --output text)
-            
-                  if [ "$FOUND" = "$INSTANCE_ID" ]; then
-                    echo "SSM is ready!"
-                    exit 0
-                  fi
-            
-                  echo "Not ready yet... retrying"
-                  sleep 5
-                done
-            
-                echo "SSM did not become ready in time"
-                exit 1
 
             - name: Wait for Builder
               run: |
