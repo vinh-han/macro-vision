@@ -24,7 +24,6 @@ jobs:
                 mkdir -p ~/.ssh
                 echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
                 chmod 600 ~/.ssh/id_ed25519
-                ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
             - name: Verify identity
               run: aws sts get-caller-identity
@@ -73,6 +72,7 @@ jobs:
 
             - name: Build model_api and push to docker
               run: |
+                ssh-keyscan -H $BUILDER_IP >> ~/.ssh/known_hosts
                 ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
                   echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin,
                   cd ~/macro-vision
@@ -85,6 +85,10 @@ jobs:
                   docker compose -f compose.prod.yaml up -d --build --remove-orphans
                   docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest
                 EOF
+
+            - name: Terminate Builder
+              if: always()
+              run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
 
             - name: Ensure main EC2 exists
               run: |
@@ -144,6 +148,7 @@ jobs:
 
             - name: Pull model and update main
               run: |
+                ssh-keyscan -H $MAIN_IP >> ~/.ssh/known_hosts
                 ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
                   echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin,
                   cd ~/macro-vision
