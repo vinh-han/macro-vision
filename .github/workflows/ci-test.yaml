@@ -16,7 +16,7 @@ jobs:
             - name: credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  role-to-assume: arn:aws:iam::381492288469:role/GithubActionsMacroVision
+                  role-to-assume: ${{secrets.IAM_ROLE_ARN}}
                   aws-region: ap-south-2
 
             - name: Verify identity
@@ -27,6 +27,7 @@ jobs:
                   INSTANCE_ID=$(aws ec2 run-instances \
                     --image-id ${{vars.PROJECT_ARM_AMI}} \
                     --instance-type ${{vars.BUILDER_INSTANCE_TYPE}} \
+                    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-builder}]' \
                     --block-device-mappings '[
                       {
                         "DeviceName": "/dev/xvda",
@@ -47,15 +48,103 @@ jobs:
             - name: Wait for instance
               run: aws ec2 wait instance-running --instance-ids $BUILDER_INSTANCE
 
+            - name: build model_api image and push
+              run: |
+                  COMMAND_ID=$(aws ssm send-command \
+                    --instance-ids $INSTANCE_ID \
+                    --document-name "AWS-RunShellScript" \
+                    --parameters 'commands=[ \
+                      "docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}",
+                      "cd macro-vision",
+                      "git fetch ; git checkout ci-test",
+                      "git pull",
+                      "cd model",
+                      "docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest .",
+                      "docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest",
+                    ]' \
+                    --query 'Command.CommandId' \
+                    --output text)
+
+                  echo "Command ID: $COMMAND_ID"
+
+            - name: Terminate Builder
+              if: always()
+              run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
+
+            - name: Ensure main EC2 exists
+              run: |
+                  INSTANCE_ID=$(aws ec2 describe-instances \
+                    --filters "Name=tag:Name,Values=vision-final" \
+                              "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+                    --query 'Reservations[0].Instances[0].InstanceId' \
+                    --output text)
+
+                  if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
+                    echo "No instance found, creating..."
+
+                    INSTANCE_ID=$(aws ec2 run-instances \
+                      --image-id ${{vars.PROJECT_ARM_AMI}} \
+                      --instance-type ${{vars.MAIN_INSTANCE_TYPE}} \
+                      --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-final}]' \
+                      --block-device-mappings '[
+                        {
+                          "DeviceName": "/dev/xvda",
+                          "Ebs": {
+                            "VolumeSize": 40,
+                            "VolumeType": "gp3",
+                            "Iops": 3000,
+                            "Throughput": 125,
+                            "DeleteOnTermination": false
+                          }
+                        }
+                      ]' \
+                      --query 'Instances[0].InstanceId' \
+                      --output text)
+
+                    echo "Created instance: $INSTANCE_ID"
+                  else
+                    echo "Found existing instance: $INSTANCE_ID"
+                  fi
+
+                  echo "MAIN_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
+
+            - name: pull model_api and update
+              run: |
+                  COMMAND_ID=$(aws ssm send-command \
+                    --instance-ids $INSTANCE_ID \
+                    --document-name "AWS-RunShellScript" \
+                    --parameters 'commands=[ \
+                      "docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}",
+                      "cd macro-vision",
+                      "git fetch ; git checkout ci-test",
+                      "git pull",
+                      "docker compose -f compose.prod.yaml down",
+                      "docker compose -f compose.prod.yaml up --build",
+                      "docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest",
+                    ]' \
+                    --query 'Command.CommandId' \
+                    --output text)
+
+                  echo "Command ID: $COMMAND_ID"
+
             - name: Get public IP
               run: |
                   IP=$(aws ec2 describe-instances \
-                    --instance-ids $BUILDER_INSTANCE \
+                    --instance-ids $MAIN_INSTANCE \
                     --query 'Reservations[0].Instances[0].PublicIpAddress' \
                     --output text)
 
                   echo "EC2 Public IP: $IP"
 
-            - name: Terminate EC2
-              if: always()
-              run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
+            - name: Update Cloudflare DNS
+              run: |
+                  curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
+                    -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+                    -H "Content-Type: application/json" \
+                    --data '{
+                      "type": "A",
+                      "name": "vision.endstranding.net",
+                      "content": "'"$IP"'",
+                      "ttl": 1,
+                      "proxied": true
+                    }'
