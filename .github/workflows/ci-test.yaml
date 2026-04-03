@@ -80,8 +80,7 @@ jobs:
                   git fetch
                   git checkout ci-test
                   git pull
-                  cd model
-                  docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest .
+                  docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest -f ./model/Dockerfile .
                   docker compose -f compose.prod.yaml up -d --build --remove-orphans
                   docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest
                 EOF
