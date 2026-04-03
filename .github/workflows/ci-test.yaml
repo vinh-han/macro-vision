@@ -1,13 +1,61 @@
 name: Test
 
 on:
-  push:
-    branches:
-      - ci-test
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    push:
+        branches:
+            - ci-test
+permissions:
+    id-token: write
+    contents: read
 
-    steps:
-      - name: test aws
-        run: aws --version
+jobs:
+    create-builder:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>
+                  aws-region: ap-south-2
+
+            - name: Verify identity
+              run: aws sts get-caller-identity
+
+            - name: Launch builder
+              run: |
+                  INSTANCE_ID=$(aws ec2 run-instances \
+                    --image-id ${{vars.PROJECT_ARM_AMI}} \
+                    --instance-type ${{vars.BUILDER_INSTANCE_TYPE}} \
+                    --block-device-mappings '[
+                      {
+                        "DeviceName": "/dev/xvda",
+                        "Ebs": {
+                          "VolumeSize": 40,
+                          "VolumeType": "gp3",
+                          "Iops": 3000,
+                          "Throughput": 125,
+                          "DeleteOnTermination": true
+                        }
+                      }
+                    ]' \
+                    --query 'Instances[0].InstanceId' \
+                    --output text)
+
+                  echo "BUILDER_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
+
+            - name: Wait for instance
+              run: aws ec2 wait instance-running --instance-ids $BUILDER_INSTANCE
+
+            - name: Get public IP
+              run: |
+                  IP=$(aws ec2 describe-instances \
+                    --instance-ids $BUILDER_INSTANCE \
+                    --query 'Reservations[0].Instances[0].PublicIpAddress' \
+                    --output text)
+
+                  echo "EC2 Public IP: $IP"
+
+            - name: Terminate EC2
+              if: always()
+              run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
