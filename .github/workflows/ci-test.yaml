@@ -16,7 +16,7 @@ jobs:
             - name: credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>
+                  role-to-assume: arn:aws:iam::381492288469:role/GithubActionsMacroVision
                   aws-region: ap-south-2
 
             - name: Verify identity
