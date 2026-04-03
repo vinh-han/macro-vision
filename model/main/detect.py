@@ -174,10 +174,16 @@ class Pipeline:
 
         num_classes = len(self.class_names)
 
-        self.logger.info(f'Loading Grounding DINO: {gd_model_id} ...')
-        self.gd_processor = GroundingDinoProcessor.from_pretrained(gd_model_id)
+
+        local_gd_path = Path(__file__).resolve().parent / 'assets' / 'grounding-dino-tiny'
+
+        gd_source = str(local_gd_path) if local_gd_path.exists() else gd_model_id
+
+        self.logger.info(f'Loading Grounding DINO: {gd_source} ...')
+        self.gd_processor = GroundingDinoProcessor.from_pretrained(gd_source)
+
         self.gd_model = GroundingDinoForObjectDetection.from_pretrained(
-            gd_model_id
+            gd_source
         ).to(self.device)
         self.gd_model.eval()
 

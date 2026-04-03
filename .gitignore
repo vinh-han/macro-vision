@@ -12,6 +12,7 @@ model/yolo/labeled_images
 model/yolo/ingredients/out
 grouper/sample
 grouper/out
+grounding-dino-tiny
 ingredients_dataset
 vis_out
 
