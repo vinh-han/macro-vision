@@ -76,7 +76,7 @@ jobs:
               run: |
                 while true; do
                   STATUS=$(aws ssm list-command-invocations \
-                    --command-id "$COMMAND_ID" \
+                    --command-id $COMMAND_ID \
                     --query "CommandInvocations[0].Status" \
                     --output text)
             
@@ -110,6 +110,7 @@ jobs:
                     INSTANCE_ID=$(aws ec2 run-instances \
                       --image-id ${{vars.PROJECT_ARM_AMI}} \
                       --instance-type ${{vars.MAIN_INSTANCE_TYPE}} \
+                      --security-group-ids sg-069ae7b2c7616ced2 \
                       --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-final}]' \
                       --block-device-mappings '[
                         {
@@ -155,12 +156,13 @@ jobs:
                     --output text)
 
                   echo "Command ID: $COMMAND_ID"
+                  echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
 
             - name: Wait for Main
               run: |
                 while true; do
                   STATUS=$(aws ssm list-command-invocations \
-                    --command-id "$COMMAND_ID" \
+                    --command-id $COMMAND_ID \
                     --query "CommandInvocations[0].Status" \
                     --output text)
             
