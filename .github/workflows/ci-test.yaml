@@ -44,7 +44,7 @@ jobs:
                           "VolumeSize": 40,
                           "VolumeType": "gp3",
                           "Iops": 3000,
-                          "Throughput": 1000,
+                          "Throughput": 750,
                           "DeleteOnTermination": true
                         }
                       }
