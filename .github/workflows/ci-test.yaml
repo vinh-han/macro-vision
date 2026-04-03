@@ -66,8 +66,10 @@ jobs:
 
                   echo "EC2 Public IP: $IP"
                   echo "BUILDER_IP=$IP" >> $GITHUB_ENV
-
       
+            - name: Wait 5s for ip to be up
+              run: sleep 5
+
             - name: Build model_api and push to docker
               run: |
                 ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
@@ -138,6 +140,9 @@ jobs:
 
                   echo "EC2 Public IP: $IP"
                   echo "MAIN_IP=$IP" >> $GITHUB_ENV
+
+            - name: Wait 5s for ip to be up
+              run: sleep 5
 
             - name: Pull model and update main
               run: |
