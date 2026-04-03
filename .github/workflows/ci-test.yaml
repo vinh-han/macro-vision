@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - ci-test
+
 permissions:
     id-token: write
     contents: read
@@ -11,29 +12,28 @@ permissions:
 jobs:
     build:
         runs-on: ubuntu-latest
-
         steps:
-            - name: credentials
+            - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  role-to-assume: ${{secrets.IAM_ROLE_ARN}}
+                  role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
                   aws-region: ap-south-2
-                  
+
             - name: Setup SSH
               run: |
-                mkdir -p ~/.ssh
-                echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
-                chmod 600 ~/.ssh/id_ed25519
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
 
-            - name: Verify identity
+            - name: Verify AWS identity
               run: aws sts get-caller-identity
 
-            - name: Launch builder
+            - name: Launch builder EC2
               run: |
                   INSTANCE_ID=$(aws ec2 run-instances \
-                    --image-id ${{vars.PROJECT_ARM_AMI}} \
+                    --image-id ${{ vars.PROJECT_ARM_AMI }} \
                     --key-name hyderabad \
-                    --instance-type ${{vars.BUILDER_INSTANCE_TYPE}} \
+                    --instance-type ${{ vars.BUILDER_INSTANCE_TYPE }} \
                     --security-group-ids sg-069ae7b2c7616ced2 \
                     --iam-instance-profile Name=ec2-ssm \
                     --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-builder}]' \
@@ -51,43 +51,46 @@ jobs:
                     ]' \
                     --query 'Instances[0].InstanceId' \
                     --output text)
-
                   echo "BUILDER_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
 
-            - name: Wait for instance
+            - name: Wait for builder to run
               run: aws ec2 wait instance-running --instance-ids $BUILDER_INSTANCE
 
-            - name: Get public IP
+            - name: Get builder public IP
               run: |
                   IP=$(aws ec2 describe-instances \
                     --instance-ids $BUILDER_INSTANCE \
                     --query 'Reservations[0].Instances[0].PublicIpAddress' \
                     --output text)
-
-                  echo "EC2 Public IP: $IP"
                   echo "BUILDER_IP=$IP" >> $GITHUB_ENV
-      
-            - name: Wait 8s for server to be up
-              run: sleep 8
+                  echo "Builder public IP: $IP"
 
-            - name: Build model_api and push to docker
+            - name: Wait for SSH on builder
               run: |
-                ssh-keyscan -H $BUILDER_IP >> ~/.ssh/known_hosts
-                ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
-                  docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
-                  cd ~/macro-vision
-                  git reset --hard
-                  git fetch
-                  git checkout ci-test
-                  git pull
-                  docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest -f ./model/Dockerfile .
-                  docker compose -f compose.prod.yaml up -d --build --remove-orphans
-                  docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest
-                EOF
+                  until ssh -o ConnectTimeout=5 -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP "echo ok" &>/dev/null; do
+                    echo "Waiting for builder SSH..."
+                    sleep 2
+                  done
 
-            - name: Terminate Builder
+            - name: Build model API & push Docker
+              run: |
+                  ssh-keyscan -H $BUILDER_IP >> ~/.ssh/known_hosts
+                  ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
+                    docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
+                    cd ~/macro-vision
+                    git reset --hard
+                    git fetch
+                    git checkout ci-test
+                    git pull
+                    docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest -f ./model/Dockerfile .
+                    docker compose -f compose.prod.yaml up -d --build --remove-orphans
+                    docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest
+                  EOF
+
+            - name: Terminate builder
               if: always()
-              run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
+              run: |
+                  aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE || echo "Failed to terminate builder, please check manually."
 
     run:
         needs: build
@@ -95,14 +98,14 @@ jobs:
         steps:
             - name: Setup SSH
               run: |
-                mkdir -p ~/.ssh
-                echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
-                chmod 600 ~/.ssh/id_ed25519
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
 
-            - name: credentials
+            - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  role-to-assume: ${{secrets.IAM_ROLE_ARN}}
+                  role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
                   aws-region: ap-south-2
 
             - name: Ensure main EC2 exists
@@ -113,9 +116,8 @@ jobs:
                     --query 'Reservations[0].Instances[0].InstanceId' \
                     --output text)
 
-                  if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
+                  if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
                     echo "No instance found, creating..."
-
                     INSTANCE_ID=$(aws ec2 run-instances \
                       --image-id ${{vars.PROJECT_ARM_AMI}} \
                       --key-name hyderabad \
@@ -137,7 +139,6 @@ jobs:
                       ]' \
                       --query 'Instances[0].InstanceId' \
                       --output text)
-
                     echo "Created instance: $INSTANCE_ID"
                   else
                     echo "Found existing instance: $INSTANCE_ID"
@@ -145,46 +146,57 @@ jobs:
 
                   echo "MAIN_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
 
-            - name: Wait for instance
+            - name: Wait for main instance
               run: aws ec2 wait instance-running --instance-ids $MAIN_INSTANCE
 
-            - name: Get public IP
+            - name: Get main EC2 public IP
               run: |
                   IP=$(aws ec2 describe-instances \
                     --instance-ids $MAIN_INSTANCE \
                     --query 'Reservations[0].Instances[0].PublicIpAddress' \
                     --output text)
-
-                  echo "EC2 Public IP: $IP"
                   echo "MAIN_IP=$IP" >> $GITHUB_ENV
+                  echo "Main public IP: $IP"
 
-            - name: Wait 8s for ip to be up
-              run: sleep 8
-
-            - name: Pull model and update main
+            - name: Wait for SSH on main
               run: |
-                ssh-keyscan -H $MAIN_IP >> ~/.ssh/known_hosts
-                ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$MAIN_IP << 'EOF'
-                  docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
-                  cd ~/macro-vision
-                  git reset --hard
-                  git fetch
-                  git checkout ci-test
-                  git pull
-                  docker compose -f compose.prod.yaml down
-                  docker compose -f compose.prod.yaml pull
-                  docker compose -f compose.prod.yaml up --build --remove-orphans -d
-                EOF
+                  until ssh -o ConnectTimeout=5 -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$MAIN_IP "echo ok" &>/dev/null; do
+                    echo "Waiting for main SSH..."
+                    sleep 2
+                  done
 
-            - name: Update Cloudflare DNS
+            - name: Pull model & update main
               run: |
-                  curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
-                    -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
-                    -H "Content-Type: application/json" \
-                    --data '{
-                      "type": "A",
-                      "name": "vision.endstranding.net",
-                      "content": "'"$MAIN_IP"'",
-                      "ttl": 1,
-                      "proxied": true
-                    }'
+                  ssh-keyscan -H $MAIN_IP >> ~/.ssh/known_hosts
+                  ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$MAIN_IP << 'EOF'
+                    docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
+                    cd ~/macro-vision
+                    git reset --hard
+                    git fetch
+                    git checkout ci-test
+                    git pull
+                    docker compose -f compose.prod.yaml down
+                    docker compose -f compose.prod.yaml pull
+                    docker compose -f compose.prod.yaml up --build --remove-orphans -d
+                  EOF
+
+            - name: Update Cloudflare DNS if IP changed
+              run: |
+                  CURRENT_IP=$(curl -s -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+                    "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
+                    | jq -r '.result.content')
+                  if [ "$CURRENT_IP" != "$MAIN_IP" ]; then
+                    echo "Updating Cloudflare DNS from $CURRENT_IP to $MAIN_IP"
+                    curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
+                      -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+                      -H "Content-Type: application/json" \
+                      --data '{
+                        "type": "A",
+                        "name": "vision.endstranding.net",
+                        "content": "'"$MAIN_IP"'",
+                        "ttl": 1,
+                        "proxied": true
+                      }'
+                  else
+                    echo "IP unchanged, skipping DNS update"
+                  fi
