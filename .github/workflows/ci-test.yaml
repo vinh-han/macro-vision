@@ -86,10 +86,6 @@ jobs:
                   docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest
                 EOF
 
-            - name: Terminate Builder
-              if: always()
-              run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
-
             - name: Ensure main EC2 exists
               run: |
                   INSTANCE_ID=$(aws ec2 describe-instances \
