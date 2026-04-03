@@ -70,7 +70,7 @@ jobs:
                     --output text)
 
                   echo "Command ID: $COMMAND_ID"
-                  echo $COMMAND_ID
+                  echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
 
             - name: Wait for Builder
               run: |
