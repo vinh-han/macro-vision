@@ -93,6 +93,12 @@ jobs:
         needs: build
         runs-on: ubuntu-latest
         steps:
+            - name: Setup SSH
+              run: |
+                mkdir -p ~/.ssh
+                echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+                chmod 600 ~/.ssh/id_ed25519
+
             - name: credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
