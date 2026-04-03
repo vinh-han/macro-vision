@@ -44,7 +44,7 @@ jobs:
                           "VolumeSize": 40,
                           "VolumeType": "gp3",
                           "Iops": 3000,
-                          "Throughput": 125,
+                          "Throughput": 1000,
                           "DeleteOnTermination": true
                         }
                       }
@@ -74,7 +74,7 @@ jobs:
               run: |
                 ssh-keyscan -H $BUILDER_IP >> ~/.ssh/known_hosts
                 ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
-                  echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin,
+                  docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
                   cd ~/macro-vision
                   git reset --hard
                   git fetch
@@ -149,7 +149,7 @@ jobs:
               run: |
                 ssh-keyscan -H $MAIN_IP >> ~/.ssh/known_hosts
                 ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
-                  echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin,
+                  docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
                   cd ~/macro-vision
                   git reset --hard
                   git fetch
