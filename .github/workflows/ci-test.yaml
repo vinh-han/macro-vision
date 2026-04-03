@@ -9,7 +9,7 @@ permissions:
     contents: read
 
 jobs:
-    create-builder:
+    build:
         runs-on: ubuntu-latest
 
         steps:
@@ -44,7 +44,7 @@ jobs:
                           "VolumeSize": 40,
                           "VolumeType": "gp3",
                           "Iops": 3000,
-                          "Throughput": 750,
+                          "Throughput": 375,
                           "DeleteOnTermination": true
                         }
                       }
@@ -67,8 +67,8 @@ jobs:
                   echo "EC2 Public IP: $IP"
                   echo "BUILDER_IP=$IP" >> $GITHUB_ENV
       
-            - name: Wait 5s for ip to be up
-              run: sleep 5
+            - name: Wait 8s for server to be up
+              run: sleep 8
 
             - name: Build model_api and push to docker
               run: |
@@ -89,6 +89,9 @@ jobs:
               if: always()
               run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
 
+    run:
+        runs-on: ubuntu-latest
+        steps:
             - name: Ensure main EC2 exists
               run: |
                   INSTANCE_ID=$(aws ec2 describe-instances \
@@ -142,8 +145,8 @@ jobs:
                   echo "EC2 Public IP: $IP"
                   echo "MAIN_IP=$IP" >> $GITHUB_ENV
 
-            - name: Wait 5s for ip to be up
-              run: sleep 5
+            - name: Wait 8s for ip to be up
+              run: sleep 8
 
             - name: Pull model and update main
               run: |
@@ -160,6 +163,9 @@ jobs:
                   docker compose -f compose.prod.yaml up --build --remove-orphans -d
                 EOF
 
+    ddns:
+        runs-on: ubuntu-latest
+        steps:
             - name: Update Cloudflare DNS
               run: |
                   curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
