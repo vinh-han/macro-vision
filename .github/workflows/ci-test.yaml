@@ -18,6 +18,13 @@ jobs:
               with:
                   role-to-assume: ${{secrets.IAM_ROLE_ARN}}
                   aws-region: ap-south-2
+                  
+            - name: Setup SSH
+              run: |
+                mkdir -p ~/.ssh
+                echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+                chmod 600 ~/.ssh/id_ed25519
+                ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
             - name: Verify identity
               run: aws sts get-caller-identity
@@ -50,71 +57,31 @@ jobs:
             - name: Wait for instance
               run: aws ec2 wait instance-running --instance-ids $BUILDER_INSTANCE
 
-            - name: Wait for SSM to be ready
+            - name: Get public IP
               run: |
-                echo "Waiting for SSM registration..."
-            
-                for i in {1..30}; do
-                  FOUND=$(aws ssm describe-instance-information \
-                    --query "InstanceInformationList[?InstanceId=='$INSTANCE_ID'].InstanceId" \
-                    --output text)
-            
-                  if [ "$FOUND" = "$INSTANCE_ID" ]; then
-                    echo "SSM is ready!"
-                    exit 0
-                  fi
-            
-                  echo "Not ready yet... retrying"
-                  sleep 5
-                done
-            
-                echo "SSM did not become ready in time"
-                exit 1
-
-            - name: build model_api image and push
-              run: |
-                  COMMAND_ID=$(aws ssm send-command \
-                    --instance-ids $INSTANCE_ID \
-                    --document-name "AWS-RunShellScript" \
-                    --parameters 'commands=[
-                      "set -e",
-
-                      "echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin",
-
-                      "cd macro-vision && \
-                       git fetch && \
-                       git checkout ci-test && \
-                       git pull && \
-                       cd model && \
-                       docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest . && \
-                       docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest"
-                    ]' \
-                    --query 'Command.CommandId' \
+                  IP=$(aws ec2 describe-instances \
+                    --instance-ids $BUILDER_INSTANCE \
+                    --query 'Reservations[0].Instances[0].PublicIpAddress' \
                     --output text)
 
-                  echo "Command ID: $COMMAND_ID"
-                  echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
+                  echo "EC2 Public IP: $IP"
+                  echo "BUILDER_IP=$IP" >> $GITHUB_ENV
 
-
-            - name: Wait for Builder
+      
+            - name: Build model_api and push to docker
               run: |
-                  while true; do
-                    STATUS=$(aws ssm list-command-invocations \
-                      --command-id $COMMAND_ID \
-                      --query "CommandInvocations[0].Status" \
-                      --output text)
-
-                    echo "Status: $STATUS"
-
-                    if [ "$STATUS" = "Success" ]; then
-                      break
-                    elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
-                      echo "Command failed"
-                      exit 1
-                    fi
-
-                    sleep 3
-                  done
+                ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
+                  echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin,
+                  cd ~/macro-vision
+                  git reset --hard
+                  git fetch
+                  git checkout ci-test
+                  git pull
+                  cd model
+                  docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest .
+                  docker compose -f compose.prod.yaml up -d --build --remove-orphans
+                  docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest
+                EOF
 
             - name: Terminate Builder
               if: always()
@@ -159,49 +126,8 @@ jobs:
 
                   echo "MAIN_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
 
-            - name: pull model_api and update
-              run: |
-                  COMMAND_ID=$(aws ssm send-command \
-                    --instance-ids $INSTANCE_ID \
-                    --document-name "AWS-RunShellScript" \
-                    --parameters 'commands=[
-                      "set -e",
-
-                      "echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin",
-
-                      "cd macro-vision && \
-                       git fetch && \
-                       git checkout ci-test && \
-                       git pull && \
-                       docker compose -f compose.prod.yaml down && \
-                       docker compose -f compose.prod.yaml pull && \
-                       docker compose -f compose.prod.yaml up -d"
-                    ]' \
-                    --query 'Command.CommandId' \
-                    --output text)
-
-                  echo "Command ID: $COMMAND_ID"
-                  echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
-
-            - name: Wait for Main
-              run: |
-                  while true; do
-                    STATUS=$(aws ssm list-command-invocations \
-                      --command-id $COMMAND_ID \
-                      --query "CommandInvocations[0].Status" \
-                      --output text)
-
-                    echo "Status: $STATUS"
-
-                    if [ "$STATUS" = "Success" ]; then
-                      break
-                    elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
-                      echo "Command failed"
-                      exit 1
-                    fi
-
-                    sleep 3
-                  done
+            - name: Wait for instance
+              run: aws ec2 wait instance-running --instance-ids $MAIN_INSTANCE
 
             - name: Get public IP
               run: |
@@ -211,6 +137,21 @@ jobs:
                     --output text)
 
                   echo "EC2 Public IP: $IP"
+                  echo "MAIN_IP=$IP" >> $GITHUB_ENV
+
+            - name: Pull model and update main
+              run: |
+                ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP << 'EOF'
+                  echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin,
+                  cd ~/macro-vision
+                  git reset --hard
+                  git fetch
+                  git checkout ci-test
+                  git pull
+                  docker compose -f compose.prod.yaml down
+                  docker compose -f compose.prod.yaml pull
+                  docker compose -f compose.prod.yaml up --build --remove-orphans -d
+                EOF
 
             - name: Update Cloudflare DNS
               run: |
@@ -220,7 +161,7 @@ jobs:
                     --data '{
                       "type": "A",
                       "name": "vision.endstranding.net",
-                      "content": "'"$IP"'",
+                      "content": "'"$MAIN_IP"'",
                       "ttl": 1,
                       "proxied": true
                     }'
