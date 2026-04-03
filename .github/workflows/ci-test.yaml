@@ -27,6 +27,7 @@ jobs:
                   INSTANCE_ID=$(aws ec2 run-instances \
                     --image-id ${{vars.PROJECT_ARM_AMI}} \
                     --instance-type ${{vars.BUILDER_INSTANCE_TYPE}} \
+                    --security-group-ids sg-069ae7b2c7616ced2 \
                     --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-builder}]' \
                     --block-device-mappings '[
                       {
