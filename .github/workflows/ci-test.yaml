@@ -33,7 +33,7 @@ jobs:
               run: |
                   INSTANCE_ID=$(aws ec2 run-instances \
                     --image-id ${{vars.PROJECT_ARM_AMI}} \
-                    --key-name hyderabad
+                    --key-name hyderabad \
                     --instance-type ${{vars.BUILDER_INSTANCE_TYPE}} \
                     --security-group-ids sg-069ae7b2c7616ced2 \
                     --iam-instance-profile Name=ec2-ssm \
@@ -103,7 +103,7 @@ jobs:
 
                     INSTANCE_ID=$(aws ec2 run-instances \
                       --image-id ${{vars.PROJECT_ARM_AMI}} \
-                      --key-name hyderabad
+                      --key-name hyderabad \
                       --instance-type ${{vars.MAIN_INSTANCE_TYPE}} \
                       --security-group-ids sg-069ae7b2c7616ced2 \
                       --iam-instance-profile Name=ec2-ssm \
