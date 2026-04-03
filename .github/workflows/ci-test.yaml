@@ -53,14 +53,18 @@ jobs:
                   COMMAND_ID=$(aws ssm send-command \
                     --instance-ids $INSTANCE_ID \
                     --document-name "AWS-RunShellScript" \
-                    --parameters 'commands=[ \
-                      "docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}",
-                      "cd macro-vision",
-                      "git fetch ; git checkout ci-test",
-                      "git pull",
-                      "cd model",
-                      "docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest .",
-                      "docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest",
+                    --parameters 'commands=[
+                      "set -e",
+
+                      "echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin",
+
+                      "cd macro-vision && \
+                       git fetch && \
+                       git checkout ci-test && \
+                       git pull && \
+                       cd model && \
+                       docker build -t ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest . && \
+                       docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest"
                     ]' \
                     --query 'Command.CommandId' \
                     --output text)
@@ -113,14 +117,18 @@ jobs:
                   COMMAND_ID=$(aws ssm send-command \
                     --instance-ids $INSTANCE_ID \
                     --document-name "AWS-RunShellScript" \
-                    --parameters 'commands=[ \
-                      "docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}",
-                      "cd macro-vision",
-                      "git fetch ; git checkout ci-test",
-                      "git pull",
-                      "docker compose -f compose.prod.yaml down",
-                      "docker compose -f compose.prod.yaml up --build",
-                      "docker push ${{secrets.DOCKERHUB_USERNAME}}/macro-vision-model-api:arm64-latest",
+                    --parameters 'commands=[
+                      "set -e",
+
+                      "echo \"${{ secrets.DOCKERHUB_TOKEN }}\" | docker login -u \"${{ secrets.DOCKERHUB_USERNAME }}\" --password-stdin",
+
+                      "cd macro-vision && \
+                       git fetch && \
+                       git checkout ci-test && \
+                       git pull && \
+                       docker compose -f compose.prod.yaml down && \
+                       docker compose -f compose.prod.yaml pull && \
+                       docker compose -f compose.prod.yaml up -d"
                     ]' \
                     --query 'Command.CommandId' \
                     --output text)
