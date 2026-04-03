@@ -28,6 +28,7 @@ jobs:
                     --image-id ${{vars.PROJECT_ARM_AMI}} \
                     --instance-type ${{vars.BUILDER_INSTANCE_TYPE}} \
                     --security-group-ids sg-069ae7b2c7616ced2 \
+                    --iam-instance-profile Name=ec2-ssm \
                     --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-builder}]' \
                     --block-device-mappings '[
                       {
@@ -75,23 +76,23 @@ jobs:
 
             - name: Wait for Builder
               run: |
-                while true; do
-                  STATUS=$(aws ssm list-command-invocations \
-                    --command-id $COMMAND_ID \
-                    --query "CommandInvocations[0].Status" \
-                    --output text)
-            
-                  echo "Status: $STATUS"
-            
-                  if [ "$STATUS" = "Success" ]; then
-                    break
-                  elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
-                    echo "Command failed"
-                    exit 1
-                  fi
-            
-                  sleep 3
-                done
+                  while true; do
+                    STATUS=$(aws ssm list-command-invocations \
+                      --command-id $COMMAND_ID \
+                      --query "CommandInvocations[0].Status" \
+                      --output text)
+
+                    echo "Status: $STATUS"
+
+                    if [ "$STATUS" = "Success" ]; then
+                      break
+                    elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+                      echo "Command failed"
+                      exit 1
+                    fi
+
+                    sleep 3
+                  done
 
             - name: Terminate Builder
               if: always()
@@ -112,6 +113,7 @@ jobs:
                       --image-id ${{vars.PROJECT_ARM_AMI}} \
                       --instance-type ${{vars.MAIN_INSTANCE_TYPE}} \
                       --security-group-ids sg-069ae7b2c7616ced2 \
+                      --iam-instance-profile Name=ec2-ssm \
                       --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-final}]' \
                       --block-device-mappings '[
                         {
@@ -161,23 +163,23 @@ jobs:
 
             - name: Wait for Main
               run: |
-                while true; do
-                  STATUS=$(aws ssm list-command-invocations \
-                    --command-id $COMMAND_ID \
-                    --query "CommandInvocations[0].Status" \
-                    --output text)
-            
-                  echo "Status: $STATUS"
-            
-                  if [ "$STATUS" = "Success" ]; then
-                    break
-                  elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
-                    echo "Command failed"
-                    exit 1
-                  fi
-            
-                  sleep 3
-                done
+                  while true; do
+                    STATUS=$(aws ssm list-command-invocations \
+                      --command-id $COMMAND_ID \
+                      --query "CommandInvocations[0].Status" \
+                      --output text)
+
+                    echo "Status: $STATUS"
+
+                    if [ "$STATUS" = "Success" ]; then
+                      break
+                    elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+                      echo "Command failed"
+                      exit 1
+                    fi
+
+                    sleep 3
+                  done
 
             - name: Get public IP
               run: |
