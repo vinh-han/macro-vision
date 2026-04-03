@@ -71,6 +71,26 @@ jobs:
 
                   echo "Command ID: $COMMAND_ID"
 
+            - name: Wait for Builder
+              run: |
+                while true; do
+                  STATUS=$(aws ssm list-command-invocations \
+                    --command-id $COMMAND_ID \
+                    --query "CommandInvocations[0].Status" \
+                    --output text)
+            
+                  echo "Status: $STATUS"
+            
+                  if [ "$STATUS" = "Success" ]; then
+                    break
+                  elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+                    echo "Command failed"
+                    exit 1
+                  fi
+            
+                  sleep 3
+                done
+
             - name: Terminate Builder
               if: always()
               run: aws ec2 terminate-instances --instance-ids $BUILDER_INSTANCE
@@ -134,6 +154,26 @@ jobs:
                     --output text)
 
                   echo "Command ID: $COMMAND_ID"
+
+            - name: Wait for Main
+              run: |
+                while true; do
+                  STATUS=$(aws ssm list-command-invocations \
+                    --command-id $COMMAND_ID \
+                    --query "CommandInvocations[0].Status" \
+                    --output text)
+            
+                  echo "Status: $STATUS"
+            
+                  if [ "$STATUS" = "Success" ]; then
+                    break
+                  elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+                    echo "Command failed"
+                    exit 1
+                  fi
+            
+                  sleep 3
+                done
 
             - name: Get public IP
               run: |
