@@ -54,7 +54,7 @@ jobs:
                   echo "BUILDER_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
 
             - name: Wait for builder to run
-              run: aws ec2 wait instance-running --instance-ids $BUILDER_INSTANCE
+              run: aws ec2 wait instance-status-ok --instance-ids $BUILDER_INSTANCE
 
             - name: Get builder public IP
               run: |
@@ -64,13 +64,6 @@ jobs:
                     --output text)
                   echo "BUILDER_IP=$IP" >> $GITHUB_ENV
                   echo "Builder public IP: $IP"
-
-            - name: Wait for SSH on builder
-              run: |
-                  until ssh -o ConnectTimeout=5 StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$BUILDER_IP "echo ok" 2>/dev/null; do
-                    echo "Waiting for builder SSH..."
-                    sleep 2
-                  done
 
             - name: Build model API & push Docker
               run: |
@@ -147,7 +140,7 @@ jobs:
                   echo "MAIN_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
 
             - name: Wait for main instance
-              run: aws ec2 wait instance-running --instance-ids $MAIN_INSTANCE
+              run: aws ec2 wait instance-status-ok --instance-ids $MAIN_INSTANCE
 
             - name: Get main EC2 public IP
               run: |
@@ -157,13 +150,6 @@ jobs:
                     --output text)
                   echo "MAIN_IP=$IP" >> $GITHUB_ENV
                   echo "Main public IP: $IP"
-
-            - name: Wait for SSH on main
-              run: |
-                  until ssh -o ConnectTimeout=5 StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$MAIN_IP "echo ok" 2>/dev/null; do
-                    echo "Waiting for main SSH..."
-                    sleep 2
-                  done
 
             - name: Pull model & update main
               run: |
