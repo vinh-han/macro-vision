@@ -53,11 +53,11 @@ jobs:
                         {
                           "DeviceName": "/dev/xvda",
                           "Ebs": {
-                            "VolumeSize": 20,
+                            "VolumeSize": 30,
                             "VolumeType": "gp3",
                             "Iops": 3000,
                             "Throughput": 125,
-                            "DeleteOnTermination": false
+                            "DeleteOnTermination": true
                           }
                         }
                       ]' \
@@ -125,8 +125,8 @@ jobs:
                         "type": "A",
                         "name": "${{secrets.EC2_HOST}}",
                         "content": "'"$MAIN_IP"'",
-                        "ttl": 1,
-                        "proxied": true
+                        "ttl": 60,
+                        "proxied": false
                       }'
                   else
                     echo "IP unchanged, skipping DNS update"
