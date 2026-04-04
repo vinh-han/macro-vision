@@ -54,7 +54,7 @@ jobs:
                         {
                           "DeviceName": "/dev/xvda",
                           "Ebs": {
-                            "VolumeSize": 40,
+                            "VolumeSize": 20,
                             "VolumeType": "gp3",
                             "Iops": 3000,
                             "Throughput": 125,
@@ -101,6 +101,7 @@ jobs:
                   EOF
 
             - name: Update Cloudflare DNS if IP changed
+              if: always()
               run: |
                   CURRENT_IP=$(curl -s -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
                     "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
