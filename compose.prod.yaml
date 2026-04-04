@@ -11,13 +11,23 @@ services:
         - caddy_config:/config
     frontend:
         init: true
+        image: ${ECR_REPO}/macro-vision/frontend:latest
         build:
+          cache_from:
+            - ${ECR_REPO}/macro-vision/frontend:cache
+          cache_to:
+            - ${ECR_REPO}/macro-vision/frontend:cache
           context: ./
           dockerfile: ./frontend/Dockerfile.prod
         container_name: frontend
 
     backend:
+        image: ${ECR_REPO}/macro-vision/backend:latest
         build:
+          cache_from:
+            - ${ECR_REPO}/macro-vision/backend:cache
+          cache_to:
+            - ${ECR_REPO}/macro-vision/backend:cache
           context: .
           dockerfile: ./food_db/Dockerfile
         container_name: backend
@@ -36,24 +46,24 @@ services:
             interval: 30s
             timeout: 3s
             retries: 3
-            start_period: 0s
+            start_period: 5s
         volumes:
             - postgres_data:/var/lib/postgresql/data
 
     model_api:
-        profiles: [model]
+        image: ${ECR_REPO}/macro-vision/model_api:latest
         build:
-            context: ./
-            dockerfile: ./model/Dockerfile
+          cache_from:
+            - ${ECR_REPO}/macro-vision/model_api:cache
+          cache_to:
+            - ${ECR_REPO}/macro-vision/model_api:cache
+          context: .
+          dockerfile: ./model/Dockerfile
+        pull_policy: missing
         container_name: model_api
         ports:
             - ${MODEL_API_PORT:-8001}:8001
-        env_file: ./model/.env
         restart: unless-stopped
-        volumes:
-            - model_hf_cache:/root/.cache/huggingface
-            - model_torch_cache:/root/.cache/torch
-
 
 volumes:
     postgres_data:

@@ -7,9 +7,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+RUN pip install uv
 
 COPY model/requirements.txt ./model/requirements.txt
-RUN pip install --no-cache-dir -r model/requirements.txt
+
+RUN uv pip install --system --only-binary true --no-cache-dir -r model/requirements.txt ;\
+    rm -rf /root/.cache/uv
 
 COPY assets/ ./assets/
 COPY model/ ./model/

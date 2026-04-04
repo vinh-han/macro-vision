@@ -1,30 +1,129 @@
 name: Deploy to EC2
 
 on:
-  push:
-    branches:
-      - prod
+    push:
+        branches:
+            - prod
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v4
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+                  aws-region: ap-south-2
 
-      - name: Deploy to EC2
-        run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/macro-vision
-            git reset --hard
-            git pull
-            docker compose -f compose.prod.yaml up -d --build --remove-orphans
-          EOF
+            - name: Verify AWS identity
+              run: aws sts get-caller-identity
+
+            - name: Setup SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+                  ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+            - name: Ensure main EC2 exists
+              run: |
+                  INSTANCE_ID=$(aws ec2 describe-instances \
+                    --filters "Name=tag:Name,Values=vision-final" \
+                              "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+                    --query 'Reservations[0].Instances[0].InstanceId' \
+                    --output text)
+
+                  if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+                    echo "No instance found, creating..."
+                    INSTANCE_ID=$(aws ec2 run-instances \
+                      --image-id ${{vars.PROJECT_ARM_AMI}} \
+                      --key-name hyderabad \
+                      --instance-type ${{vars.MAIN_INSTANCE_TYPE}} \
+                      --security-group-ids sg-069ae7b2c7616ced2 \
+                      --iam-instance-profile Name=ec2-ssm \
+                      --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=vision-final}]' \
+                      --block-device-mappings '[
+                        {
+                          "DeviceName": "/dev/xvda",
+                          "Ebs": {
+                            "VolumeSize": 40,
+                            "VolumeType": "gp3",
+                            "Iops": 3000,
+                            "Throughput": 125,
+                            "DeleteOnTermination": false
+                          }
+                        }
+                      ]' \
+                      --query 'Instances[0].InstanceId' \
+                      --output text)
+                    echo "Created instance: $INSTANCE_ID"
+                  else
+                    echo "Found existing instance: $INSTANCE_ID"
+                  fi
+
+                  echo "MAIN_INSTANCE=$INSTANCE_ID" >> $GITHUB_ENV
+
+            - name: Wait for main instance
+              run: aws ec2 wait instance-status-ok --instance-ids $MAIN_INSTANCE
+
+            - name: Get main EC2 public IP
+              run: |
+                  IP=$(aws ec2 describe-instances \
+                    --instance-ids $MAIN_INSTANCE \
+                    --query 'Reservations[0].Instances[0].PublicIpAddress' \
+                    --output text)
+                  echo "MAIN_IP=$IP" >> $GITHUB_ENV
+                  echo "Main public IP: $IP"
+
+            - name: Build and update
+              run: |
+                  ssh-keyscan -H $MAIN_IP >> ~/.ssh/known_hosts
+                  ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@$MAIN_IP << 'EOF'
+                    aws ecr get-login-password --region ap-south-2 \
+                    | docker login --username AWS --password-stdin ${{secrets.ECR_HOST}}
+                    cd ~/macro-vision
+                    git reset --hard
+                    git fetch
+                    git checkout prod
+                    git pull
+                    docker compose -f compose.prod.yaml down
+                    docker compose -f compose.prod.yaml build
+                    docker compose -f compose.prod.yaml push
+                    docker compose -f compose.prod.yaml up --remove-orphans -d
+                  EOF
+
+            - name: Update Cloudflare DNS if IP changed
+              run: |
+                  CURRENT_IP=$(curl -s -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+                    "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
+                    | jq -r '.result.content')
+                  if [ "$CURRENT_IP" != "$MAIN_IP" ]; then
+                    echo "Updating Cloudflare DNS from $CURRENT_IP to $MAIN_IP"
+                    curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID }}" \
+                      -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+                      -H "Content-Type: application/json" \
+                      --data '{
+                        "type": "A",
+                        "name": "vision.endstranding.net",
+                        "content": "'"$MAIN_IP"'",
+                        "ttl": 1,
+                        "proxied": true
+                      }'
+
+                    curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/dns_records/${{ secrets.CF_RECORD_ID_2 }}" \
+                      -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+                      -H "Content-Type: application/json" \
+                      --data '{
+                        "type": "A",
+                        "name": "${{secrets.EC2_HOST}}",
+                        "content": "'"$MAIN_IP"'",
+                        "ttl": 1,
+                        "proxied": true
+                      }'
+                  else
+                    echo "IP unchanged, skipping DNS update"
+                  fi
