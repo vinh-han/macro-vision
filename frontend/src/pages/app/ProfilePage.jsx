@@ -1,7 +1,68 @@
-import { Box, Center, Text, Image, Button } from "@chakra-ui/react";
+import { Box, Center, Text, Image, Button} from "@chakra-ui/react";
+import { getCookie, sessionCleanup } from "../../components/Methods";
+import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import EditProfileModal from "../../components/EditProfileModal";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
 
 
 export default function ProfilePage() {
+    const baseUrl = import.meta.env.VITE_BASE_API_URL
+    const {isExpired, setIsExpired} = useSessionExpireContext();
+    const navigate = useNavigate()
+    const [user, setUser] = useState({
+        display_name: '000',
+        email: '000@gmail.com',
+        username: '000'
+    });
+
+    useEffect(() => {
+        if (isExpired) {
+            return 
+        }
+
+        fetch(`${baseUrl}users/information`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${getCookie('token')}`,
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            if (response.status == 200) {
+                return response.json()
+            }
+
+            return Promise.reject(response)
+        }).then((data) => {
+            setUser(data)
+        }).catch((response) => {
+            if (response.status == 500) {
+                setIsExpired(true)
+            } else {
+                response.json().then(data => console.log(data))
+            }
+        })
+    }, [])
+
+    function handleLogout() {
+        fetch(`${baseUrl}auth/logout`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${getCookie('token')}`,
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            if (!(response.status == 204)) {
+                return Promise.reject(response)
+            }
+        }).catch((response) => {
+            response.json().then(data => console.log(data))
+        })
+
+        sessionCleanup()
+        navigate("/")
+    }
+
     return (
         <Box
             width="100%"
@@ -16,7 +77,7 @@ export default function ProfilePage() {
                 zIndex="-1" />
             <Box width="100%" padding="2.2rem 1.5rem 1.5rem">
                <Center>
-                    <Text fontSize="3.3rem" fontWeight="bold" color="white">Anle</Text>
+                    <Text fontSize="3.3rem" fontWeight="bold" color="white">{user.display_name}</Text>
                </Center>
                <Box 
                     width="100%"
@@ -36,7 +97,8 @@ export default function ProfilePage() {
                         fontSize="1.2rem"
                         alignItems="center">
                         <Text>Account Information</Text>
-                        <i className="ri-edit-line" style={{fontSize: "1.4rem", lineHeight: 1}}></i>
+                        {/* <i className="ri-edit-line" style={{fontSize: "1.4rem", lineHeight: 1}}></i> */}
+                        <EditProfileModal currentProfile={user} setUser={setUser} />
                     </Box>
                     <Box 
                         display="flex"
@@ -51,9 +113,9 @@ export default function ProfilePage() {
                                 boxShadow="0rem 0rem 0.1rem #0000004d"
                                 display="flex"
                                 alignItems="center">
-                                <i className="ri-user-3-line" style={{fontSize: "1.4rem", lineHeight: 1}}></i>
+                                <i className="ri-user-3-line" style={{fontSize: "1.4rem", lineHeight: 1, cursor: "pointer"}}></i>
                             </Box>  
-                            <Text>anle404</Text>
+                            <Text>{user.username}</Text>
                         </Box>
                         <Box display="flex" gap="5" alignItems="center">
                             <Box 
@@ -65,7 +127,7 @@ export default function ProfilePage() {
                                 alignItems="center">
                                 <i className="ri-mail-line" style={{fontSize: "1.4rem", lineHeight: 1}}></i>
                             </Box>
-                            <Text>anle404@gmail.com</Text>
+                            <Text>{user.email}</Text>
                         </Box>
                     </Box>
                 </Box>
@@ -99,15 +161,14 @@ export default function ProfilePage() {
                         height="20rem">
                         <Box 
                             flex="1" 
-                            bg="red" 
                             rounded="10px" 
                             overflow="hidden"
                             boxShadow="0rem 0rem 0.3rem #00000076">
-                            <Image
-                                width="100%"
-                                height="100%" 
-                                src={`/assets/images/dishes/30-minute_pressure_cooker_vietnamese_chicken_noodle_soup_recipe.webp`}
-                                objectFit="cover" />
+                                <Image
+                                    width="100%"
+                                    height="100%" 
+                                    src={`/assets/images/dishes/30-minute_pressure_cooker_vietnamese_chicken_noodle_soup_recipe.webp`}
+                                    objectFit="cover" />
                         </Box>
                         <Box 
                             flex="1" 
@@ -116,40 +177,38 @@ export default function ProfilePage() {
                             gap="1.5">
                             <Box 
                                 flex="1" 
-                                bg="green" 
-                                rounded="10px"
+                                rounded="10px"  
                                 overflow="hidden"
                                 boxShadow="0rem 0rem 0.3rem #00000076">
-                                <Image
-                                width="100%"
-                                height="100%" 
-                                src={`/assets/images/dishes/air_fried_char_siu_chicken_wings.webp`}
-                                objectFit="cover" />
+                                    <Image
+                                    width="100%"
+                                    height="100%" 
+                                    src={`/assets/images/dishes/air_fried_char_siu_chicken_wings.webp`}
+                                    objectFit="cover" />
                             </Box>
                             <Box 
+                                height="50%"
                                 flex="1" 
                                 display="flex" 
                                 gap="1.5">
                                 <Box 
-                                    flex="1" 
-                                    bg="blue" 
+                                    flex="1"
                                     rounded="10px"
                                     overflow="hidden"
                                     boxShadow="0rem 0rem 0.3rem #00000076">
                                         <Image
                                             width="100%"
-                                            height="100%" 
+                                            height="100%"
                                             src={`/assets/images/dishes/air_fried_quails_with_five_spice_&_butter.webp`}
                                             objectFit="cover" />
                                 </Box>
                                 <Box 
-                                    flex="1" 
+                                    flex="1"
                                     display="flex" 
                                     flexDirection="column" 
                                     gap="1.5">
                                     <Box 
                                         flex="1" 
-                                        bg="yellow" 
                                         rounded="10px"
                                         overflow="hidden"
                                         boxShadow="0rem 0rem 0.3rem #00000076">
@@ -161,7 +220,6 @@ export default function ProfilePage() {
                                     </Box>
                                     <Box 
                                         flex="1" 
-                                        bg="yellow" 
                                         rounded="10px"
                                         overflow="hidden"
                                         boxShadow="0rem 0rem 0.3rem #00000076">
@@ -177,8 +235,16 @@ export default function ProfilePage() {
                         </Box>
                     </Box>
                 </Box>
-                <Button width="100%" paddingY="1.4rem" marginTop="2.5rem" fontSize="1.4rem" fontWeight="bold" rounded="16px" bg="crimsonred.500">
-                    Logout
+                <Button 
+                    width="100%" 
+                    paddingY="1.4rem" 
+                    marginTop="2.5rem" 
+                    fontSize="1.4rem" 
+                    fontWeight="bold" 
+                    rounded="16px" 
+                    bg="crimsonred.500"
+                    onClick={() => handleLogout()}>
+                        Logout
                 </Button>
             </Box>
         </Box>

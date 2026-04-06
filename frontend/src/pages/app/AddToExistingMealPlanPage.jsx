@@ -5,12 +5,13 @@ import { getCookie } from "../../components/Methods";
 import RecipeCardSmall from "../../components/RecipeCardSmall";
 import MealCardHorizontal from "../../components/MealCardHorizontal";
 import SessionExpireMsg from "../../components/SessionExpireMsg";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
 
 export default function AddToExistingMealPlanPage() {
     const baseUrl = import.meta.env.VITE_BASE_API_URL;
+    const {setIsExpired} = useSessionExpireContext();
     const selectedRecipe = useOutletContext();
     const [mealList, setMealList] = useState([]);
-    const [isExpired, setIsExpired] = useState(false);
 
     const currentDate = new Date();
     const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
@@ -41,7 +42,7 @@ export default function AddToExistingMealPlanPage() {
             if (response.status == 500) {
                 setIsExpired(true)
             } else {
-                console.log(response)
+                response.json().then(data => console.log(data))
             }
         })
     }, [selectedDate])
@@ -57,6 +58,7 @@ export default function AddToExistingMealPlanPage() {
         nextDate.setFullYear(newDateVal.year)
         nextDate.setDate(newDateVal.day)
         nextDate.setMonth(newDateVal.month - 1)
+        nextDate.setDate(newDateVal.day)
 
         setSelectedDate(nextDate);
         setMealList([]);
@@ -113,12 +115,8 @@ export default function AddToExistingMealPlanPage() {
                 overflowY="scroll">
                 {mealList.map((meal, index) => (
                     <MealCardHorizontal key={index} setIsExpired={setIsExpired} dish_id={selectedRecipe.dish_id} card_id={meal.card_id} />
-                ))}
-
-                
+                ))}  
             </Box>
-            
-            <SessionExpireMsg isExpired={isExpired} setIsExpired={setIsExpired} />
         </Box>
     )
 }

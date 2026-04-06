@@ -1,10 +1,12 @@
 import { Box, Text, Card, Button } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { getCookie } from "./Methods";
+import { useSessionExpireContext } from "../context/SessionExpireContext";
 
 
-export default function MealCardHorizontal({dish_id, card_id, setIsExpired}) {
+export default function MealCardHorizontal({dish_id, card_id}) {
     const baseUrl = import.meta.env.VITE_BASE_API_URL
+    const {setIsExpired} = useSessionExpireContext()
     const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const [fetchMealCard, setFetchMealCard] = useState(true)
     const [mealCard, setMealCard] = useState(null);
@@ -33,7 +35,7 @@ export default function MealCardHorizontal({dish_id, card_id, setIsExpired}) {
                 if (response.status == 500) {
                     setIsExpired(true)
                 } else {
-                    console.log(response)
+                    response.json().then(data => console.log(data))
                 }
             })
 
@@ -69,7 +71,7 @@ export default function MealCardHorizontal({dish_id, card_id, setIsExpired}) {
                 if (response.status == 500) {
                     setIsExpired(true)
                 } else {
-                    console.log(response)
+                    response.json().then(data => console.log(data))
                 }
             })
         }
