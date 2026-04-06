@@ -93,7 +93,6 @@ jobs:
                     git fetch
                     git checkout prod
                     git pull
-                    docker compose -f compose.prod.yaml down
                     docker compose -f compose.prod.yaml build
                     docker compose -f compose.prod.yaml up --remove-orphans -d
                   EOF
