@@ -46,6 +46,7 @@ func corsConfig() middleware.CORSConfig {
 			http.MethodPut,
 			http.MethodDelete,
 			http.MethodOptions,
+			http.MethodPatch,
 		},
 		AllowCredentials: true,
 	}
