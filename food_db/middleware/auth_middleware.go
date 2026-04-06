@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"database/sql"
+	"errors"
+	"macro_vision/custom_errors"
 	"macro_vision/database"
 	"net/http"
 
@@ -14,9 +15,8 @@ func session_validator(token string, c echo.Context) (bool, error) {
 	user, err := database.GetUser(c.Request().Context(), token)
 
 	switch {
-	case err == sql.ErrNoRows:
-		// Invalid token.
-		return false, echo.NewHTTPError(http.StatusUnauthorized)
+    case errors.Is(err, custom_errors.SessionNotFound):
+		return false, echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
 
 	case err != nil:
 		return false, echo.NewHTTPError(http.StatusInternalServerError, err)
