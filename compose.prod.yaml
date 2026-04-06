@@ -13,8 +13,6 @@ services:
         init: true
         image: ${ECR_REPO}/macro-vision/frontend:latest
         build:
-          sbom: false
-          provenance: false
           cache_from:
             - ${ECR_REPO}/macro-vision/frontend:cache
           cache_to:
@@ -26,8 +24,6 @@ services:
     backend:
         image: ${ECR_REPO}/macro-vision/backend:latest
         build:
-          sbom: false
-          provenance: false
           cache_from:
             - ${ECR_REPO}/macro-vision/backend:cache
           cache_to:
@@ -57,8 +53,6 @@ services:
     model_api:
         image: ${ECR_REPO}/macro-vision/model_api:latest
         build:
-          sbom: false
-          provenance: false
           cache_from:
             - ${ECR_REPO}/macro-vision/model_api:cache
           cache_to:
