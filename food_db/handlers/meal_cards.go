@@ -169,7 +169,7 @@ func create_meal_card(c echo.Context) (err error) {
 //	@Summary		Update meal card
 //	@Description	Update meal card information belonging to the authenticated user.
 //	@Tags			meal-cards
-//	@Router			/meal-cards [put]
+//	@Router			/meal-cards/{card_id} [put]
 //	@Accept			json
 //	@Produce		json
 //	@Param			request			body		mealcard_service.UpdateMealCardParam	true	"Updated meal card payload"

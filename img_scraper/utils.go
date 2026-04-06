@@ -33,4 +33,3 @@ func toSnakeName(s string) string {
 	fields := strings.Fields(s) // splits on any whitespace
 	return strings.ToLower(strings.Join(fields, "_"))
 }
-

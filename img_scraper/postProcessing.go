@@ -139,13 +139,13 @@ func convertToWebp(inPath string, outPath string, newName string, isDish bool) e
 	}
 	newPath := filepath.Join(filepath.Dir(outPath), newName) + ".webp"
 
-    var size int
-    if isDish{
-        size = dishSize
-    } else {
-        size = ingredientSize
-    }
-    resized := imaging.Resize(image, size, 0, imaging.Lanczos)
+	var size int
+	if isDish {
+		size = dishSize
+	} else {
+		size = ingredientSize
+	}
+	resized := imaging.Resize(image, size, 0, imaging.Lanczos)
 	out, err := os.OpenFile(
 		newPath,
 		os.O_CREATE|os.O_WRONLY,
