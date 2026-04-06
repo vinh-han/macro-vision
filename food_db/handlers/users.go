@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"macro_vision/custom_errors"
 	"macro_vision/database"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4/middleware"
 
 	custom_middleware "macro_vision/middleware"
@@ -30,6 +32,7 @@ func UsersRouter(e *echo.Group) error {
 	group.PATCH(UserInfoPath, edit_user)
 	group.GET(UserFavoritePath, get_favorites)
 	group.PATCH(UserFavoritePath+"/:dish_id", add_favorites)
+	group.GET(UserFavoritePath+"/:dish_id", check_favorites)
 	group.DELETE(UserFavoritePath+"/:dish_id", remove_favorite)
 	group.PATCH(UserPasswordPath, change_password)
 	return nil
@@ -113,8 +116,9 @@ func edit_user(c echo.Context) (err error) {
 }
 
 type Favorites struct {
-	DishId   string `json:"dish_id"`
-	DishName string `json:"dish_name"`
+	DishId          string `json:"dish_id"`
+	DishName        string `json:"dish_name"`
+	DishDescription string `json:"description"`
 }
 
 // Returns a list of user-favorited dishes
@@ -173,11 +177,61 @@ func add_favorites(c echo.Context) (err error) {
 	if errors.Is(err, custom_errors.UuidParseFailed) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
 	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return echo.NewHTTPError(http.StatusConflict, "already favorited")
+	}
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, map[string]string{
-		"dish_id": updated_id,
+		"dish_id": updated_id.String(),
+	})
+}
+
+type CheckFavoritedDishResponse struct {
+	Favorited string `json:"favorited"`
+}
+
+// Check if a dish is favorited
+//
+//	@Summary		check_fav
+//	@Description	Extract the user session from the provided token, validate the dish ID (UUIDv4),
+//	@Description	then check if dish is alr fav'd by the user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header	string	true	"256bit random token"
+//	@Param			dish_id			path	string	true	"UUIDv4 dish identifier"
+//	@Router			/users/favorites/{dish_id} [get]
+//	@Success		200	{object}	CheckFavoritedDishResponse	"favorite status"
+//	@Failure		400	{string}	string						"Invalid id"
+//	@Failure		401	{string}	string						"no auth token found"
+//	@Failure		403	{string}	string						"Invalid token"
+//	@Failure		500	{string}	string						"Server Error"
+//	@Security		BasicAuth
+func check_favorites(c echo.Context) (err error) {
+	var favorited string
+	user, ok := c.Get("user").(database.User)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
+	}
+	dish_id := c.Param("dish_id")
+	updated_id, err := user_service.AddFavorites(c.Request().Context(), dish_id, user)
+	if errors.Is(err, custom_errors.UuidParseFailed) {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+		favorited = "false"
+	}
+	if err != nil {
+		return err
+	}
+	if updated_id != uuid.Nil {
+		favorited = "true"
+	}
+	return c.JSON(http.StatusCreated, CheckFavoritedDishResponse{
+		Favorited: favorited,
 	})
 }
 

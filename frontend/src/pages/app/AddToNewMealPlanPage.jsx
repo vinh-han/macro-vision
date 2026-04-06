@@ -4,6 +4,7 @@ import RecipeCard from "../../components/RecipeCard";
 import { useRef, useState } from "react";
 import { getCookie } from "../../components/Methods";
 import SessionExpireMsg from "../../components/SessionExpireMsg";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -15,10 +16,10 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 
 export default function AddToNewMealPlanPage() {
     const baseUrl = import.meta.env.VITE_BASE_API_URL;
+    const {setIsExpired} = useSessionExpireContext()
     const selectedRecipe = useOutletContext();
     const navigate = useNavigate();
     const mealName = useRef();
-    const [isExpired, setIsExpired] = useState(false);
     
     const currentDate = new Date();
     const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
@@ -46,6 +47,7 @@ export default function AddToNewMealPlanPage() {
         nextDate.setFullYear(newDateVal.year)
         nextDate.setDate(newDateVal.day)
         nextDate.setMonth(newDateVal.month - 1)
+        nextDate.setDate(newDateVal.day)
         
 
         setSelectedDate(nextDate)
@@ -79,7 +81,7 @@ export default function AddToNewMealPlanPage() {
             if (response.status == 500) {
                 setIsExpired(true)
             } else {
-                console.log(response)
+                response.json().then(data => console.log(data))
             }
         })
     }
@@ -183,8 +185,6 @@ export default function AddToNewMealPlanPage() {
                     </Button>
                 </Box>
             </form>
-
-            <SessionExpireMsg isExpired={isExpired} setIsExpired={setIsExpired} />
         </Box>
     )
 }

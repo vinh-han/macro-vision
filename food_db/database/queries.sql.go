@@ -58,6 +58,7 @@ insert into favorites(
     date_created
 )
 values($1,$2,$3)
+on conflict (user_id, dish_id) do nothing
 returning dish_id
 `
 
@@ -88,6 +89,23 @@ type Change_passwordParams struct {
 func (q *Queries) Change_password(ctx context.Context, arg Change_passwordParams) error {
 	_, err := q.db.ExecContext(ctx, change_password, arg.UserID, arg.PasswordHash)
 	return err
+}
+
+const check_favorited = `-- name: Check_favorited :one
+select dish_id from favorites
+where user_id = $1 and dish_id = $2
+`
+
+type Check_favoritedParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	DishID uuid.UUID `json:"dish_id"`
+}
+
+func (q *Queries) Check_favorited(ctx context.Context, arg Check_favoritedParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, check_favorited, arg.UserID, arg.DishID)
+	var dish_id uuid.UUID
+	err := row.Scan(&dish_id)
+	return dish_id, err
 }
 
 const count_session = `-- name: Count_session :one
@@ -349,15 +367,16 @@ func (q *Queries) Get_dishes_in_meal_card(ctx context.Context, cardID uuid.UUID)
 }
 
 const get_favorites = `-- name: Get_favorites :many
-select dishes.dish_id, dishes.dish_name
+select dishes.dish_id, dishes.dish_name, dishes.description
 from dishes
 inner join favorites on favorites.dish_id = dishes.dish_id
 where favorites.user_id = $1
 `
 
 type Get_favoritesRow struct {
-	DishID   uuid.UUID `json:"dish_id"`
-	DishName string    `json:"dish_name"`
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Description string    `json:"description"`
 }
 
 func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_favoritesRow, error) {
@@ -369,7 +388,7 @@ func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_fa
 	var items []Get_favoritesRow
 	for rows.Next() {
 		var i Get_favoritesRow
-		if err := rows.Scan(&i.DishID, &i.DishName); err != nil {
+		if err := rows.Scan(&i.DishID, &i.DishName, &i.Description); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

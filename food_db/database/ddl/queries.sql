@@ -177,7 +177,7 @@ set password_hash=$2
 where user_id=$1;
 
 -- name: Get_favorites :many
-select dishes.dish_id, dishes.dish_name
+select dishes.dish_id, dishes.dish_name, dishes.description
 from dishes
 inner join favorites on favorites.dish_id = dishes.dish_id
 where favorites.user_id = $1
@@ -190,7 +190,14 @@ insert into favorites(
     date_created
 )
 values($1,$2,$3)
+on conflict (user_id, dish_id) do nothing
 returning dish_id;
+
+-- name: Check_favorited :one
+select dish_id from favorites
+where user_id = $1 and dish_id = $2
+;
+
 
 -- name: Remove_favorite :one
 delete from favorites

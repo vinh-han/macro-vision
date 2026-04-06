@@ -1,10 +1,12 @@
 import { Dialog, Portal } from "@chakra-ui/react"
 import { sessionCleanup } from "./Methods"
 import { useNavigate } from "react-router"
+import { useSessionExpireContext } from "../context/SessionExpireContext";
 
 
-export default function SessionExpireMsg({isExpired, setIsExpired}) {
+export default function SessionExpireMsg() {
     const navigate = useNavigate();
+    const {isExpired, setIsExpired} = useSessionExpireContext();
     
     return (
         <Dialog.Root 
