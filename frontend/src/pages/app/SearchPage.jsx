@@ -80,9 +80,6 @@ export default function SearchPage() {
                 setError(null); 
                 const res = await fetch(`${apiUrl}dishes/search?${params.toString()}`, {signal: controller.signal}); 
 
-                // TESTING (DELETE LATER): 
-                console.log(`${apiUrl}dishes/search?${params.toString()}`);
-
                 // Error handle: 
                 if (!res.ok) {
                     if (res.status >= 400 && res.status < 500) {

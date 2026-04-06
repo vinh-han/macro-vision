@@ -9,7 +9,8 @@ import {
 import { useNavigate, useParams } from "react-router"
 import { useState, useEffect } from "react";
 import { assetNameProcess } from "../../components/Methods";
-
+import { getCookie } from "../../components/Methods";
+const NO_IMAGE_PLACEHOLDER_URL ="../../../public/assets/images/No-Image-Placeholder.jpg"; 
 
 export default function DishInfoPage() {
     const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function DishInfoPage() {
     const [error, setError] = useState(null); 
 
     const [dishName, setDishName] = useState('');
+    const [isFavorited, setIsFavorited] = useState(false);
 
     const handleShare = async () => {
     if (navigator.share) {
@@ -35,6 +37,22 @@ export default function DishInfoPage() {
     }
     };
 
+    const handleFavorite = async () => {
+
+        try {
+            const response = await fetch(`${apiUrl}users/favorites/${dishID}`, {
+                method: isFavorited ? 'DELETE' : 'PATCH',
+                headers: { 'Authorization': `Bearer ${getCookie('token')}` },
+            });
+
+            if (!response.ok) throw new Error('Failed to update favorite');
+            
+            setIsFavorited(prev => !prev);  // toggle the state
+        } catch (err) {
+            console.error(err.message);
+        }
+    };
+
     useEffect(() => {
         const controller = new AbortController(); 
         setLoading(true); 
@@ -44,15 +62,19 @@ export default function DishInfoPage() {
             try {
                 const response = await fetch(`${apiUrl}dishes/${dishID}`, { signal: controller.signal })
 
-                // TESTING (DELETE LATER): 
-                console.log(`${apiUrl}dishes/${dishID}`);
-
                 if(!response.ok) {
                     throw new Error('error'); 
                 }
                 const result = await response.json();
                 setData(result); 
                 setDishName(result.dish_name);
+
+                // check if already favorited
+                const favResponse = await fetch(`${apiUrl}users/favorites/${dishID}`, {
+                    headers: { 'Authorization': `Bearer ${getCookie('token')}` },
+                    signal: controller.signal
+                });
+                setIsFavorited(favResponse.ok); // true if 200, false if 404
             } catch (err) {
                 if (err.name !== 'AbortError') setError(err.message);
             } finally {
@@ -64,7 +86,6 @@ export default function DishInfoPage() {
     },[dishID]);
 
 // ==================================== View ===============================================
-    // if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
     
     return (
@@ -87,6 +108,12 @@ export default function DishInfoPage() {
                 alt="A bowl of bun cha Hanoi"
                 width="100%" height="250px" 
                 objectFit="cover" 
+                onError={(e) => {
+                    if (e.currentTarget.src !== NO_IMAGE_PLACEHOLDER_URL) {
+                        e.currentTarget.src = NO_IMAGE_PLACEHOLDER_URL;
+                    }
+                }}
+
             />
 
             {/* --- Content area ---*/}
@@ -105,20 +132,30 @@ export default function DishInfoPage() {
 
                 {/* Buttons */}
                 <HStack mb={8} mt={5} spacing={4}>
-                    <Button bg="red.700" rounded="md">
+                    {/* navigate to Add To Meal Plan Page - AN */}
+                    <Button rounded="md">
                         <i class="ri-calendar-view"></i>    
                         Add To Meal Plan
                     </Button>
-                    <Button rounded="md" >
-                        <i class="ri-bookmark-line"></i>
-                        Save
+
+                    {/* Add to favorite button  */}
+                    <Button 
+                        rounded="md" 
+                        bg={isFavorited ? "red.400" : "red.700"}
+                        onClick={handleFavorite}
+                    >
+                        <i className={isFavorited ? "ri-poker-hearts-fill" : "ri-poker-hearts-line"}></i>
+                        {isFavorited ? "Added to Favorites" : "Add to Favorite"}
                     </Button>
+
+                    {/* Print button  */}
                     <Button 
                         variant="outline" rounded="md" 
                         onClick={() => window.print()}
                     >
                         <i class="ri-printer-fill"></i>
                     </Button>
+                    {/* Share button  */}
                     <Button 
                         variant="outline" rounded="md"
                         onClick={handleShare}
