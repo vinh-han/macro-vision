@@ -177,7 +177,7 @@ set password_hash=$2
 where user_id=$1;
 
 -- name: Get_favorites :many
-select dishes.dish_id, dishes.dish_name
+select dishes.dish_id, dishes.dish_name, dishes.description
 from dishes
 inner join favorites on favorites.dish_id = dishes.dish_id
 where favorites.user_id = $1

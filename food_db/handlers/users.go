@@ -113,8 +113,9 @@ func edit_user(c echo.Context) (err error) {
 }
 
 type Favorites struct {
-	DishId   string `json:"dish_id"`
-	DishName string `json:"dish_name"`
+	DishId          string `json:"dish_id"`
+	DishName        string `json:"dish_name"`
+	DishDescription string `json:"description"`
 }
 
 // Returns a list of user-favorited dishes

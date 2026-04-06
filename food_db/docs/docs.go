@@ -1538,6 +1538,9 @@ const docTemplate = `{
         "handlers.Favorites": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "dish_id": {
                     "type": "string"
                 },

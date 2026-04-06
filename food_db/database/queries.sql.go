@@ -349,15 +349,16 @@ func (q *Queries) Get_dishes_in_meal_card(ctx context.Context, cardID uuid.UUID)
 }
 
 const get_favorites = `-- name: Get_favorites :many
-select dishes.dish_id, dishes.dish_name
+select dishes.dish_id, dishes.dish_name, dishes.description
 from dishes
 inner join favorites on favorites.dish_id = dishes.dish_id
 where favorites.user_id = $1
 `
 
 type Get_favoritesRow struct {
-	DishID   uuid.UUID `json:"dish_id"`
-	DishName string    `json:"dish_name"`
+	DishID      uuid.UUID `json:"dish_id"`
+	DishName    string    `json:"dish_name"`
+	Description string    `json:"description"`
 }
 
 func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_favoritesRow, error) {
@@ -369,7 +370,7 @@ func (q *Queries) Get_favorites(ctx context.Context, userID uuid.UUID) ([]Get_fa
 	var items []Get_favoritesRow
 	for rows.Next() {
 		var i Get_favoritesRow
-		if err := rows.Scan(&i.DishID, &i.DishName); err != nil {
+		if err := rows.Scan(&i.DishID, &i.DishName, &i.Description); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
