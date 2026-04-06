@@ -190,7 +190,14 @@ insert into favorites(
     date_created
 )
 values($1,$2,$3)
+on conflict (user_id, dish_id) do nothing
 returning dish_id;
+
+-- name: Check_favorited :one
+select dish_id from favorites
+where user_id = $1 and dish_id = $2
+;
+
 
 -- name: Remove_favorite :one
 delete from favorites

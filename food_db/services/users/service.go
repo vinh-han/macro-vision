@@ -43,19 +43,33 @@ func GetFavorites(ctx context.Context, user database.User) (favorites []database
 	return
 }
 
-func AddFavorites(ctx context.Context, dish_id string, user database.User) (updated_id string, err error) {
+func AddFavorites(ctx context.Context, dish_id string, user database.User) (updated_id uuid.UUID, err error) {
 	dish_uuid, err := uuid.Parse(dish_id)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", custom_errors.UuidParseFailed, err)
+		return uuid.UUID{}, fmt.Errorf("%w: %v", custom_errors.UuidParseFailed, err)
 	}
-	new_id, err := database.DB.Queries.Add_favorites(ctx, database.Add_favoritesParams{
+	updated_id, err = database.DB.Queries.Add_favorites(ctx, database.Add_favoritesParams{
 		UserID: user.UserID,
 		DishID: dish_uuid,
 	})
 	if err != nil {
-		return "", err
+		return uuid.UUID{}, err
 	}
-	updated_id = new_id.String()
+	return
+}
+
+func CheckFavorited(ctx context.Context, dish_id string, user database.User) (updated_id uuid.UUID, err error) {
+	dish_uuid, err := uuid.Parse(dish_id)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("%w: %v", custom_errors.UuidParseFailed, err)
+	}
+	updated_id, err = database.DB.Queries.Check_favorited(ctx, database.Check_favoritedParams{
+		UserID: user.UserID,
+		DishID: dish_uuid,
+	})
+	if err != nil {
+		return uuid.UUID{}, err
+	}
 	return
 }
 

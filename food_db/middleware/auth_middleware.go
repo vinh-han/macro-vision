@@ -15,7 +15,7 @@ func session_validator(token string, c echo.Context) (bool, error) {
 	user, err := database.GetUser(c.Request().Context(), token)
 
 	switch {
-    case errors.Is(err, custom_errors.SessionNotFound):
+	case errors.Is(err, custom_errors.SessionNotFound):
 		return false, echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
 
 	case err != nil:
