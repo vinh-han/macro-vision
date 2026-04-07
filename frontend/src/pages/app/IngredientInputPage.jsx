@@ -5,33 +5,16 @@ import IngredInputContextProvider from "../../context/IngredientInputContext"
 import IngredientInputActionBox from "../../components/IngredientInputActionBox"
 import SuggestRecipeButton from "../../components/SuggestRecipeButton"
 import { getCookie } from "../../components/Methods"
+import LoadingModal from "../../components/LoadingModal"
+import { useSessionExpireContext } from "../../context/SessionExpireContext"
+import IngredientDetectButton from "../../components/IngredientDetectButton"
 
 export default function IngredientInputPage() {
     const baseUrl = import.meta.env.VITE_BASE_API_URL
+    const {setIsExpired} = useSessionExpireContext();
     const [isEdit, setIsEdit] = useState(false)
     const [selectedIngred, setSelectedIngred] = useState([]);
-
-    function handleFileAccept(e) {
-        const file = e.files[0]
-
-        if (!file) {
-            return
-        }
-
-        const data = new FormData();
-        data.append('img-file', file)
-
-        fetch(`${baseUrl}ingredients/detection`, {
-            method: 'POST',
-            body: data,
-            headers: {
-                'Authorization': `Bearer ${getCookie("token")}`,
-                'Content-Type': 'application/json'
-            }
-        }).then((response) => {
-            console.log(response)
-        })
-    }
+    const [isLoading, setIsLoading] = useState(false);
     
     return (
         <IngredInputContextProvider>
@@ -43,24 +26,7 @@ export default function IngredientInputPage() {
                 position="sticky"
                 top="0"
                 zIndex="1">
-                <FileUpload.Root onFileAccept={handleFileAccept} accept="image/*">
-                    <FileUpload.HiddenInput name="img-file" />
-                    <FileUpload.Trigger asChild>
-                         <Button
-                            width="100%"
-                            height="fit-content"
-                            padding="0.5rem"
-                            background="crimsonred.500"
-                            rounded="12px"
-                            gap="0.8rem">
-                            <i className="ri-camera-4-line" style={{fontSize: "2.1rem", lineHeight: 1}}></i>
-                            <Text
-                                justifyContent="stretch"
-                                fontSize="1.4rem"
-                                fontWeight="semibold">Ingredients from Image</Text>
-                        </Button>
-                    </FileUpload.Trigger>
-                </FileUpload.Root>
+                <IngredientDetectButton setIsLoading={setIsLoading} />
             </Box>
             <Box
                 width="100%"
@@ -143,6 +109,10 @@ export default function IngredientInputPage() {
                 
                 {!isEdit && (
                     <SuggestRecipeButton />
+                )}
+
+                {isLoading && (
+                    <LoadingModal />
                 )}
             </Box>
             

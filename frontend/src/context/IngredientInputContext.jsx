@@ -14,14 +14,14 @@ export function useIngredInputContext() {
 
 function ingredInputReducer(state, action) {
     if (action.type === 'ADD_INGRED') {
-        const existedItem = state.findIndex(item => item.ingredient_id === action.payload.ingredient_id)
-        if (existedItem == -1) {
+        const newIngredList = action.payload.filter((ingred) => state.findIndex(item => item.ingredient_id == ingred.ingredient_id) == "-1")
+        if (newIngredList.length > 0) {
             const newData = [
-                ...state,
-                action.payload
+                ...state, 
+                ...newIngredList
             ]
-            localStorage.setItem("stored-ingred-list", JSON.stringify(newData))
 
+            localStorage.setItem("stored-ingred-list", JSON.stringify(newData))
             return newData
         }
 
