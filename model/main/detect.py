@@ -59,10 +59,9 @@ class DINOv2ArcFace(nn.Module):
         )
         self.head = ArcFaceHead(embed_dim, num_classes, margin, scale)
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def embed(self, x):
         feats = self.backbone.forward_features(x)['x_norm_clstoken']
-
         return F.normalize(feats, dim=1)
 
 
@@ -195,11 +194,17 @@ class Pipeline:
         self.classifier.eval()
 
         proto_data = torch.load(proto_path, map_location=self.device)
-        self.prototypes = proto_data['prototypes'].to(self.device)
+        # Pre-transpose prototypes — they never change, saves a transpose every call
+        self.prototypes_T = proto_data['prototypes'].to(self.device).T
+
+        # Use float16 on CUDA for faster embedding + similarity matmul
+        if self.device.type == 'cuda':
+            self.classifier.half()
+            self.prototypes_T = self.prototypes_T.half()
 
         self.logger.info(f'Pipeline ready.  Device: {self.device}')
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def predict(self, img_rgb, top_k=1):
         H, W = img_rgb.shape[:2]
         pil_img = Image.fromarray(img_rgb)
@@ -237,8 +242,10 @@ class Pipeline:
 
         # Batch classify all crops in a single forward pass
         batch = torch.stack(crop_tensors).to(self.device)
+        if self.device.type == 'cuda':
+            batch = batch.half()
         embeddings = self.classifier.embed(batch)
-        all_sims = torch.mm(embeddings, self.prototypes.T)
+        all_sims = torch.mm(embeddings, self.prototypes_T).float()
         del batch, embeddings
 
         detections = []
