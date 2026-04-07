@@ -12,6 +12,8 @@ type EnvConfig struct {
 	POSTGRES_PASSWORD   string
 	POSTGRES_DB         string
 	PRODUCTION          string `env:"ignoreempty"`
+	MODEL_HOST          string `env:"ignoreempty"`
+	MODEL_PORT          string `env:"ignoreempty"`
 }
 
 var Env *EnvConfig = &EnvConfig{}

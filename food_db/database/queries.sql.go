@@ -366,6 +366,18 @@ func (q *Queries) Get_dishes_in_meal_card(ctx context.Context, cardID uuid.UUID)
 	return items, nil
 }
 
+const get_exact_ingredient = `-- name: Get_exact_ingredient :one
+select ingredient_id, ingredient_name, date_created from ingredients
+where ingredient_name = $1
+`
+
+func (q *Queries) Get_exact_ingredient(ctx context.Context, ingredientName string) (Ingredient, error) {
+	row := q.db.QueryRowContext(ctx, get_exact_ingredient, ingredientName)
+	var i Ingredient
+	err := row.Scan(&i.IngredientID, &i.IngredientName, &i.DateCreated)
+	return i, err
+}
+
 const get_favorites = `-- name: Get_favorites :many
 select dishes.dish_id, dishes.dish_name, dishes.description
 from dishes

@@ -336,6 +336,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/ingredients/detect": {
+            "post": {
+                "description": "Upload an image file to detect ingredients",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ingredients"
+                ],
+                "summary": "Detect ingredients from image",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of detected ingredients",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.DetectIngredientsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/ingredients/search": {
             "get": {
                 "description": "Search ingredients by a query string",
@@ -1593,6 +1640,17 @@ const docTemplate = `{
             "properties": {
                 "favorited": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.DetectIngredientsResponse": {
+            "type": "object",
+            "properties": {
+                "ingredients": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Ingredient"
+                    }
                 }
             }
         },
