@@ -57,7 +57,7 @@ services:
             - ${ECR_REPO}/macro-vision/model_api:cache
           cache_to:
             - ${ECR_REPO}/macro-vision/model_api:cache
-          context: .
+          context: ./model/
           dockerfile: ./model/Dockerfile
         pull_policy: missing
         container_name: model_api
