@@ -241,12 +241,25 @@ func CreateMealCard(ctx context.Context, param CreateMealCardParam) (meal_card M
 
 type RemoveMealCardParam struct {
 	UserID uuid.UUID `json:"-"`
-	CardID uuid.UUID
+	CardID string    `param:"card_id"`
 }
 
-func RemoveMealCard(ctx context.Context, param RemoveMealCardParam) (removed_uuid uuid.UUID, err error) {
-	removed_uuid, err = database.DB.Queries.Remove_card(ctx, database.Remove_cardParams{
-		CardID: param.CardID,
+func RemoveMealCard(ctx context.Context, param RemoveMealCardParam) (removed_card uuid.UUID, err error) {
+	card_id, err := uuid.Parse(param.CardID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+    err = database.DB.Queries.Remove_card_dishes(ctx, card_id)
+	if errors.Is(err, sql.ErrNoRows) {
+		// no dishes
+		err = nil
+	}
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	removed_card, err = database.DB.Queries.Remove_card(ctx, database.Remove_cardParams{
+		CardID: card_id,
 		UserID: param.UserID,
 	})
 	return

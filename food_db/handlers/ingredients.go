@@ -106,7 +106,6 @@ func detect_ingredients(c echo.Context) (err error) {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-
 	return c.JSON(http.StatusOK, DetectIngredientsResponse{
 		Ingredients: ingredients,
 	})
@@ -139,6 +138,11 @@ func detect(c echo.Context, file *multipart.FileHeader) (ingredients []database.
 	client := &http.Client{}
 	ai_api_url := fmt.Sprintf("http://%s:%s/detect/main", config.Env.MODEL_HOST, config.Env.MODEL_PORT)
 	req, err := http.NewRequest("POST", ai_api_url, buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", mpw.FormDataContentType())
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
