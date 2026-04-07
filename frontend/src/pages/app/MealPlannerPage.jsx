@@ -148,11 +148,13 @@ export default function MealPlannerPage() {
                     dishes={item.dishes}
                 />
                 ))}
+                {/* --- Create new meal card button ----  */}
                 <Button 
                     variant="ghost" rounded="md"
                     border="2px dashed" borderColor="crimson.500"
                     w="350px" h="80px"
-                     cursor="pointer" onClick={() => navigate(`/app/meal-card/new`)}
+                    cursor="pointer" 
+                    onClick={() => navigate(`/app/meal-card/new`, { state: { date: date } })}
                 >
                     <i className="ri-add-large-line"></i>
                 </Button>
