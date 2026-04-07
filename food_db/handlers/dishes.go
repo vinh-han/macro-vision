@@ -94,6 +94,7 @@ func search_dishes(c echo.Context) (err error) {
 		TotalPages:   (matches + param.Limit - 1) / param.Limit,
 		Dishes:       dishes_cleaned,
 	}
+    c.Response().Header().Set("Cache-Control", "public, max-age=30, s-maxage=120, stale-while-revalidate=60")
 	return c.JSON(http.StatusOK, response)
 }
 
