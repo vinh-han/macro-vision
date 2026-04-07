@@ -216,7 +216,7 @@ func check_favorites(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	dish_id := c.Param("dish_id")
-	updated_id, err := user_service.AddFavorites(c.Request().Context(), dish_id, user)
+	updated_id, err := user_service.CheckFavorited(c.Request().Context(), dish_id, user)
 	if errors.Is(err, custom_errors.UuidParseFailed) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
 	}

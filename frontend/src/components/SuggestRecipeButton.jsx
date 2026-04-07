@@ -41,7 +41,7 @@ export default function SuggestRecipeButton() {
             localStorage.setItem("suggested-recipe", JSON.stringify(data))
             navigate('../recipe-suggest')
         }).catch((response) => {
-            if (response.status == 500) {
+            if (response.status == 401) {
                 setIsExpired(true)
             } else {
                 response.json().then(data => console.log(data))

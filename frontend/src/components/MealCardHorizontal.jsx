@@ -32,7 +32,7 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                     setMealCard(data)
                 }
             }).catch((response) => {
-                if (response.status == 500) {
+                if (response.status == 401) {
                     setIsExpired(true)
                 } else {
                     response.json().then(data => console.log(data))
@@ -68,7 +68,7 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                     setFetchMealCard(true)
                 }
             }).catch((response) => {
-                if (response.status == 500) {
+                if (response.status == 401) {
                     setIsExpired(true)
                 } else {
                     response.json().then(data => console.log(data))

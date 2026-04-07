@@ -77,6 +77,10 @@ from ingredients
 where ingredient_id = $1
 ;
 
+-- name: Get_exact_ingredient :one
+select * from ingredients
+where ingredient_name = $1;
+
 -- name: Search_ingredients :many
 select *
 from ingredients

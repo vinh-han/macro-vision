@@ -1,4 +1,4 @@
-import { useNavigate, useOutletContext } from "react-router"
+import { useLocation, useNavigate, useOutletContext } from "react-router"
 import { Box, Button, Field, DatePicker, Input, Portal } from "@chakra-ui/react";
 import RecipeCard from "../../components/RecipeCard";
 import { useRef, useState } from "react";
@@ -20,6 +20,8 @@ export default function AddToNewMealPlanPage() {
     const selectedRecipe = useOutletContext();
     const navigate = useNavigate();
     const mealName = useRef();
+
+    const location = useLocation();
     
     const currentDate = new Date();
     const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
@@ -78,7 +80,7 @@ export default function AddToNewMealPlanPage() {
         }).then(() => {
             navigate('../../recipe-suggest')
         }).catch((response) => {
-            if (response.status == 500) {
+            if (response.status == 401) {
                 setIsExpired(true)
             } else {
                 response.json().then(data => console.log(data))
@@ -169,7 +171,7 @@ export default function AddToNewMealPlanPage() {
                         rounded="14px"
                         boxShadow="0 6.33px 6.33px rgb(0 0 0 / 25%)"
                         background="#7A7A7A"
-                        onClick={() => navigate('../../ingredient-input')}>
+                        onClick={() => navigate(location.state?.from || "/app")}>
                         Cancel
                     </Button>
 

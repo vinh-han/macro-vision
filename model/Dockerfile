@@ -14,8 +14,7 @@ COPY model/requirements.txt ./model/requirements.txt
 RUN uv pip install --system --only-binary true --no-cache-dir -r model/requirements.txt ;\
     rm -rf /root/.cache/uv
 
-COPY assets/ ./assets/
-COPY model/ ./model/
+COPY ./ ./model/
 
 EXPOSE 8001
 

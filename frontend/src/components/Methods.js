@@ -14,7 +14,7 @@ export function getCookie(cookie_name) {
     if (cookie !== undefined) {
         return cookie.split("=")[1];
     }
-    return ""
+    return "-1"
 }
 
 export function deleteCookie(cookie_name) {

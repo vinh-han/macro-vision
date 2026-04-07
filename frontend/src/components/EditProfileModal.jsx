@@ -15,7 +15,6 @@ export default function EditProfileModal({currentProfile, setUser}) {
     }, [currentProfile])
 
     function handleProfileUpdate() {
-        console.log(newProfile)
         if (newProfile.display_name.length == 0 || newProfile.email.length == 0) {
             return
         }
@@ -45,7 +44,7 @@ export default function EditProfileModal({currentProfile, setUser}) {
 
                 ref.current?.click()
             }).catch((response) => {
-                if (response.status == 500) {
+                if (response.status == 401) {
                     setIsExpired(true)
                 } else {
                     response.json().then(data => console.log(data))
@@ -56,7 +55,14 @@ export default function EditProfileModal({currentProfile, setUser}) {
 
 
     return (
-        <Dialog.Root placement="center" size={{ mdDown: "xs", md: "xl" }}>
+        <Dialog.Root 
+        placement="center" 
+        size={{ mdDown: "xs", md: "xl" }}
+        onOpenChange={(e) => {
+            if (!e.open) {
+                setNewProfile(currentProfile)
+            }
+        }}>
             <Dialog.Trigger asChild>
                 <i className="ri-edit-line" style={{fontSize: "1.4rem", lineHeight: 1}}></i>
             </Dialog.Trigger>
