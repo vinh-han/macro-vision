@@ -761,6 +761,16 @@ func (q *Queries) Remove_card(ctx context.Context, arg Remove_cardParams) (uuid.
 	return card_id, err
 }
 
+const remove_card_dishes = `-- name: Remove_card_dishes :exec
+delete from meal_cards_dishes
+where card_id = $1
+`
+
+func (q *Queries) Remove_card_dishes(ctx context.Context, cardID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, remove_card_dishes, cardID)
+	return err
+}
+
 const remove_dish_from_card = `-- name: Remove_dish_from_card :one
 delete from meal_cards_dishes
 where card_id = $1 and dish_id = $2

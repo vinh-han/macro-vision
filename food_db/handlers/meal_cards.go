@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"macro_vision/custom_errors"
 	"macro_vision/database"
@@ -206,10 +207,10 @@ type RemoveMealCardResponse struct {
 //	@Summary		Remove meal card
 //	@Description	Remove a meal card belonging to the authenticated user.
 //	@Tags			meal-cards
-//	@Router			/meal-cards [delete]
+//	@Router			/meal-cards/{card_id} [delete]
 //	@Accept			json
 //	@Produce		json
-//	@Param			card_id			query		string	true	"Meal card ID (UUID)"
+//	@Param			card_id			path		string	true	"Meal card ID (UUID)"
 //	@Param			Authorization	header		string	true	"auth"
 //	@Success		200				{object}	RemoveMealCardResponse
 //	@Failure		400				{object}	echo.HTTPError	"Invalid request or unauthorized operation"
@@ -228,8 +229,8 @@ func remove_meal_card(c echo.Context) (err error) {
 	}
 	request.UserID = user.UserID
 	removed_id, err := mealcard_service.RemoveMealCard(c.Request().Context(), request)
-	if errors.Is(err, custom_errors.UnauthorizedOperation) {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+	if errors.Is(err, sql.ErrNoRows) {
+		return echo.NewHTTPError(http.StatusNotFound, "card id not found")
 	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)

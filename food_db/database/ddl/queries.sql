@@ -304,11 +304,15 @@ insert into meal_cards(
 values($1, $2, $3, $4, $5)
 returning *;
 
+-- name: Remove_card_dishes :exec
+delete from meal_cards_dishes
+where card_id = $1
+;
+
 -- name: Remove_card :one
 delete from meal_cards
 where card_id = $1 and user_id = $2
-returning card_id
-;
+returning card_id;
 
 -- name: Add_dishes_to_card :exec
 INSERT INTO meal_cards_dishes (card_id, dish_id)
