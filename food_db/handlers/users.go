@@ -222,13 +222,13 @@ func check_favorites(c echo.Context) (err error) {
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
-		favorited = "true"
+		favorited = "false"
 	}
 	if err != nil {
 		return err
 	}
 	if updated_id != uuid.Nil {
-		favorited = "false"
+		favorited = "true"
 	}
 	return c.JSON(http.StatusCreated, CheckFavoritedDishResponse{
 		Favorited: favorited,
