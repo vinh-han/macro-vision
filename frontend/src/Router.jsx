@@ -19,9 +19,12 @@ import AddToNewMealPlanPage from './pages/app/AddToNewMealPlanPage';
 import AddToExistingMealPlanPage from './pages/app/AddToExistingMealPlanPage';
 import DishInfoPage from './pages/app/DishInfoPage';
 import MealPlannerPage from './pages/app/MealPlannerPage';
-import MealCardNewPage from './pages/MealCardNewPage';
+import MealCardNewPage from './pages/app/MealCardNewPage';
 import MealCardPage from './pages/app/MealCardPage';
 import ProfilePage from './pages/app/ProfilePage';
+
+// testing page import 
+import DishSearchDialog from './components/DishSearchDialog';
 
 import './main.css'
 import FavoritePage from './pages/app/FavoritePage';
@@ -50,9 +53,10 @@ export const router = createBrowserRouter(
                 <Route path="dish/:dishID" element={<DishInfoPage />} />
                 <Route path="meal-planner" element={<MealPlannerPage/>} />
                 <Route path="meal-card/new" element={<MealCardNewPage />} />  
-                <Route path="meal-card/:mealCardID" element={<MealCardPage />} />
+                <Route path="meal-card/:cardID" element={<MealCardPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="favorite" element={<FavoritePage />} />
+                <Route path="dish-search-dialog" element={<DishSearchDialog />} />
             </Route>
 
             {/* Fallback route */}

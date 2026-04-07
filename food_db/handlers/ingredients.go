@@ -186,7 +186,7 @@ func detect_mock(c echo.Context, file *multipart.FileHeader) (err error) {
 		return err
 	}
 	time.Sleep(5 * time.Second)
-    return c.JSON(http.StatusOK, DetectIngredientsResponse{
-        Ingredients: ingredients,
-    })
+	return c.JSON(http.StatusOK, DetectIngredientsResponse{
+		Ingredients: ingredients,
+	})
 }

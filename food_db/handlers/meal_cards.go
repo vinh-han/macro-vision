@@ -173,6 +173,7 @@ func create_meal_card(c echo.Context) (err error) {
 //	@Router			/meal-cards/{card_id} [put]
 //	@Accept			json
 //	@Produce		json
+//	@Param			card_id			path		string									true	"Meal card ID (UUID)"
 //	@Param			request			body		mealcard_service.UpdateMealCardParam	true	"Updated meal card payload"
 //	@Param			Authorization	header		string									true	"auth"
 //	@Success		200				{object}	mealcard_service.MealCardDish
@@ -192,6 +193,9 @@ func update_meal_card_info(c echo.Context) (err error) {
 	}
 	request.UserID = user.UserID
 	updated, err := mealcard_service.UpdateMealCard(c.Request().Context(), request)
+	if errors.Is(err, sql.ErrNoRows) {
+		return echo.NewHTTPError(http.StatusNotFound, "no meal card found")
+	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

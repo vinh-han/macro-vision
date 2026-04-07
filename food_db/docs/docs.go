@@ -885,6 +885,13 @@ const docTemplate = `{
                 "summary": "Update meal card",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Meal card ID (UUID)",
+                        "name": "card_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Updated meal card payload",
                         "name": "request",
                         "in": "body",

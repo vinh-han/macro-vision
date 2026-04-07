@@ -9,11 +9,11 @@ import {
 } from "@chakra-ui/react";
 import MealCard from "../../components/MealCard";
 import { getCookie } from "../../components/Methods";
-import { useNavigate } from "react-router"
+import { useNavigate, useLocation } from "react-router"
 
 
 export default function MealPlannerPage() {
-
+    const location = useLocation();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const navigate = useNavigate();
 
@@ -74,7 +74,7 @@ export default function MealPlannerPage() {
         };
         fetchResults();
         return () => controller.abort(); 
-    }, [date]); 
+    }, [date, location.key]); 
 
 
     return (
@@ -148,11 +148,13 @@ export default function MealPlannerPage() {
                     dishes={item.dishes}
                 />
                 ))}
+                {/* --- Create new meal card button ----  */}
                 <Button 
                     variant="ghost" rounded="md"
                     border="2px dashed" borderColor="crimson.500"
                     w="350px" h="80px"
-                     cursor="pointer" onClick={() => navigate(`/app/meal-card/new`)}
+                    cursor="pointer" 
+                    onClick={() => navigate(`/app/meal-card/new`, { state: { date: date } })}
                 >
                     <i className="ri-add-large-line"></i>
                 </Button>
