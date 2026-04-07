@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 RUN pip install uv
 
-COPY ./requirements.txt ./model/requirements.txt
+COPY ./requirements.txt .
 
-RUN uv pip install --system --only-binary true --no-cache-dir -r model/requirements.txt ;\
+RUN uv pip install --system --only-binary true --no-cache-dir -r requirements.txt ;\
     rm -rf /root/.cache/uv
 
 COPY ./ ./model/
