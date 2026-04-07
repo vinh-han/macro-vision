@@ -216,19 +216,19 @@ func check_favorites(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusInternalServerError, "user missing from context")
 	}
 	dish_id := c.Param("dish_id")
-	updated_id, err := user_service.AddFavorites(c.Request().Context(), dish_id, user)
+	updated_id, err := user_service.CheckFavorited(c.Request().Context(), dish_id, user)
 	if errors.Is(err, custom_errors.UuidParseFailed) {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid id")
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
-		favorited = "false"
+		favorited = "true"
 	}
 	if err != nil {
 		return err
 	}
 	if updated_id != uuid.Nil {
-		favorited = "true"
+		favorited = "false"
 	}
 	return c.JSON(http.StatusCreated, CheckFavoritedDishResponse{
 		Favorited: favorited,
