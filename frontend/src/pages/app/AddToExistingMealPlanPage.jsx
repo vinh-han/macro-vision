@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router"
+import { useLocation, useOutletContext } from "react-router"
 import { Box, Text, Button, DatePicker, Portal, parseDate } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { getCookie } from "../../components/Methods";
@@ -39,7 +39,7 @@ export default function AddToExistingMealPlanPage() {
             }
             
         }).catch((response) => {
-            if (response.status == 500) {
+            if (response.status == 401) {
                 setIsExpired(true)
             } else {
                 response.json().then(data => console.log(data))
@@ -102,7 +102,10 @@ export default function AddToExistingMealPlanPage() {
                 </DatePicker.Root>
             </Box>
             <Box marginTop="1rem">
-                <RecipeCardSmall dish={selectedRecipe} />
+                {(selectedRecipe) && (
+                    <RecipeCardSmall dish={selectedRecipe} />
+                )}
+                
             </Box>
             <Box marginTop="1.3rem" width="100%" height="2px" bgColor="black" />
             <Box

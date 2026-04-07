@@ -6,11 +6,18 @@ import { useEffect, useState } from "react";
 export default function AddToMealPlanLayout() {
     const navigate = useNavigate()
     const location = useLocation()
-    const data = localStorage.getItem("selected-recipe")
-    if (!data) {
-        navigate('../recipe-suggest')
-    }
-    const [selectedRecipe, setSelectedRecipe] = useState(JSON.parse(data))
+    const [selectedRecipe, setSelectedRecipe] = useState(null)
+    
+
+    useEffect(() => {
+        const state = location.state
+        if (!state) {
+            console.log("null state detected")
+            navigate("/app")
+        }
+        setSelectedRecipe(state?.selected_dish)
+    })
+    
     
     return (
         <Box
@@ -36,7 +43,7 @@ export default function AddToMealPlanLayout() {
                                         position: "absolute",
                                         left: 15,
                                     }}
-                                onClick={() => {navigate('../recipe-suggest')}}></i>
+                                onClick={() => {navigate(location.state?.from || "/app")}}></i>
                         <Text
                             color="white"
                             textAlign="center"
@@ -52,7 +59,7 @@ export default function AddToMealPlanLayout() {
                         display="flex"
                         color="white"
                         fontSize="1.25rem">
-                        <Center flex="1" zIndex="2" onClick={location.pathname != "/app/add-to-meal-plan/new-meal-plan" ? () => {navigate('./new-meal-plan')} : () => {}}>
+                        <Center flex="1" zIndex="2" onClick={location.pathname != "/app/add-to-meal-plan/new-meal-plan" ? () => {navigate('./new-meal-plan', { state: location.state})} : () => {}}>
                             <Text
                                 textDecorationThickness="2px"                                    
                                 textDecorationLine={location.pathname == "/app/add-to-meal-plan/new-meal-plan" ? "underline" : ""}
@@ -60,7 +67,7 @@ export default function AddToMealPlanLayout() {
                                 New Meal Plan
                             </Text>
                         </Center>
-                        <Center flex="1" zIndex="2" onClick={location.pathname != "/app/add-to-meal-plan/existing-meal-plan" ? () => {navigate('./existing-meal-plan')} : () => {}}>
+                        <Center flex="1" zIndex="2" onClick={location.pathname != "/app/add-to-meal-plan/existing-meal-plan" ? () => {navigate('./existing-meal-plan', { state: location.state })} : () => {}}>
                             <Text
                                 textDecorationThickness="2px"  
                                 textDecorationLine={location.pathname == "/app/add-to-meal-plan/existing-meal-plan" ? "underline" : ""}

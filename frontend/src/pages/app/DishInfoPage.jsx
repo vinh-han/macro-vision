@@ -6,14 +6,17 @@ import {
     // functional: 
     Image, Button, Tag
 } from "@chakra-ui/react"
-import { useNavigate, useParams } from "react-router"
+import { useLocation, useNavigate, useParams } from "react-router"
 import { useState, useEffect } from "react";
 import { assetNameProcess } from "../../components/Methods";
 import { getCookie } from "../../components/Methods";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
 const NO_IMAGE_PLACEHOLDER_URL ="../../../public/assets/images/No-Image-Placeholder.jpg"; 
 
 export default function DishInfoPage() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const {setIsExpired} = useSessionExpireContext();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const {dishID} = useParams(); 
 
@@ -38,14 +41,31 @@ export default function DishInfoPage() {
     };
 
     const handleFavorite = async () => {
-
         try {
             const response = await fetch(`${apiUrl}users/favorites/${dishID}`, {
                 method: isFavorited ? 'DELETE' : 'PATCH',
                 headers: { 'Authorization': `Bearer ${getCookie('token')}` },
             });
+            
+            if (!response.ok) {
+                if (response.status == 401) {
+                    setIsExpired(true)
+                    return
+                } 
 
-            if (!response.ok) throw new Error('Failed to update favorite');
+                if (response.status >= 400 && response.status < 500) {
+                    let errorMessage = 'Unexpected Error! Please try again'; 
+                    try {
+                        const body = await res.json(); 
+                        errorMessage = body.message || errorMessage;
+                    } catch(err) {       
+                    }
+                    setError(errorMessage); 
+                } else {
+                    setError(`Server error: ${response.status}`);
+                }
+                return; 
+            }
             
             setIsFavorited(prev => !prev);  // toggle the state
         } catch (err) {
@@ -71,10 +91,33 @@ export default function DishInfoPage() {
 
                 // check if already favorited
                 const favResponse = await fetch(`${apiUrl}users/favorites/${dishID}`, {
+                    method: 'GET', 
                     headers: { 'Authorization': `Bearer ${getCookie('token')}` },
                     signal: controller.signal
                 });
-                setIsFavorited(favResponse.ok); // true if 200, false if 404
+
+                if (!favResponse.ok) {
+                    if (favResponse.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
+
+                    if (favResponse.status >= 400 && favResponse.status < 500) {
+                        let errorMessage = 'Unexpected Error! Please try again'; 
+                        try {
+                            const body = await favResponse.json(); 
+                            errorMessage = body.message || errorMessage;
+                        } catch(err) {       
+                        }
+                        setError(errorMessage); 
+                    } else {
+                        setError(`Server error: ${favResponse.status}`);
+                    }
+                    return; 
+                }
+
+                const favData = await favResponse.json();
+                setIsFavorited(favData.favorited == "true");
             } catch (err) {
                 if (err.name !== 'AbortError') setError(err.message);
             } finally {
@@ -84,7 +127,6 @@ export default function DishInfoPage() {
         fetchData();
         return () => controller.abort(); 
     },[dishID]);
-
 // ==================================== View ===============================================
     if (error) return <div>Error: {error}</div>;
     
@@ -96,7 +138,7 @@ export default function DishInfoPage() {
                 <Box 
                     as="span" 
                     color="white" fontSize="24px" 
-                    cursor="pointer" onClick={() => navigate(-1)} // Go back to previous page
+                    cursor="pointer" onClick={() => navigate(location.state?.from || "/app")} // Go back to previous page
                 >
                     <i className="ri-arrow-left-line"></i>
                 </Box>
@@ -133,8 +175,16 @@ export default function DishInfoPage() {
                 {/* Buttons */}
                 <HStack mb={8} mt={5} spacing={4}>
                     {/* navigate to Add To Meal Plan Page - AN */}
-                    <Button rounded="md">
-                        <i class="ri-calendar-view"></i>    
+                    <Button rounded="md"
+                        onClick={() => {
+                            navigate("/app/add-to-meal-plan/new-meal-plan", {
+                                state: {
+                                    from: location.pathname,
+                                    selected_dish: data
+                                }
+                            })
+                        }}>
+                        <i className="ri-calendar-view"></i>    
                         Add To Meal Plan
                     </Button>
 
@@ -142,7 +192,7 @@ export default function DishInfoPage() {
                     <Button 
                         rounded="md" 
                         bg={isFavorited ? "red.400" : "red.700"}
-                        onClick={handleFavorite}
+                        onClick={() => handleFavorite()}
                     >
                         <i className={isFavorited ? "ri-poker-hearts-fill" : "ri-poker-hearts-line"}></i>
                         {isFavorited ? "Added to Favorites" : "Add to Favorite"}

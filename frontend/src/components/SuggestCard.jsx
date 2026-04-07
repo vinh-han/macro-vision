@@ -2,11 +2,12 @@ import { Card, Text, Image, Box, Button, CardDescription
 } from "@chakra-ui/react"
 
 import dishImg from  "../assets/images/dish/dish_1.jpg"
-import { useNavigate, Link } from "react-router"
+import { useNavigate, Link, useLocation } from "react-router"
 import { assetNameProcess } from "./Methods";
 
 export default function SuggestCard({dish}) {
     const navigate = useNavigate(); 
+    const location = useLocation();
 
     return (
         <Card.Root
@@ -57,8 +58,12 @@ export default function SuggestCard({dish}) {
                             rounded="6px"
                             padding="0.3rem 0.8rem"
                             onClick={() => {
-                                localStorage.setItem("selected-recipe", JSON.stringify(dish))
-                                navigate("../add-to-meal-plan/new-meal-plan")
+                                navigate("../add-to-meal-plan/new-meal-plan", {
+                                    state: {
+                                        from: location.pathname,
+                                        selected_dish: dish
+                                    }
+                                })
                             }}>
                                 Add to Meal Plan
                         </Button>

@@ -2,7 +2,7 @@ import { Box, Card, Image } from "@chakra-ui/react";
 import { assetNameProcess } from "./Methods";
 
 
-export default function RecipeCardSmall({dish, isInteractable}) {
+export default function RecipeCardSmall({dish}) {
 
 
     return (
