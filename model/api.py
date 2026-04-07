@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 import cv2
+import numpy as np
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +14,9 @@ from pydantic import BaseModel
 from model.azure.detect import AzureLLMDetector
 from model.clip.detect import CLIPDetector
 from model.main.detect import Pipeline
+from model.utils.config import settings
 from model.utils.logger import setup_logger
+from model.utils.preprocess import validate_image
 from model.yolo.detect import YOLODetector
 
 logger = setup_logger(__name__, "api.log")
@@ -27,9 +30,35 @@ detectors = {}
 def _save_temp(upload: UploadFile) -> Path:
     suffix = Path(upload.filename or "img.jpg").suffix or ".jpg"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-    tmp.write(upload.file.read())
+    data = upload.file.read()
+
+    max_bytes = settings.max_file_mb * 1024 * 1024
+    if settings.preprocess and len(data) > max_bytes:
+        tmp.close()
+        Path(tmp.name).unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({len(data) / 1024 / 1024:.1f} MB, max {settings.max_file_mb} MB)",
+        )
+
+    tmp.write(data)
     tmp.close()
     return Path(tmp.name)
+
+
+def _read_and_preprocess(path: Path) -> np.ndarray:
+    """Read image from disk, validate, and normalize for inference."""
+    img_bgr = cv2.imread(str(path))
+    if img_bgr is None:
+        raise HTTPException(status_code=400, detail="Could not decode image")
+    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    if not settings.preprocess:
+        return img_rgb
+    file_size = path.stat().st_size
+    try:
+        return validate_image(img_rgb, file_size=file_size)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 def _get_detector(name: str):
@@ -43,7 +72,7 @@ def _get_detector(name: str):
             detectors["clip"] = CLIPDetector()
         elif name == "main":
             model_dir = Path(__file__).resolve().parent / "main" / "assets"
-            detectors["main"] = Pipeline(model_dir=model_dir)
+            detectors["main"] = Pipeline(model_dir=model_dir, gd_threshold=settings.gd_threshold)
         logger.info(f"{name} detector loaded")
     return detectors[name]
 
@@ -75,6 +104,9 @@ async def detect_yolo(file: UploadFile = File(...)):
     path = _save_temp(file)
     try:
         t0 = time.time()
+        # Validate and downscale — write back so YOLO reads the normalized image
+        img_rgb = _read_and_preprocess(path)
+        cv2.imwrite(str(path), cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR))
         detector = _get_detector("yolo")
         raw = detector.predict_detailed(path)
         detections = list(dict.fromkeys(d["class"] for d in raw))
@@ -108,6 +140,9 @@ async def detect_clip(file: UploadFile = File(...)):
     path = _save_temp(file)
     try:
         t0 = time.time()
+        # Validate and downscale — write back so CLIP reads the normalized image
+        img_rgb = _read_and_preprocess(path)
+        cv2.imwrite(str(path), cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR))
         detector = _get_detector("clip")
         results = detector.predict_detailed(path)
         detections = list(dict.fromkeys(name for name, _ in results))
@@ -126,10 +161,7 @@ async def detect_main(file: UploadFile = File(...)):
     try:
         t0 = time.time()
         pipeline = _get_detector("main")
-        img_bgr = cv2.imread(str(path))
-        if img_bgr is None:
-            raise HTTPException(status_code=400, detail="Could not read image")
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        img_rgb = _read_and_preprocess(path)
         raw = pipeline.predict(img_rgb)
         detections = []
         for d in raw:

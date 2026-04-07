@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     model_deployment_name: str = "extractor-mini"
     embedding_deployment_name: str = "embeddings"
 
+    # IMAGE PREPROCESSING CONFIGS
+    preprocess: bool = True
+    max_file_mb: int = 10
+    max_width: int = 4096
+    max_height: int = 4096
+    max_long_side: int = 800
+
+    gd_threshold: float = 0.1
+
     ingredients_list_path: str = str(_PROJECT_ROOT / "assets" / "classes.txt")
 
     @property
