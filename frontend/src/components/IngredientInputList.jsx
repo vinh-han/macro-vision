@@ -25,7 +25,6 @@ export default function IngredientInputList({selectedIngred, setSelectedIngred, 
     
       useEffect(() => {
         if (staticIngredList.length == 0) {
-          console.log("Fetching")
           fetch(`${apiUrl}ingredients/search`)
           .then((response) => {
             if (response.status == 200) {
