@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"macro_vision/custom_errors"
 	"macro_vision/database"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -250,7 +251,7 @@ func RemoveMealCard(ctx context.Context, param RemoveMealCardParam) (removed_car
 		return uuid.UUID{}, err
 	}
 
-    err = database.DB.Queries.Remove_card_dishes(ctx, card_id)
+	err = database.DB.Queries.Remove_card_dishes(ctx, card_id)
 	if errors.Is(err, sql.ErrNoRows) {
 		// no dishes
 		err = nil
@@ -267,16 +268,27 @@ func RemoveMealCard(ctx context.Context, param RemoveMealCardParam) (removed_car
 
 type UpdateMealCardParam struct {
 	UserID   uuid.UUID `json:"-"`
+	CardID   string    `param:"card_id" json:"-"`
 	Title    string    `json:"title"`
-	MealDate time.Time `json:"meal_date"`
+	MealDate string    `json:"meal_date"`
 }
 
 // TODO: might need refactoring after tests
 func UpdateMealCard(ctx context.Context, param UpdateMealCardParam) (meal_card database.MealCard, err error) {
+	fmt.Println(param.CardID)
+	meal_time, err := time.Parse(time.RFC3339, param.MealDate)
+	if err != nil {
+		return database.MealCard{}, err
+	}
+	card_id, err := uuid.Parse(strings.TrimSpace(param.CardID))
+	if err != nil {
+		return database.MealCard{}, err
+	}
 	meal_card, err = database.DB.Queries.Update_meal_card_info(ctx, database.Update_meal_card_infoParams{
 		Title:    param.Title,
+		CardID:   card_id,
 		UserID:   param.UserID,
-		MealDate: param.MealDate,
+		MealDate: meal_time,
 	})
 	if err != nil {
 		return
