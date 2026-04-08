@@ -6,30 +6,51 @@ import {
     // functional components: 
     Image, Button, IconButton
 } from "@chakra-ui/react"
-
 import Logo from "../../assets/images/LogoHorizontal.svg"
 import MealCardMini from "../../components/MealCardMini"
 import DishCard from "../../components/DishCard"
+import { use, useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router"
+import { getCookie } from "../../components/Methods";
 
-import { use, useState, useEffect } from "react"
 
 export default function HomePage() {
-
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
+    const navigate = useNavigate();
+    const location = useLocation(); 
+
+    // ---- Today's Meal Cards State --- 
+    const today = new Date().toISOString().split('T')[0];
+    const [mealCards, setMealCards] = useState([]); 
+    const [mealCardsLoading, setMealCardsLoading] = useState(false);
+    const [mealCardsError, setMealCardsError] = useState(null); 
+
+    // --- Popular Dishes State --- 
     const [popularDishes, setPopularDishes] = useState([]); 
-    const [loading, setLoading] = useState(false); 
-    const [error, setError] = useState(null)
+    const [popularDishesLoading, setPopularDishesLoading] = useState(false);
+    const [popularDishesError, setPopularDishesError] = useState(null);
+
+    // Reset scroll position of today meal cards Hstack to the begininning 
+    const scrollRef = useRef(null);
+        useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollLeft = 0;
+        }
+    }, [mealCards]);
+
+    // param for popular dishes 
     const params = new URLSearchParams({
         q: 'noodle', 
         limit: 3
     });
 
+    // Fetch popular dishes 
     useEffect(() => {
         const controler = new AbortController(); 
         const fetchPopularDishes = async () => {
             try {
-                setLoading(true);
-                setError(null); 
+                setPopularDishesLoading(true);
+                setPopularDishesError(null); 
                 const res = await fetch(`${apiUrl}dishes/search?${params}`, {signal: controler.signal}); 
 
                 // Error handle: 
@@ -41,9 +62,9 @@ export default function HomePage() {
                             errorMessage = body.message || errorMessage;
                         } catch(err) {       
                         }
-                        setError(errorMessage); 
+                        setPopularDishesError(errorMessage); 
                     } else {
-                        setError(`Server error: ${res.status}`);
+                        setPopularDishesError(`Server error: ${res.status}`);
                     }
                     return; 
                 }
@@ -54,39 +75,99 @@ export default function HomePage() {
             } catch (err) {
                 if (err.name === 'AbortError') return;
                 console.error(err);
-                setError('Could not connect. Check your internet connection.'); 
+                setPopularDishesError('Could not connect. Check your internet connection.'); 
             } finally {
-                setLoading(false);
+                setPopularDishesLoading(false);
             }
         }; 
         fetchPopularDishes(); 
         return () => controler.abort(); 
     }, []); 
 
+    // Fetch today's meal cards 
+    useEffect(() => {
+        const controller = new AbortController(); 
+
+        const fetchResult = async () => {
+            setMealCardsLoading(true); 
+            setMealCardsError(null); 
+
+            try {
+                const res = await fetch(`${apiUrl}meal-cards/daily?date=${today}`, 
+                        {
+                            headers: {'Authorization': `Bearer ${getCookie('token')}`}, 
+                            signal: controller.signal
+                        }
+                    ); 
+
+                if (!res.ok) {
+                    throw new Error('Sever returns ' + res.status); 
+                }
+                const data = await res.json(); 
+                setMealCards(data ?? []);
+                
+            } catch (err) {
+                setError(err.message); 
+            } finally { 
+                setMealCardsLoading(false); 
+            }
+        }; 
+        fetchResult(); 
+        return () => controller.abort(); 
+    }, [])
+
     return (
         <Container centerContent  maxW="container.xl">
-            {/* Logo */}
+            {/* --- Logo ---  */}
             <Box >
                 <Image src={Logo}  height="3rem" m="30px" ></Image>
             </Box>
 
-            {/* Today meal cards area */}
+            {/* --- Today meal cards area ---  */}
             <Container>
                 <Container bg="gray.400" padding="4" borderRadius="md" mb="1rem">
                     <Heading>Today's meal cards</Heading>
+                    <HStack 
+                        ref={scrollRef}
+                        gap="0.5rem"
+                        overflowX="auto"
+                        scrollSnapType="x mandatory"
+                        pb={2} 
+                        css={{ scrollbarWidth: "none", "&::-webkit-scrollbar": { display: "none" } }}
+                    >
+                        {mealCards.map((item) => (
+                            <Box key={item.card_id} scrollSnapAlign="start" flexShrink={0}>
+                                <MealCardMini
+                                    cardId={item.card_id}
+                                    title={item.title}
+                                    dishes={item.dishes}
+                                />
+                            </Box>
+                        ))}
 
-                    <HStack gap="1rem">
-                        {/* meal cards mini */}
-                        <MealCardMini/>
-                        {/* add new mmeal card button  */}
-                        <Center border="dashed 2px" rounded="md" width="8rem" height="8rem" fontSize="4xl" >
-                                <i className="ri-add-line"></i>
+                        <Center
+                            scrollSnapAlign="start"
+                            flexShrink={0}
+                            border="dashed 2px"
+                            rounded="md"
+                            width="8rem"
+                            height="8rem"
+                            fontSize="4xl"
+                            cursor="pointer"
+                            onClick={() => navigate(`/app/meal-card/new`, { 
+                                state: { 
+                                    date: today,
+                                    from: location.pathname
+                                } 
+                            })}
+                        >
+                            <i className="ri-add-line"></i>
                         </Center>
                     </HStack>
                 </Container>
             </Container>
 
-            {/* Popular dishes area  */}
+            {/* ---- Popular dishes area --- */}
             <Flex direction="column" align="left" w="90%">
                 <Heading ml={4}>Popular Dishes</Heading>
 

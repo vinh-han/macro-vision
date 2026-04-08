@@ -50,7 +50,7 @@ export default function DishCard({dishName, dishDescription, dishCourse, dishID,
                 h="420px"
                 cursor={onAdd ? "default" : "pointer"}
                 onClick={() => {
-                    if (onAdd) return; // suppress navigation in search dialog
+                    if (onAdd) return; 
                     navigate(`/app/dish/${dishID}`, { state: { from: location.pathname } });
                 }}
             >

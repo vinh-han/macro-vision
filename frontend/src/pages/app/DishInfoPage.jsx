@@ -40,6 +40,7 @@ export default function DishInfoPage() {
     }
     };
 
+    // Add/Remove dish from favorite 
     const handleFavorite = async () => {
         try {
             const response = await fetch(`${apiUrl}users/favorites/${dishID}`, {
@@ -73,6 +74,7 @@ export default function DishInfoPage() {
         }
     };
 
+    // Fetch dish info 
     useEffect(() => {
         const controller = new AbortController(); 
         setLoading(true); 
@@ -89,7 +91,6 @@ export default function DishInfoPage() {
                 setData(result); 
                 setDishName(result.dish_name);
 
-                // check if already favorited
                 const favResponse = await fetch(`${apiUrl}users/favorites/${dishID}`, {
                     method: 'GET', 
                     headers: { 'Authorization': `Bearer ${getCookie('token')}` },
@@ -127,7 +128,8 @@ export default function DishInfoPage() {
         fetchData();
         return () => controller.abort(); 
     },[dishID]);
-// ==================================== View ===============================================
+
+
     if (error) return <div>Error: {error}</div>;
     
     return (
@@ -138,7 +140,7 @@ export default function DishInfoPage() {
                 <Box 
                     as="span" 
                     color="white" fontSize="24px" 
-                    cursor="pointer" onClick={() => navigate(location.state?.from || "/app")} // Go back to previous page
+                    cursor="pointer" onClick={() => navigate(location.state?.from || "/app")} 
                 >
                     <i className="ri-arrow-left-line"></i>
                 </Box>

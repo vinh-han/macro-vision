@@ -197,7 +197,7 @@ export default function MealCardNewPage() {
                 {/* --- Action buttons --- */}
                 <HStack mt={4} p={4}>
                     <Button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate(location.state?.from || "/app/meal-planner")}
                         disabled={isSaving}
                         opacity={isSaving ? 0.6 : 1}
                     >
