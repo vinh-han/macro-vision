@@ -295,6 +295,7 @@ export default function MealCardPage() {
                 {isEditing
                     ? <DatePicker.Root
                         locale="en-GB"
+                        timeZone="+07:00"
                         defaultValue={editDate ? [parseDate(editDate.split('T')[0])] : undefined}
                         onValueChange={(e) => {
                             if (e.value[0]) {
