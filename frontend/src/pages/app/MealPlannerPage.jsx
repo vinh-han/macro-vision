@@ -18,11 +18,12 @@ export default function MealPlannerPage() {
     const navigate = useNavigate();
 
     // --- Page state -- 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date()
+    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const [result, setResult] = useState([])
     const [loading, setLoading] = useState(false); 
     const [error, setError] = useState(null); 
-    const [date, setDate] = useState(today)
+    const [date, setDate] = useState(localDate)
     const dayLabel = new Date(date).toLocaleDateString('en-US', {weekday: 'long'});
 
 
@@ -63,7 +64,6 @@ export default function MealPlannerPage() {
                 // Succeed 
                 const data = await res.json();
                 setResult(data);    
-                  
             } catch (err) {
                 if (err.name === 'AbortError') return;
                 console.error(err);
