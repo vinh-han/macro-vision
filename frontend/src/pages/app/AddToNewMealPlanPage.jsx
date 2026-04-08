@@ -111,6 +111,7 @@ export default function AddToNewMealPlanPage() {
                             ref={mealName} />
                     </Field.Root>
                     <DatePicker.Root
+                        timeZone="+07:00"
                         onValueChange={onDateChange}
                         closeOnSelect={false}
                         width="100%"
