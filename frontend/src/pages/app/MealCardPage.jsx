@@ -8,24 +8,25 @@ import {
 } from "@chakra-ui/react"
 import DishCard from "../../components/DishCard";
 import DishSearchDialog from "../../components/DishSearchDialog";
-import { useNavigate, useParams } from "react-router"
+import { useNavigate, useLocation, useParams } from "react-router"
 import { useState, useEffect } from "react";
 import { getCookie } from "../../components/Methods";
 
 
-
 export default function MealCardPage() {
     const navigate = useNavigate(); 
+    const location = useLocation()
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const {cardID} = useParams(); 
 
-    // --- Page state --- 
+    // --- States --- 
+    // Page state  
     const [loading, setLoading] = useState(true); 
     const [error, setError] = useState(null); 
-    const [metadata, setMetadata] = useState(null); 
+    const [metadata, setMetadata] = useState(null); // title, date 
     const [dishes, setDishes] = useState([]); 
 
-    //---  Edit mode  state --- 
+    // Edit mode  state 
     const [isEditing, setIsEditing] = useState(false);
     // Temp edit state (initialized from metadata/dishes when entering edit mode)
     const [editTitle, setEditTitle] = useState('');
@@ -35,7 +36,7 @@ export default function MealCardPage() {
     const [isSaving, setIsSaving] = useState(false);
         
     // --- Functions ---- 
-    // Formatting date for frontend display 
+    // Display mode: Format date for Frontend display 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
         return new Date(dateStr).toLocaleDateString('en-GB', {
@@ -45,25 +46,26 @@ export default function MealCardPage() {
             year: 'numeric',
         });
     };
-
-    // Remove dish 
-    const handleRemoveDish = (dishId) => {
-        setEditDishes(prev => prev.filter(d => d.dish_id !== dishId));
-    };
-
-    // Search dish handler 
-    const handleAddDish = (dish) => {
-        setEditDishes(prev => [...prev, dish]);
-    };
-
-    // Format date for API 
+    
+    // Save mode: Format date for API 
     const formatDateForAPI = (date) => {
         if (!date) return date;
         if (date.includes('T')) return date; // already full ISO string
         return `${date}T07:00:50Z`; 
     }
 
-    // Inital render fetch data
+    // Edit mode: Remove dish 
+    const handleRemoveDish = (dishId) => {
+        setEditDishes(prev => prev.filter(d => d.dish_id !== dishId));
+    };
+
+    // Edit mode: Add dish 
+    const handleAddDish = (dish) => {
+        setEditDishes(prev => [...prev, dish]);
+    };
+
+    // --- API call --- 
+    // Fetch data for display mode 
     useEffect(() => {
         const controller = new AbortController(); 
         setLoading(true); 
@@ -78,19 +80,23 @@ export default function MealCardPage() {
                 })
 
                 if(!response.ok) {
-                    throw new Error('error'); 
+                    throw new Error('Failed with status: ', + response.status); 
                 }
 
                 const result = await response.json(); 
                 setMetadata(result.MealCard); 
                 setDishes(result.Dishes)
 
-                // Debug [DELETE LATER]
-                console.log('Metadata:', result.MealCard);
-                console.log('Dishes array:', result.Dishes);
-
             } catch (err) {
-                if (err.name !== 'AbortError') setError(err.message);
+                if (err.name !== 'AbortError') 
+
+                if (err.message.includes("404")){
+                    setError("Meal Card not found"); 
+                } else if (error.message.includes("401")) {
+                    setError("Please login first"); 
+                } else {
+                    setError("Something went wrong")
+                }
             } finally {
                 setLoading(false)
             }
@@ -104,6 +110,7 @@ export default function MealCardPage() {
     // Delete entire meal card
     const handleDeleteMealCard = async () => {
         if (!window.confirm("Are you sure you want to delete this meal card?")) return;
+
         try {
             const response = await fetch(`${apiUrl}meal-cards/${cardID}`,  {
                 method: 'DELETE',
@@ -112,10 +119,11 @@ export default function MealCardPage() {
                 }
             });
             if (!response.ok) {
-                throw new Error('Failed to delete meal card');
+                throw new Error(res.status);
             }
 
             navigate('/app/meal-planner');
+
         } catch (error) {
             console.error('Error deleting meal card:', error);
         }
@@ -146,9 +154,6 @@ export default function MealCardPage() {
                     })
                 )
             );
-            console.log('token:', getCookie('token'));
-            console.log('cardID:', cardID);
-            console.log('payload:', { title: editTitle, meal_date: editDate });
 
             // 2. PUT title + date
             await fetch(`${apiUrl}meal-cards/${cardID}`, {
@@ -177,7 +182,7 @@ export default function MealCardPage() {
                 )
             );
 
-            // 4. Commit to confirmed state
+            // 4. Update to to confirmed state / Update to display mode 
             setMetadata(prev => ({ ...prev, title: editTitle, meal_date: editDate }));
             setDishes(editDishes);
             setIsEditing(false);
@@ -190,7 +195,7 @@ export default function MealCardPage() {
         }
     };
 
-
+    // ---- VIEW ---- 
      if (error) return <Text>Error: {error} </Text>
 
     return (
@@ -208,7 +213,7 @@ export default function MealCardPage() {
                     <Box 
                         as="span" 
                         color="white" fontSize="24px" 
-                        cursor="pointer" onClick={() => navigate(-1)}
+                        cursor="pointer" onClick={() => navigate(location.state?.from || "/app/meal-planner")}
                     >
                         <i className="ri-arrow-left-line"></i>
                     </Box>
@@ -232,7 +237,7 @@ export default function MealCardPage() {
                     }
 
 
-                    {/* Menu */}
+                    {/* Setting Options */}
                     <Menu.Root>
 
                         <Menu.Trigger asChild>
@@ -260,10 +265,10 @@ export default function MealCardPage() {
                                         _hover={{ bg: "gray.100" }}
                                         onClick={() => {
                                             setIsEditing(true);
+                                            // Initialized when entering Edit mode 
                                             setEditDate(metadata.meal_date);
                                             setEditTitle(metadata.title); 
                                             setEditDishes([...dishes]); 
-                                            console.log('Edit init:', metadata.title, metadata.meal_date, dishes)
                                         }}
                                     >
                                         Edit
@@ -330,9 +335,14 @@ export default function MealCardPage() {
                 }
                 
                 {/* Dish Count */}
-                <Text fontWeight="bold" fontSize="lg" mb={4}>
-                    {dishes?.length} dish: 
-                </Text>
+                {isEditing 
+                    ? <Text fontWeight="bold" fontSize="lg" mb={4}>
+                        {editDishes?.length} dish: 
+                    </Text>
+                    :  <Text fontWeight="bold" fontSize="lg" mb={4}>
+                        {dishes?.length} dish: 
+                    </Text>
+                }
 
                 {/* --- Dish Cards ---  */}
                 <Flex 

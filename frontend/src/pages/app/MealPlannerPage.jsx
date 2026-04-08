@@ -26,7 +26,7 @@ export default function MealPlannerPage() {
     const dayLabel = new Date(date).toLocaleDateString('en-US', {weekday: 'long'});
 
 
-    // --- Get The Date Meal Plan Function 
+    // --- Get date's Meal Cards --- 
     useEffect(() => {
 
         const controller = new AbortController(); 
@@ -34,9 +34,9 @@ export default function MealPlannerPage() {
         const fetchResults = async () => {
 
             try {
-                //  API call 
                 setLoading(true); 
                 setError(null); 
+
                 const res = await fetch(`${apiUrl}meal-cards/daily?date=${date}`, 
                     {
                         headers: {'Authorization': `Bearer ${getCookie('token')}`}, 
@@ -63,7 +63,7 @@ export default function MealPlannerPage() {
                 // Succeed 
                 const data = await res.json();
                 setResult(data);    
-                console.log(data)            
+                  
             } catch (err) {
                 if (err.name === 'AbortError') return;
                 console.error(err);

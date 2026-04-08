@@ -12,11 +12,9 @@ import DishCard from "./DishCard";
 export default function DishSearchDialog({ isOpen, onClose, onSelect, excludeIds = [] }) {
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
 
-    // --- Search state ---
+    // --- Search State ---
     const [inputValue, setInputValue] = useState('');
     const [query, setQuery] = useState('');
-
-    // --- Filter state ---
     const courseTag = ['breakfast', 'main-dishes', 'side-dishes', 'appetizers', 'soups', 'salads', 'desserts'];
     const [selectedCourse, setSelectedCourse] = useState('');
 
@@ -38,10 +36,12 @@ export default function DishSearchDialog({ isOpen, onClose, onSelect, excludeIds
 
     // --- Fetch Data ---
     useEffect(() => {
-        // if (!isOpen) return;
 
+        if (!isOpen) return;
         const controller = new AbortController();
+
         const fetchResults = async () => {
+
             const params = new URLSearchParams();
             params.set('limit', 8);
             params.set('page', 1);
@@ -54,9 +54,12 @@ export default function DishSearchDialog({ isOpen, onClose, onSelect, excludeIds
                 const res = await fetch(`${apiUrl}dishes/search?${params.toString()}`, {
                     signal: controller.signal
                 });
+
                 if (!res.ok) throw new Error('Search failed');
+
                 const data = await res.json();
                 setDishes(data.dishes);
+
             } catch (err) {
                 if (err.name === 'AbortError') return;
                 setError('Search failed, try again.');
@@ -67,11 +70,12 @@ export default function DishSearchDialog({ isOpen, onClose, onSelect, excludeIds
 
         fetchResults();
         return () => controller.abort();
-    }, [query, selectedCourse, isOpen]); // isOpen
+
+    }, [query, selectedCourse, isOpen]); 
 
     return (
+        // onOpenChange allows multiple ways to close Dialog (Esc key, click outside, click close button)
         <Dialog.Root size={{base: "sm", lg: "lg"}} open={isOpen} onOpenChange={(e) => { if (!e.open) onClose(); }} >
-        {/* <Dialog.Root  open={true} size={{base: "sm", lg: "lg"}}> */}
             <Portal>
                 <Dialog.Backdrop />
                 <Dialog.Positioner>

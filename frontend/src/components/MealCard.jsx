@@ -6,12 +6,13 @@ import {
     // functional: 
     Carousel, IconButton
 } from "@chakra-ui/react"
-import { useNavigate } from "react-router"
+import { useNavigate, useLocation } from "react-router"
 import { assetNameProcess } from "./Methods";
 const NO_IMAGE_PLACEHOLDER_URL = "../../assets/images/No-Image-Placeholder.jpg";
 
 export default function MealCard({cardId, title, dishes}) {
     const navigate = useNavigate();
+    const location = useLocation(); 
 
     return (
         <Box
@@ -20,7 +21,7 @@ export default function MealCard({cardId, title, dishes}) {
             rounded="xl" p={5} pb={0}
             bg="crimsonred.500"
             boxShadow="4px 4px 12px rgba(0, 0, 0, 0.2)"
-            cursor="pointer" onClick={() => navigate(`/app/meal-card/${cardId}`)}
+            cursor="pointer" onClick={() => navigate(`/app/meal-card/${cardId}`, {state: {from: location.pathname}})}
         > 
             {/* --- MealCard Title & number of dish */}
 
