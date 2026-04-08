@@ -20,7 +20,8 @@ export default function HomePage() {
     const location = useLocation(); 
 
     // ---- Today's Meal Cards State --- 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date()
+    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const [mealCards, setMealCards] = useState([]); 
     const [mealCardsLoading, setMealCardsLoading] = useState(false);
     const [mealCardsError, setMealCardsError] = useState(null); 
@@ -93,7 +94,7 @@ export default function HomePage() {
             setMealCardsError(null); 
 
             try {
-                const res = await fetch(`${apiUrl}meal-cards/daily?date=${today}`, 
+                const res = await fetch(`${apiUrl}meal-cards/daily?date=${localDate}`, 
                         {
                             headers: {'Authorization': `Bearer ${getCookie('token')}`}, 
                             signal: controller.signal
@@ -107,7 +108,7 @@ export default function HomePage() {
                 setMealCards(data ?? []);
                 
             } catch (err) {
-                setError(err.message); 
+                setMealCardsError(err.message); 
             } finally { 
                 setMealCardsLoading(false); 
             }
@@ -156,7 +157,7 @@ export default function HomePage() {
                             cursor="pointer"
                             onClick={() => navigate(`/app/meal-card/new`, { 
                                 state: { 
-                                    date: today,
+                                    date: localDate,
                                     from: location.pathname
                                 } 
                             })}
