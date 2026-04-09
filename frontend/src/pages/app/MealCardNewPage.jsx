@@ -113,7 +113,7 @@ export default function MealCardNewPage() {
                 {/* Date picker — initialized from planner date */}
                 <DatePicker.Root
                     locale="en-GB"
-                    timeZone="+07:00"
+                    timeZone="Asia/Ho_Chi_Minh"
                     defaultValue={date ? [parseDate(date)] : undefined}
                     onValueChange={(e) => {
                         if (e.value[0]) {

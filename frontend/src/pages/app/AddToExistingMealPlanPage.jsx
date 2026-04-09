@@ -68,7 +68,7 @@ export default function AddToExistingMealPlanPage() {
             width="100%">
             <Box
                 width="100%">
-                <DatePicker.Root timeZone="+07:00" value={[parseDate(selectedDate)]} width="100%" size="lg" onValueChange={onDateChage}>
+                <DatePicker.Root timeZone="Asia/Ho_Chi_Minh" value={[parseDate(selectedDate)]} width="100%" size="lg" onValueChange={onDateChage}>
                     <DatePicker.Control>
                         <DatePicker.Input
                             variant="outline" 
