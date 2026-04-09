@@ -86,7 +86,7 @@ export default function MealPlannerPage() {
                 {/* Date Picker  */}
                 <DatePicker.Root 
                     locale="en-GB"
-                    timeZone="+07:00"
+                    timeZone="Asia/Ho_Chi_Minh"
                     defaultValue={[parseDate(date)]}
                     onValueChange={(e) => {
                     if (e.value[0]) {
