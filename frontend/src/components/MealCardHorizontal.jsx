@@ -1,5 +1,5 @@
 import { Box, Text, Card, Button } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getCookie } from "./Methods";
 import { useSessionExpireContext } from "../context/SessionExpireContext";
 
@@ -10,7 +10,23 @@ export default function MealCardHorizontal({dish_id, card_id}) {
     const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const [fetchMealCard, setFetchMealCard] = useState(true)
     const [mealCard, setMealCard] = useState(null);
-    const date = useRef();
+
+    // Parse date string directly without Date object
+    const parseMealDate = (dateStr) => {
+        if (!dateStr) return { day: '', month: '', time: '' };
+    
+        const [datePart, timePart] = dateStr.split('T');
+        const [year, monthNum, day] = datePart.split('-');
+        const [hours, minutes] = timePart.split(':');
+        
+        return {
+            day: day,
+            month: month[parseInt(monthNum) - 1],
+            time: `${hours}:${minutes}`
+        };
+    };
+
+    const dateInfo = mealCard ? parseMealDate(mealCard.MealCard.meal_date) : { day: '', month: '', time: '' };
 
     useEffect(() => {
         if (fetchMealCard) {
@@ -25,10 +41,9 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                     return response.json()
                 }
 
-                return Promise.reject()
+                return Promise.reject(response)
             }).then((data) => {
                 if (data) {
-                    date.current = new Date(data.MealCard.meal_date)
                     setMealCard(data)
                 }
             }).catch((response) => {
@@ -97,9 +112,9 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                         justifyContent="space-between"
                         flexDirection="column"
                         color="white">
-                            <Text fontSize="3rem" lineHeight="1">{String(date.current.getDate()).padStart(2, '0')}</Text>
+                            <Text fontSize="3rem" lineHeight="1">{dateInfo.day}</Text>
                             <Box width="100%" height="2.5px" bg="white"></Box>
-                            <Text fontSize="2.3rem" lineHeight="1">{month[date.current.getMonth()]}</Text>
+                            <Text fontSize="2.3rem" lineHeight="1">{dateInfo.month}</Text>
                     </Box>
                     <Card.Body
                         padding="0.5rem 1rem"
@@ -110,7 +125,7 @@ export default function MealCardHorizontal({dish_id, card_id}) {
                         <Card.Title fontSize="1.8rem" lineHeight="1">
                             {mealCard.MealCard.title}
                         </Card.Title>
-                        <Card.Description marginTop="0.3rem">Time: {date.current.getHours()}:{String(date.current.getMinutes()).padStart(2, '0')}</Card.Description>
+                        <Card.Description marginTop="0.3rem">Time: {dateInfo.time}</Card.Description>
                         <Card.Description>{mealCard.Dishes.length} dishes</Card.Description>
                         {(mealCard.Dishes.some(dish => dish.dish_id == dish_id) ? (
                             <Button 
