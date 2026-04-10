@@ -17,10 +17,10 @@ export default function MealCardNewPage() {
     const {setIsExpired} = useSessionExpireContext();
 
     // --- Page state ---
-    const [title, setTitle] = useState('');
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('07:00'); // Default time for new cards
-    const [dishes, setDishes] = useState([]);
+    const [title, setTitle] = useState(location.state?.new_mc?.title || '');
+    const [date, setDate] = useState(location.state?.new_mc?.date || '');
+    const [time, setTime] = useState(location.state?.new_mc?.time || '07:00'); // Default time for new cards
+    const [dishes, setDishes] = useState(location.state?.new_mc?.dishes || []);
 
     // --- Status state ---
     const [isSaving, setIsSaving] = useState(false);
@@ -222,6 +222,10 @@ export default function MealCardNewPage() {
                             dishImage={dish.image}
                             dishID={dish.dish_id}
                             onRemove={() => handleRemoveDish(dish.dish_id)}
+                            title={title}
+                            date={date}
+                            time={time}
+                            dishes={dishes}
                         />
                     ))}
                 </Flex>

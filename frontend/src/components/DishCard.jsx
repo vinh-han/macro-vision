@@ -11,7 +11,7 @@ import { assetNameProcess } from "./Methods";
 const NO_IMAGE_PLACEHOLDER_URL = "../../public/assets/images/No-Image-Placeholder.jpg";
 
 
-export default function DishCard({dishName, dishDescription, dishCourse, dishID, onRemove, onAdd}) {
+export default function DishCard({dishName, dishDescription, dishCourse, dishID, onRemove, onAdd, title, date, time, dishes}) {
     const navigate = useNavigate(); 
     const location = useLocation();
 
@@ -50,8 +50,21 @@ export default function DishCard({dishName, dishDescription, dishCourse, dishID,
                 h="420px"
                 cursor={onAdd || onRemove ? "default" : "pointer"}
                 onClick={() => {
-                    if (onAdd) return; // in search dialog 
-                    navigate(`/app/dish/${dishID}`, { state: { from: location.pathname } });
+                    if (onAdd) return;
+                    if (title && date && time && dishes) {
+                        console.log("Test")
+                        navigate(`/app/dish/${dishID}`, { state: { 
+                            from: location.pathname,
+                            new_mc: {
+                                title: title,
+                                date: date,
+                                time: time,
+                                dishes: dishes
+                            }
+                        }});
+                    } else {
+                        navigate(`/app/dish/${dishID}`, { state: { from: location.pathname } });
+                    }    
                 }}
             >
                 <Image 
