@@ -4,14 +4,10 @@ import IngredientInputList from "../../components/IngredientInputList"
 import IngredInputContextProvider from "../../context/IngredientInputContext"
 import IngredientInputActionBox from "../../components/IngredientInputActionBox"
 import SuggestRecipeButton from "../../components/SuggestRecipeButton"
-import { getCookie } from "../../components/Methods"
 import LoadingModal from "../../components/LoadingModal"
-import { useSessionExpireContext } from "../../context/SessionExpireContext"
 import IngredientDetectButton from "../../components/IngredientDetectButton"
 
 export default function IngredientInputPage() {
-    const baseUrl = import.meta.env.VITE_BASE_API_URL
-    const {setIsExpired} = useSessionExpireContext();
     const [isEdit, setIsEdit] = useState(false)
     const [selectedIngred, setSelectedIngred] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +22,7 @@ export default function IngredientInputPage() {
                 position="sticky"
                 top="0"
                 zIndex="1">
-                <IngredientDetectButton setIsLoading={setIsLoading} />
+                <IngredientDetectButton isEdit={isEdit} setIsLoading={setIsLoading} />
             </Box>
             <Box
                 width="100%"

@@ -12,7 +12,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
     
     function editFavorite() {
         if (removed.includes(favoriteCard.dish_id)) {
-            console.log("Dish is unfavorite > Changing to favorite")
             fetch(`${baseUrl}users/favorites/${favoriteCard.dish_id}`, {
                 method: 'PATCH',
                 headers: {
@@ -26,7 +25,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
 
                 return Promise.reject(response)
             }).then(data => {
-                console.log(data)
                 const newRemoved = removed.filter((item) => item != favoriteCard.dish_id)
                 setRemoved(newRemoved)
             }).catch((response) => {
@@ -38,7 +36,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
             })
             
         } else {
-            console.log("Dish is favorite > Changing to unfavorite")
             fetch(`${baseUrl}users/favorites/${favoriteCard.dish_id}`, {
                 method: 'DELETE',
                 headers: {
@@ -52,7 +49,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
 
                 return Promise.reject(response)
             }).then(data => {
-                console.log(data)
                 setRemoved([...removed, favoriteCard.dish_id])
             }).catch((response) => {
                 if (response.status == 401) {
