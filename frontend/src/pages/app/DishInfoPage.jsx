@@ -164,7 +164,7 @@ export default function DishInfoPage() {
 
             {/* --- Content area ---*/}
             <Container mt={6}>
-                <Heading size="lg" mb={2}>{data?.dish_name} ({data?.alt_name?.String})</Heading>
+                <Heading size="lg" mb={2}>{data?.dish_name} {data?.alt_name?.String ? ` (${data.alt_name.String})` : ``}</Heading>
                 
                 {/* Meta Data  */}
                 <Text color="gray.500" fontSize="lg">
@@ -209,7 +209,7 @@ export default function DishInfoPage() {
                     >
                         <i class="ri-printer-fill"></i>
                     </Button> */}
-                    
+
                     {/* Share button  */}
                     <Button 
                         variant="outline" rounded="md"
@@ -223,7 +223,7 @@ export default function DishInfoPage() {
                 <hr/>
 
                 {/* Ingredient list */}
-                <Heading size="lg" mb={4} mt={4}>Ingredients</Heading>
+                <Heading size="lg" mb={1} mt={4}>Ingredients</Heading>
                 <Box as="ul" listStyleType="circle" ml={4} mb={4}>
                     {data?.full_recipe.split('\n').map((line, index) => {
 
@@ -240,7 +240,8 @@ export default function DishInfoPage() {
                             </Box>
                             ); 
                         } else if (line.trim()) {
-                            return <li key={index} >{line.trim()}</li>
+                            const cleanedLine = line.replace(/^-\s*/, '').trim();
+                            return <li key={index}>{cleanedLine}</li>;
                         }
 
                         return null; 

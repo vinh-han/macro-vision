@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS "dish_ingredients" (
   "dish_id" uuid NOT NULL,
   "ingredient_id" uuid NOT NULL,
   "amount" real NOT NULL,
-  "unit" text NOT NULL
+  "unit" text NOT NULL,
+  PRIMARY KEY ("dish_id", "ingredient_id")
 );
 
 ALTER TABLE "sessions" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
@@ -102,4 +103,3 @@ CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
 -- Meal cards: filter by user or date
 CREATE INDEX IF NOT EXISTS idx_meal_cards_user ON meal_cards(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_cards_meal_date ON meal_cards(meal_date);
-
