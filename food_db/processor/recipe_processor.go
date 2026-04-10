@@ -115,17 +115,28 @@ func parse_dish(source string, doc *goquery.Document, course string) error {
 	}
 	var recipe string
 	doc.Find("div.tasty-recipes-ingredients").Each(func(i int, s *goquery.Selection) {
-		s.Find("ul").Each(
-			func(i int, s *goquery.Selection) {
-				if s.Length() == 0 {
-					return
-				}
-				recipe = strings.TrimSpace(s.Text())
-			},
-		)
-		if recipe == "" {
+		var subRecipe []string
+		s.Find("h4").Each(func(i int, h4 *goquery.Selection) {
+			title := strings.TrimSpace(h4.Text())
+
+			ul := h4.NextAllFiltered("ul").First()
+			if ul.Length() == 0 {
+				return
+			}
+
+			var ingredients string
+			ingredients = strings.TrimSpace(ul.Text())
+
+			if len(ingredients) == 0 {
+				return
+			}
+
+			subRecipe = append(subRecipe, ("\n---" + title + "---\n\n" + ingredients))
+		})
+		if len(subRecipe) == 0 {
 			return
 		}
+		recipe = strings.Join(subRecipe, "\n")
 		dish.FullRecipe = recipe
 	})
 	doc.Find("h2").Each(func(i int, s *goquery.Selection) {
