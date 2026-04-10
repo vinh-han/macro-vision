@@ -55,25 +55,38 @@ export default function MealCardPage() {
         if (!editDate) return "Select date and time";
         
         // editDate is in ISO format: "2026-04-14T07:00:00Z"
-        const dateStr = editDate.split('T')[0]; // "2026-04-14"
-        const [year, month, day] = dateStr.split('-');
-        const [hours, minutes] = editTime.split(':');
-        const dateObj = new Date(year, month - 1, day, hours, minutes);
-        return formatter.format(dateObj);
-    }
+        const [datePart, timePart] = editDate.split('T');
+        const [year, month, day] = datePart.split('-');
+        const time = timePart.substring(0, 5); // "07:00"
+        
+        // Format manually without Date object
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthName = monthNames[parseInt(month) - 1];
+        
+        return `${monthName} ${parseInt(day)}, ${year}, ${time}`;
+    };
         
     // --- Functions ---- 
     // Display mode: Format date for Frontend display 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-GB', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: "numeric",
-            minute: "2-digit",
-        });
+        
+        // dateStr is in ISO format: "2026-04-14T07:00:00Z"
+        const [datePart, timePart] = dateStr.split('T');
+        const [year, month, day] = datePart.split('-');
+        const time = timePart.substring(0, 5); // "07:00"
+        
+        // Manual formatting
+        const monthNames = ["January", "February", "March", "April", "May", "June", 
+                            "July", "August", "September", "October", "November", "December"];
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        // Get day of week 
+        const tempDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        const dayOfWeek = dayNames[tempDate.getDay()];
+        
+        return `${dayOfWeek}, ${parseInt(day)} ${monthNames[parseInt(month) - 1]} ${year}, ${time}`;
     };
     
     // Save mode: Format date for API 
@@ -179,7 +192,7 @@ export default function MealCardPage() {
                 .filter(e => !dishes.find(d => d.dish_id === e.dish_id));
 
             // 1. DELETE removed dishes in parallel
-            await Promise.all(
+            const deleteResponses = await Promise.all(
                 deletedIds.map(id =>
                     fetch(`${apiUrl}meal-cards/dishes`, {
                         method: 'DELETE',
@@ -204,7 +217,7 @@ export default function MealCardPage() {
             }
 
             // 2. PUT title + date
-            await fetch(`${apiUrl}meal-cards/${cardID}`, {
+            const updateResponse = await fetch(`${apiUrl}meal-cards/${cardID}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${getCookie('token')}`,
@@ -225,7 +238,7 @@ export default function MealCardPage() {
             }
 
             // 3. POST added dishes in parallel
-            await Promise.all(
+            const addResponses = await Promise.all(
                 addedDishes.map(dish =>
                     fetch(`${apiUrl}meal-cards/dishes`, {
                         method: 'POST',
@@ -249,7 +262,7 @@ export default function MealCardPage() {
                 }
             }
 
-            // 4. Update to to confirmed state / Update to display mode 
+            // 4. Update to confirmed state / Update to display mode 
             setMetadata(prev => ({ ...prev, title: editTitle, meal_date: editDate }));
             setDishes(editDishes);
             setIsEditing(false);
