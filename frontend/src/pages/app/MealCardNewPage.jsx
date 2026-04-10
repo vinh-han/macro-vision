@@ -7,11 +7,14 @@ import DishSearchDialog from "../../components/DishSearchDialog";
 import { useNavigate, useLocation } from "react-router"
 import { useState } from "react";
 import { getCookie } from "../../components/Methods";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
+
 
 export default function MealCardNewPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
+    const {setIsExpired} = useSessionExpireContext();
 
     // --- Page state ---
     const [title, setTitle] = useState('');
@@ -81,10 +84,15 @@ export default function MealCardNewPage() {
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to create meal card');
+            if (!response.ok) {
+                if (response.status == 401) {
+                    setIsExpired(true)
+                    return
+                } 
+                throw new Error('Failed to create meal card');
+            }
 
             const result = await response.json();
-            console.log(result);
             navigate(`/app/meal-card/${result.MealCard.card_id}`);
 
         } catch (err) {

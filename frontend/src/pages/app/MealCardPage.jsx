@@ -11,9 +11,12 @@ import DishSearchDialog from "../../components/DishSearchDialog";
 import { useNavigate, useLocation, useParams } from "react-router"
 import { useState, useEffect } from "react";
 import { getCookie } from "../../components/Methods";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
+
 
 
 export default function MealCardPage() {
+    const {setIsExpired} = useSessionExpireContext();
     const navigate = useNavigate(); 
     const location = useLocation()
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
@@ -105,13 +108,16 @@ export default function MealCardPage() {
                 })
 
                 if(!response.ok) {
+                    if (response.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
                     throw new Error('Failed with status: ', + response.status); 
                 }
 
                 const result = await response.json(); 
                 setMetadata(result.MealCard); 
                 setDishes(result.Dishes)
-                console.log(result.MealCard)
 
             } catch (err) {
                 if (err.name !== 'AbortError') 
@@ -144,8 +150,13 @@ export default function MealCardPage() {
                     'Authorization': `Bearer ${getCookie('token')}`
                 }
             });
-            if (!response.ok) {
-                throw new Error(res.status);
+
+            if(!response.ok) {
+                if (response.status == 401) {
+                    setIsExpired(true)
+                    return
+                } 
+                throw new Error('Failed with status: ', + response.status); 
             }
 
             navigate('/app/meal-planner');
@@ -181,6 +192,17 @@ export default function MealCardPage() {
                 )
             );
 
+            // Check for 401 in delete responses
+            for (const res of deleteResponses) {
+                if (res.status === 401) {
+                    setIsExpired(true);
+                    return;
+                }
+                if (!res.ok) {
+                    throw new Error(`Delete failed with status: ${res.status}`);
+                }
+            }
+
             // 2. PUT title + date
             await fetch(`${apiUrl}meal-cards/${cardID}`, {
                 method: 'PUT',
@@ -193,6 +215,14 @@ export default function MealCardPage() {
                     meal_date: formatDateForAPI(editDate)
                 })
             });
+
+            if (updateResponse.status === 401) {
+                setIsExpired(true);
+                return;
+            }
+            if (!updateResponse.ok) {
+                throw new Error(`Update failed with status: ${updateResponse.status}`);
+            }
 
             // 3. POST added dishes in parallel
             await Promise.all(
@@ -207,6 +237,17 @@ export default function MealCardPage() {
                     })
                 )
             );
+
+            // Check for 401 in add responses
+            for (const res of addResponses) {
+                if (res.status === 401) {
+                    setIsExpired(true);
+                    return;
+                }
+                if (!res.ok) {
+                    throw new Error(`Add dish failed with status: ${res.status}`);
+                }
+            }
 
             // 4. Update to to confirmed state / Update to display mode 
             setMetadata(prev => ({ ...prev, title: editTitle, meal_date: editDate }));

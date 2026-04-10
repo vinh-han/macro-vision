@@ -63,6 +63,7 @@ export default function DishInfoPage() {
                     } catch(err) {       
                     }
                     setError(errorMessage); 
+
                 } else {
                     setError(`Server error: ${response.status}`);
                 }

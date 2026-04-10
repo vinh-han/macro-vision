@@ -12,6 +12,8 @@ import DishCard from "../../components/DishCard"
 import { use, useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router"
 import { getCookie } from "../../components/Methods";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
+
 
 
 export default function HomePage() {
@@ -19,6 +21,7 @@ export default function HomePage() {
     const navigate = useNavigate();
     const location = useLocation(); 
     const showCarousel = useBreakpointValue({ base: true, md: false });
+    const {setIsExpired} = useSessionExpireContext();
 
     // ---- Today's Meal Cards State --- 
     const today = new Date()
@@ -56,19 +59,12 @@ export default function HomePage() {
                 const res = await fetch(`${apiUrl}dishes/search?${params}`, {signal: controler.signal}); 
 
                 // Error handle: 
-                if (!res.ok) {
-                    if (res.status >= 400 && res.status < 500) {
-                        let errorMessage = 'Invalid search. Please check your input'; 
-                        try {
-                            const body = await res.json(); 
-                            errorMessage = body.message || errorMessage;
-                        } catch(err) {       
-                        }
-                        setPopularDishesError(errorMessage); 
-                    } else {
-                        setPopularDishesError(`Server error: ${res.status}`);
-                    }
-                    return; 
+                if(!res.ok) {
+                    if (res.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
+                    throw new Error('Failed with status: ', + response.status); 
                 }
 
                 // Succeed 
@@ -76,7 +72,6 @@ export default function HomePage() {
                 setPopularDishes(data.dishes);
             } catch (err) {
                 if (err.name === 'AbortError') return;
-                console.error(err);
                 setPopularDishesError('Could not connect. Check your internet connection.'); 
             } finally {
                 setPopularDishesLoading(false);
@@ -102,9 +97,14 @@ export default function HomePage() {
                         }
                     ); 
 
-                if (!res.ok) {
-                    throw new Error('Sever returns ' + res.status); 
+                if(!res.ok) {
+                    if (res.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
+                    throw new Error('Failed with status: ', + response.status); 
                 }
+
                 const data = await res.json(); 
                 setMealCards(data ?? []);
                 
