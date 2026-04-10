@@ -11,9 +11,12 @@ import DishSearchDialog from "../../components/DishSearchDialog";
 import { useNavigate, useLocation, useParams } from "react-router"
 import { useState, useEffect } from "react";
 import { getCookie } from "../../components/Methods";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
+
 
 
 export default function MealCardPage() {
+    const {setIsExpired} = useSessionExpireContext();
     const navigate = useNavigate(); 
     const location = useLocation()
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
@@ -38,24 +41,52 @@ export default function MealCardPage() {
     const [editTime, setEditTime] = useState('07:00');
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-    // Initialize when entering edit mode
-    useEffect(() => {
-    if (isEditing && editDate) {
-        const timeStr = editDate.split('T')[1]?.substring(0, 5) || '07:00';
-        setEditTime(timeStr);
-    }
-    }, [isEditing]);
+     // Formatter for display
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    })
+
+    // Format display value
+    const getDisplayValue = () => {
+        if (!editDate) return "Select date and time";
+        
+        // editDate is in ISO format: "2026-04-14T07:00:00Z"
+        const [datePart, timePart] = editDate.split('T');
+        const [year, month, day] = datePart.split('-');
+        const time = timePart.substring(0, 5); // "07:00"
+        
+        // Format manually without Date object
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthName = monthNames[parseInt(month) - 1];
+        
+        return `${monthName} ${parseInt(day)}, ${year}, ${time}`;
+    };
         
     // --- Functions ---- 
     // Display mode: Format date for Frontend display 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-GB', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        });
+        
+        // dateStr is in ISO format: "2026-04-14T07:00:00Z"
+        const [datePart, timePart] = dateStr.split('T');
+        const [year, month, day] = datePart.split('-');
+        const time = timePart.substring(0, 5); // "07:00"
+        
+        // Manual formatting
+        const monthNames = ["January", "February", "March", "April", "May", "June", 
+                            "July", "August", "September", "October", "November", "December"];
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        // Get day of week 
+        const tempDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        const dayOfWeek = dayNames[tempDate.getDay()];
+        
+        return `${dayOfWeek}, ${parseInt(day)} ${monthNames[parseInt(month) - 1]} ${year}, ${time}`;
     };
     
     // Save mode: Format date for API 
@@ -90,13 +121,16 @@ export default function MealCardPage() {
                 })
 
                 if(!response.ok) {
+                    if (response.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
                     throw new Error('Failed with status: ', + response.status); 
                 }
 
                 const result = await response.json(); 
                 setMetadata(result.MealCard); 
                 setDishes(result.Dishes)
-                console.log(result.MealCard)
 
             } catch (err) {
                 if (err.name !== 'AbortError') 
@@ -129,8 +163,13 @@ export default function MealCardPage() {
                     'Authorization': `Bearer ${getCookie('token')}`
                 }
             });
-            if (!response.ok) {
-                throw new Error(res.status);
+
+            if(!response.ok) {
+                if (response.status == 401) {
+                    setIsExpired(true)
+                    return
+                } 
+                throw new Error('Failed with status: ', + response.status); 
             }
 
             navigate('/app/meal-planner');
@@ -153,7 +192,7 @@ export default function MealCardPage() {
                 .filter(e => !dishes.find(d => d.dish_id === e.dish_id));
 
             // 1. DELETE removed dishes in parallel
-            await Promise.all(
+            const deleteResponses = await Promise.all(
                 deletedIds.map(id =>
                     fetch(`${apiUrl}meal-cards/dishes`, {
                         method: 'DELETE',
@@ -166,8 +205,19 @@ export default function MealCardPage() {
                 )
             );
 
+            // Check for 401 in delete responses
+            for (const res of deleteResponses) {
+                if (res.status === 401) {
+                    setIsExpired(true);
+                    return;
+                }
+                if (!res.ok) {
+                    throw new Error(`Delete failed with status: ${res.status}`);
+                }
+            }
+
             // 2. PUT title + date
-            await fetch(`${apiUrl}meal-cards/${cardID}`, {
+            const updateResponse = await fetch(`${apiUrl}meal-cards/${cardID}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${getCookie('token')}`,
@@ -179,8 +229,16 @@ export default function MealCardPage() {
                 })
             });
 
+            if (updateResponse.status === 401) {
+                setIsExpired(true);
+                return;
+            }
+            if (!updateResponse.ok) {
+                throw new Error(`Update failed with status: ${updateResponse.status}`);
+            }
+
             // 3. POST added dishes in parallel
-            await Promise.all(
+            const addResponses = await Promise.all(
                 addedDishes.map(dish =>
                     fetch(`${apiUrl}meal-cards/dishes`, {
                         method: 'POST',
@@ -193,7 +251,18 @@ export default function MealCardPage() {
                 )
             );
 
-            // 4. Update to to confirmed state / Update to display mode 
+            // Check for 401 in add responses
+            for (const res of addResponses) {
+                if (res.status === 401) {
+                    setIsExpired(true);
+                    return;
+                }
+                if (!res.ok) {
+                    throw new Error(`Add dish failed with status: ${res.status}`);
+                }
+            }
+
+            // 4. Update to confirmed state / Update to display mode 
             setMetadata(prev => ({ ...prev, title: editTitle, meal_date: editDate }));
             setDishes(editDishes);
             setIsEditing(false);
@@ -243,6 +312,7 @@ export default function MealCardPage() {
                             onChange={e => setEditTitle(e.target.value)}
                             fontSize="4xl"
                             fontWeight="bold"
+                            height="50px"
                         />
                         : <Heading fontSize="4xl">{metadata?.title}</Heading>
                     }
@@ -280,6 +350,10 @@ export default function MealCardPage() {
                                             setEditDate(metadata.meal_date);
                                             setEditTitle(metadata.title); 
                                             setEditDishes([...dishes]); 
+
+                                            // Initialize editTime from metadata.meal_date
+                                            const timeStr = metadata.meal_date.split('T')[1]?.substring(0, 5) || '07:00';
+                                            setEditTime(timeStr);
                                         }}
                                     >
                                         Edit
@@ -320,12 +394,18 @@ export default function MealCardPage() {
                         onOpenChange={(details) => setIsDatePickerOpen(details.open)}
                     >
                         <DatePicker.Control>
-                            <DatePicker.Input />
-                            <DatePicker.IndicatorGroup>
-                                <DatePicker.Trigger>
+                            <DatePicker.Trigger asChild>
+                                <Button
+                                    variant="outline"
+                                    width="full"
+                                    height="50px"
+                                    justifyContent="space-between"
+                                    mt={2}
+                                >
+                                    {getDisplayValue()}
                                     <i className="ri-calendar-view"></i>
-                                </DatePicker.Trigger>
-                            </DatePicker.IndicatorGroup>
+                                </Button>
+                            </DatePicker.Trigger>
                         </DatePicker.Control>
                         
                         <Portal>
@@ -427,8 +507,13 @@ export default function MealCardPage() {
 
                 {/* --- Buttons in Editing mode ---  */}
                 {isEditing && (
-                    <HStack mt={4} p={4}>
+                    <HStack mt={4} p={4} gap={10} justify="center">
                         <Button 
+                            w="90px"
+                            h="50px"
+                            p={5}
+                            bg="gray"
+                            round="md"
                             mt={2} 
                             onClick={() => {
                             setIsEditing(false);
@@ -443,7 +528,11 @@ export default function MealCardPage() {
                         </Button>
                         <Button 
                             mt={2} 
-                            bg="red.500" 
+                            w="90px"
+                            h="50px"
+                            p={5}
+                            round="md"
+                            bg="crimsonred.500"
                             onClick={handleSave}
                             disabled={isSaving}
                             opacity={isSaving ? 0.6 : 1}

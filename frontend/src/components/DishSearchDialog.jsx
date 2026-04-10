@@ -43,7 +43,7 @@ export default function DishSearchDialog({ isOpen, onClose, onSelect, excludeIds
         const fetchResults = async () => {
 
             const params = new URLSearchParams();
-            params.set('limit', 8);
+            params.set('limit', 15);
             params.set('page', 1);
             if (query) params.set('q', query);
             if (selectedCourse) params.set('course', selectedCourse);
@@ -52,7 +52,7 @@ export default function DishSearchDialog({ isOpen, onClose, onSelect, excludeIds
                 setLoading(true);
                 setError(null);
                 const res = await fetch(`${apiUrl}dishes/search?${params.toString()}`, {
-                    signal: controller.signal
+                    signal:     controller.signal
                 });
 
                 if (!res.ok) throw new Error('Search failed');

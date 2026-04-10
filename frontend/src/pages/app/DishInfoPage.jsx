@@ -63,6 +63,7 @@ export default function DishInfoPage() {
                     } catch(err) {       
                     }
                     setError(errorMessage); 
+
                 } else {
                     setError(`Server error: ${response.status}`);
                 }
@@ -142,7 +143,14 @@ export default function DishInfoPage() {
                 <Box 
                     as="span" 
                     color="white" fontSize="24px" 
-                    cursor="pointer" onClick={() => navigate(location.state?.from || "/app")} 
+                    cursor="pointer" onClick={() => {
+                        console.log(location.state?.new_mc)
+                        navigate(location.state?.from || "/app", {
+                            state: location.state?.new_mc ? {
+                                new_mc: location.state.new_mc
+                            } : null
+                        })
+                    }} 
                 >
                     <i className="ri-arrow-left-line"></i>
                 </Box>

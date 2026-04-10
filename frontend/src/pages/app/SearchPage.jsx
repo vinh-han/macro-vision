@@ -8,10 +8,12 @@ import {
     Text, Separator
 } from "@chakra-ui/react";
 import DishCard from "../../components/DishCard";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
 
 
 export default function SearchPage() {
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
+    const {setIsExpired} = useSessionExpireContext();
 
     // --- Search box state --- 
     const [inputValue, setInputValue] = useState(''); 
@@ -82,18 +84,10 @@ export default function SearchPage() {
 
                 // Error handle: 
                 if (!res.ok) {
-                    if (res.status >= 400 && res.status < 500) {
-                        let errorMessage = 'Invalid search. Please check your input'; 
-                        try {
-                            const body = await res.json(); 
-                            errorMessage = body.message || errorMessage;
-                        } catch(err) {       
-                        }
-                        setError(errorMessage); 
-                    } else {
-                        setError(`Server error: ${res.status}`);
-                    }
-                    return; 
+                    if (res.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
                 }
 
                 // Succeed 

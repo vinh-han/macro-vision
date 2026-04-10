@@ -27,6 +27,8 @@ export default function AddToNewMealPlanPage() {
     const [selectedDate, setSelectedDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours(), currentDate.getMinutes()));
     const timeValue = `${String(selectedDate.getHours()).padStart(2, "0")}:${String(selectedDate.getMinutes()).padStart(2, "0")}`;
 
+
+    // - TIME - 
     const onTimeChange = (e) => {
         const [hours, minutes] = e.currentTarget.value.split(":").map(Number)
 
@@ -37,6 +39,7 @@ export default function AddToNewMealPlanPage() {
         setSelectedDate(nextDate)
     }
 
+    // - DATE- 
     const onDateChange = (details) => {
         const newDateVal = details.value[0]
 
@@ -44,15 +47,26 @@ export default function AddToNewMealPlanPage() {
             return
         }
 
-        const nextDate = new Date(selectedDate)
-        
-        nextDate.setFullYear(newDateVal.year)
-        nextDate.setDate(newDateVal.day)
-        nextDate.setMonth(newDateVal.month - 1)
-        nextDate.setDate(newDateVal.day)
-        
+        const nextDate = new Date(
+        newDateVal.year,
+        newDateVal.month - 1,
+        newDateVal.day,
+        selectedDate.getHours(),      
+        selectedDate.getMinutes()    
+    )
+            
 
         setSelectedDate(nextDate)
+    }
+
+    // - FORMAT DATE TO ISO FORMAT --- 
+    function formatDateForAPI(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}:00Z`;
     }
 
     function submitHandler(e) {
@@ -60,7 +74,7 @@ export default function AddToNewMealPlanPage() {
         
         const mealCardInfo = {
             dishes: [selectedRecipe.dish_id],
-            meal_date: selectedDate.toISOString(),
+            meal_date: formatDateForAPI(selectedDate),
             title: mealName.current.value
         }
 
@@ -78,7 +92,7 @@ export default function AddToNewMealPlanPage() {
 
             return Promise.reject(response)
         }).then(() => {
-            navigate('../../recipe-suggest')
+            navigate(location.state?.from || "/app")
         }).catch((response) => {
             if (response.status == 401) {
                 setIsExpired(true)

@@ -4,7 +4,7 @@ import { getCookie } from "./Methods";
 import { useRef } from "react";
 
 
-export default function IngredientDetectButton({setIsLoading}) {
+export default function IngredientDetectButton({isEdit, setIsLoading}) {
     const baseUrl = import.meta.env.VITE_BASE_API_URL
     const {addIngred} = useIngredInputContext();
     const clearRef = useRef();
@@ -52,18 +52,19 @@ export default function IngredientDetectButton({setIsLoading}) {
         <FileUpload.Root onFileAccept={handleDetection} accept="image/*">
             <FileUpload.HiddenInput name="img-file" />
             <FileUpload.Trigger asChild>
-                    <Button
-                    width="100%"
-                    height="fit-content"
-                    padding="0.5rem"
-                    background="crimsonred.500"
-                    rounded="12px"
-                    gap="0.8rem">
-                    <i className="ri-camera-4-line" style={{fontSize: "2.1rem", lineHeight: 1}}></i>
-                    <Text
-                        justifyContent="stretch"
-                        fontSize="1.4rem"
-                        fontWeight="semibold">Ingredients from Image</Text>
+                <Button
+                width="100%"
+                height="fit-content"
+                padding="0.5rem"
+                background="crimsonred.500"
+                rounded="12px"
+                gap="0.8rem"
+                disabled={isEdit}>
+                <i className="ri-camera-4-line" style={{fontSize: "2.1rem", lineHeight: 1}}></i>
+                <Text
+                    justifyContent="stretch"
+                    fontSize="1.4rem"
+                    fontWeight="semibold">Ingredients from Image</Text>
                 </Button>
             </FileUpload.Trigger>
             <FileUpload.ClearTrigger ref={clearRef} hidden={true}/>

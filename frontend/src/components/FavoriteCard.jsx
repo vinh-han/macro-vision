@@ -12,7 +12,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
     
     function editFavorite() {
         if (removed.includes(favoriteCard.dish_id)) {
-            console.log("Dish is unfavorite > Changing to favorite")
             fetch(`${baseUrl}users/favorites/${favoriteCard.dish_id}`, {
                 method: 'PATCH',
                 headers: {
@@ -26,7 +25,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
 
                 return Promise.reject(response)
             }).then(data => {
-                console.log(data)
                 const newRemoved = removed.filter((item) => item != favoriteCard.dish_id)
                 setRemoved(newRemoved)
             }).catch((response) => {
@@ -38,7 +36,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
             })
             
         } else {
-            console.log("Dish is favorite > Changing to unfavorite")
             fetch(`${baseUrl}users/favorites/${favoriteCard.dish_id}`, {
                 method: 'DELETE',
                 headers: {
@@ -52,7 +49,6 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
 
                 return Promise.reject(response)
             }).then(data => {
-                console.log(data)
                 setRemoved([...removed, favoriteCard.dish_id])
             }).catch((response) => {
                 if (response.status == 401) {
@@ -74,7 +70,12 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
             boxShadow="0.3rem 0.3rem 0.5rem #0000004d"
             display="flex"
             flexDirection="row"
-            position="relative">
+            position="relative"
+            onClick={() => navigate(`/app/dish/${favoriteCard.dish_id}`, {
+                state: {
+                    from: location.pathname
+                }
+            })}>
             <Image
                 width="30%"
                 rounded="12px"
@@ -115,15 +116,14 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
                         <i 
                         className={!removed.includes(favoriteCard.dish_id) ? "ri-heart-3-fill" : "ri-heart-3-line"} 
                         style={{fontSize: "1.6rem", lineHeight: 1, color: "#AB3841"}}
-                        onClick={() => editFavorite()}></i>
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            editFavorite();
+                        }}></i>
                         <i 
                         className="ri-arrow-right-long-line" 
                         style={{fontSize: "1.6rem", lineHeight: 1}}
-                        onClick={() => navigate(`/app/dish/${favoriteCard.dish_id}`, {
-                            state: {
-                                from: location.pathname
-                            }
-                        })}></i>
+                        ></i>
                     </Box>
             </Card.Body>
         </Card.Root>

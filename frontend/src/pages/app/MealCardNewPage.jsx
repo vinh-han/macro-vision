@@ -7,24 +7,46 @@ import DishSearchDialog from "../../components/DishSearchDialog";
 import { useNavigate, useLocation } from "react-router"
 import { useState } from "react";
 import { getCookie } from "../../components/Methods";
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
+
 
 export default function MealCardNewPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
+    const {setIsExpired} = useSessionExpireContext();
 
     // --- Page state ---
-    // Pre-fill date from MealPlannerPage if passed, otherwise blank
-    const [title, setTitle] = useState('');
-    const [date, setDate] = useState(location.state?.date ?? '');
-    const [dishes, setDishes] = useState([]);
+    const [title, setTitle] = useState(location.state?.new_mc?.title || '');
+    const [date, setDate] = useState(location.state?.new_mc?.date || '');
+    const [time, setTime] = useState(location.state?.new_mc?.time || '07:00'); // Default time for new cards
+    const [dishes, setDishes] = useState(location.state?.new_mc?.dishes || []);
 
     // --- Status state ---
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
     const [showDishSearch, setShowDishSearch] = useState(false);
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     // --- Functions ---
+    // Formatter for display
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    })
+
+    // Format display value
+    const getDisplayValue = () => {
+        if (!date) return "Select date and time";
+        const [year, month, day] = date.split('-');
+        const [hours, minutes] = time.split(':');
+        const dateObj = new Date(year, month - 1, day, hours, minutes);
+        return formatter.format(dateObj);
+    }
+
     const handleAddDish = (dish) => {
         setDishes(prev => [...prev, dish]);
     };
@@ -33,12 +55,13 @@ export default function MealCardNewPage() {
         setDishes(prev => prev.filter(d => d.dish_id !== dishId));
     };
 
-    const formatDateForAPI = (date) => {
+    const formatDateForAPI = (date, time) => {
         if (!date) return date;
-        if (date.includes('T')) return date;
-        return `${date}T07:00:50Z`;
+        const dateStr = date.split('T')[0];
+        return `${dateStr}T${time}:00Z`;
     }
 
+    // Create new meal card
     const handleCreate = async () => {
         // basic validation before sending to api 
         if (!title.trim()) return setError('Please add a title.');
@@ -56,15 +79,20 @@ export default function MealCardNewPage() {
                 },
                 body: JSON.stringify({
                     title: title.trim(),
-                    meal_date: formatDateForAPI(date),
+                    meal_date: formatDateForAPI(date, time),
                     dishes: dishes.map(d => d.dish_id)
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to create meal card');
+            if (!response.ok) {
+                if (response.status == 401) {
+                    setIsExpired(true)
+                    return
+                } 
+                throw new Error('Failed to create meal card');
+            }
 
             const result = await response.json();
-            console.log(result);
             navigate(`/app/meal-card/${result.MealCard.card_id}`);
 
         } catch (err) {
@@ -95,11 +123,12 @@ export default function MealCardNewPage() {
                             value={title}
                             onChange={e => {
                                 setTitle(e.target.value);
-                                if (error) setError(null); // clear error as user types
+                                if (error) setError(null);
                             }}
                             placeholder="Meal card title..."
                             fontSize="4xl"
                             fontWeight="bold"
+                            height="50px"
                             borderColor={error ? 'red.400' : undefined}
                         />
                         {error && (
@@ -110,27 +139,34 @@ export default function MealCardNewPage() {
                     </Box>
                 </HStack>
 
-                {/* Date picker — initialized from planner date */}
+                {/* Date & Time picker */}
                 <DatePicker.Root
+                    view="day"
                     locale="en-GB"
                     timeZone="Asia/Ho_Chi_Minh"
-                    defaultValue={date ? [parseDate(date)] : undefined}
                     onValueChange={(e) => {
                         if (e.value[0]) {
                             const { year, month, day } = e.value[0];
-                            setDate(
-                                `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                            );
+                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            setDate(dateStr);
                         }
                     }}
+                    open={isDatePickerOpen}
+                    onOpenChange={(details) => setIsDatePickerOpen(details.open)}
                 >
                     <DatePicker.Control>
-                        <DatePicker.Input />
-                        <DatePicker.IndicatorGroup>
-                            <DatePicker.Trigger>
+                        <DatePicker.Trigger asChild>
+                            <Button
+                                variant="outline"
+                                width="full"
+                                height="50px"
+                                justifyContent="space-between"
+                                mt={2}
+                            >
+                                {getDisplayValue()}
                                 <i className="ri-calendar-view"></i>
-                            </DatePicker.Trigger>
-                        </DatePicker.IndicatorGroup>
+                            </Button>
+                        </DatePicker.Trigger>
                     </DatePicker.Control>
                     <Portal>
                         <DatePicker.Positioner>
@@ -138,19 +174,37 @@ export default function MealCardNewPage() {
                                 <DatePicker.View view="day">
                                     <DatePicker.Header />
                                     <DatePicker.DayTable />
-                                </DatePicker.View>
-                                <DatePicker.View view="month">
-                                    <DatePicker.Header />
-                                    <DatePicker.MonthTable />
-                                </DatePicker.View>
-                                <DatePicker.View view="year">
-                                    <DatePicker.Header />
-                                    <DatePicker.YearTable />
+                                    {/* Time input */}
+                                    <Input
+                                        type="time"
+                                        value={time}
+                                        onChange={(e) => {
+                                            const newTime = e.target.value;
+                                            if (!newTime) return;
+                                            setTime(newTime);
+                                        }}
+                                        mt="2"
+                                    />
                                 </DatePicker.View>
                             </DatePicker.Content>
                         </DatePicker.Positioner>
                     </Portal>
                 </DatePicker.Root>
+
+                {/* Manual backdrop when picker is open */}
+                {isDatePickerOpen && (
+                    <Box
+                        position="fixed"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="blackAlpha.600"
+                        backdropFilter="blur(4px)"
+                        zIndex={999}
+                        onClick={() => setIsDatePickerOpen(false)}
+                    />
+                )}
 
                 {/* Dish count */}
                 <Text fontWeight="bold" fontSize="lg" mb={4} mt={4}>
@@ -168,6 +222,10 @@ export default function MealCardNewPage() {
                             dishImage={dish.image}
                             dishID={dish.dish_id}
                             onRemove={() => handleRemoveDish(dish.dish_id)}
+                            title={title}
+                            date={date}
+                            time={time}
+                            dishes={dishes}
                         />
                     ))}
                 </Flex>
@@ -196,8 +254,13 @@ export default function MealCardNewPage() {
                 />
 
                 {/* --- Action buttons --- */}
-                <HStack mt={4} p={4}>
+                <HStack mt={4} p={4} gap={10} justify="center">
                     <Button
+                        w="90px"
+                        h="50px"
+                        p={5}
+                        bg="gray"
+                        round="md"
                         onClick={() => navigate(location.state?.from || "/app/meal-planner")}
                         disabled={isSaving}
                         opacity={isSaving ? 0.6 : 1}
@@ -205,7 +268,11 @@ export default function MealCardNewPage() {
                         Cancel
                     </Button>
                     <Button
-                        bg="red.500"
+                        w="90px"
+                        h="50px"
+                        p={5}
+                        round="md"
+                        bg="crimsonred.500"
                         onClick={handleCreate}
                         disabled={isSaving}
                         opacity={isSaving ? 0.6 : 1}

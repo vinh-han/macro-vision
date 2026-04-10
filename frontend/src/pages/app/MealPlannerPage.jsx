@@ -10,12 +10,14 @@ import {
 import MealCard from "../../components/MealCard";
 import { getCookie } from "../../components/Methods";
 import { useNavigate, useLocation } from "react-router"
+import { useSessionExpireContext } from "../../context/SessionExpireContext";
 
 
 export default function MealPlannerPage() {
     const location = useLocation();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const navigate = useNavigate();
+    const {setIsExpired} = useSessionExpireContext();
 
     // --- Page state --     
     const [result, setResult] = useState([])
@@ -48,18 +50,10 @@ export default function MealPlannerPage() {
 
                 // Error handle: 
                 if (!res.ok) {
-                    if (res.status >= 400 && res.status < 500) {
-                        let errorMessage = 'Invalid search. Please check your input'; 
-                        try {
-                            const body = await res.json(); 
-                            errorMessage = body.message || errorMessage;
-                        } catch(err) {       
-                        }
-                        setError(errorMessage); 
-                    } else {
-                        setError(`Server error: ${res.status}`);
-                    }
-                    return; 
+                    if (res.status == 401) {
+                        setIsExpired(true)
+                        return
+                    } 
                 }
 
                 // Succeed 
