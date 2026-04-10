@@ -35,15 +35,15 @@ export default function MealCardPage() {
     const [showDishSearch, setShowDishSearch] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-const [editTime, setEditTime] = useState('07:00');
+    const [editTime, setEditTime] = useState('07:00');
 
-// Initialize when entering edit mode
-useEffect(() => {
-  if (isEditing && editDate) {
-    const timeStr = editDate.split('T')[1]?.substring(0, 5) || '07:00';
-    setEditTime(timeStr);
-  }
-}, [isEditing, editDate]);
+    // Initialize when entering edit mode
+    useEffect(() => {
+    if (isEditing && editDate) {
+        const timeStr = editDate.split('T')[1]?.substring(0, 5) || '07:00';
+        setEditTime(timeStr);
+    }
+    }, [isEditing]);
         
     // --- Functions ---- 
     // Display mode: Format date for Frontend display 
@@ -74,7 +74,6 @@ useEffect(() => {
         setEditDishes(prev => [...prev, dish]);
     };
 
-    // --- API call --- 
     // Fetch data for display mode 
     useEffect(() => {
         const controller = new AbortController(); 
@@ -314,9 +313,7 @@ useEffect(() => {
                             const { year, month, day } = e.value[0];
                             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                             
-                            // Preserve existing time if it exists, otherwise use current time or default
-                            const existingTime = editDate?.split('T')[1] || editTime || '07:00:00Z';
-                            setEditDate(`${dateStr}T${existingTime}`);
+                            setEditDate(`${dateStr}T${editTime}:00Z`); // Combine with current time
                             }
                         }}
                         >
@@ -335,61 +332,21 @@ useEffect(() => {
                                 <DatePicker.Header/>
                                 <DatePicker.DayTable/>
                                 {/*  Custom hour/minute input */}
-                                <HStack p={3} gap={3} bg="gray.50" borderRadius="md">
-                                    <VStack gap={0}>
-                                        <Text fontSize="xs" color="gray.500" fontWeight="medium">Hour</Text>
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            max={23}
-                                            value={editTime.split(':')[0]}
-                                            onChange={(e) => {
-                                                let hour = parseInt(e.target.value) || 0;
-                                                hour = Math.max(0, Math.min(23, hour));
-                                                const minute = editTime.split(':')[1] || '00';
-                                                const newTime = `${String(hour).padStart(2, '0')}:${minute}`;
-                                                setEditTime(newTime);
-                                                if (editDate) {
-                                                    const dateStr = editDate.split('T')[0];
-                                                    setEditDate(`${dateStr}T${newTime}:00Z`);
-                                                }
-                                            }}
-                                            width="80px"
-                                            height="50px"
-                                            textAlign="center"
-                                            fontSize="xl"
-                                            fontWeight="bold"
-                                        />
-                                    </VStack>
+                                <Input
+                                    type="time"
+                                    value={editTime}
+                                    onChange={(e) => {
+                                    const newTime = e.target.value; // "14:30"
+                                    setEditTime(newTime);
                                     
-                                    <Text fontWeight="bold" fontSize="2xl" pt={5}>:</Text>
-                                    
-                                    <VStack gap={0}>
-                                        <Text fontSize="xs" color="gray.500" fontWeight="medium">Minute</Text>
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            max={59}
-                                            value={editTime.split(':')[1]}
-                                            onChange={(e) => {
-                                                const hour = editTime.split(':')[0] || '00';
-                                                let minute = parseInt(e.target.value) || 0;
-                                                minute = Math.max(0, Math.min(59, minute));
-                                                const newTime = `${hour}:${String(minute).padStart(2, '0')}`;
-                                                setEditTime(newTime);
-                                                if (editDate) {
-                                                    const dateStr = editDate.split('T')[0];
-                                                    setEditDate(`${dateStr}T${newTime}:00Z`);
-                                                }
-                                            }}
-                                            width="80px"
-                                            height="50px"
-                                            textAlign="center"
-                                            fontSize="xl"
-                                            fontWeight="bold"
-                                        />
-                                    </VStack>
-                                </HStack>
+                                    // Update editDate with new time
+                                    if (editDate) {
+                                        const dateStr = editDate.split('T')[0];
+                                        setEditDate(`${dateStr}T${newTime}:00Z`);
+                                    }
+                                    }}
+                                    mt="2"
+                                />
                                 </DatePicker.View>
                             </DatePicker.Content>
                             </DatePicker.Positioner>
