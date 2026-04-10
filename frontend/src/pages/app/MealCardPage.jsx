@@ -36,6 +36,7 @@ export default function MealCardPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     const [editTime, setEditTime] = useState('07:00');
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     // Initialize when entering edit mode
     useEffect(() => {
@@ -304,54 +305,68 @@ export default function MealCardPage() {
                 {/* Date */}
                 {isEditing
                     ? <DatePicker.Root
-                        view="day"  // Lock to day view
+                        view="day"
                         locale="en-GB"
                         timeZone="Asia/Ho_Chi_Minh"
                         defaultValue={editDate ? [parseDate(editDate.split('T')[0])] : undefined}
                         onValueChange={(e) => {
                             if (e.value[0]) {
-                            const { year, month, day } = e.value[0];
-                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                            
-                            setEditDate(`${dateStr}T${editTime}:00Z`); // Combine with current time
+                                const { year, month, day } = e.value[0];
+                                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                setEditDate(`${dateStr}T${editTime}:00Z`);
                             }
                         }}
-                        >
+                        open={isDatePickerOpen}
+                        onOpenChange={(details) => setIsDatePickerOpen(details.open)}
+                    >
                         <DatePicker.Control>
                             <DatePicker.Input />
                             <DatePicker.IndicatorGroup>
-                            <DatePicker.Trigger>
-                                <i className="ri-calendar-view"></i>
-                            </DatePicker.Trigger>
+                                <DatePicker.Trigger>
+                                    <i className="ri-calendar-view"></i>
+                                </DatePicker.Trigger>
                             </DatePicker.IndicatorGroup>
                         </DatePicker.Control>
+                        
                         <Portal>
-                            <DatePicker.Positioner>
-                            <DatePicker.Content>
-                                <DatePicker.View view="day">
-                                <DatePicker.Header/>
-                                <DatePicker.DayTable/>
-                                {/*  Custom hour/minute input */}
-                                <Input
-                                    type="time"
-                                    value={editTime}
-                                    onChange={(e) => {
-                                    const newTime = e.target.value; // "14:30"
-                                    setEditTime(newTime);
-                                    
-                                    // Update editDate with new time
-                                    if (editDate) {
-                                        const dateStr = editDate.split('T')[0];
-                                        setEditDate(`${dateStr}T${newTime}:00Z`);
-                                    }
-                                    }}
-                                    mt="2"
+                            {/* Custom backdrop */}
+                            {isDatePickerOpen && (
+                                <Box
+                                    position="fixed"
+                                    top="0"
+                                    left="0"
+                                    right="0"
+                                    bottom="0"
+                                    bg="blackAlpha.600"
+                                    backdropFilter="blur(4px)"
+                                    zIndex="1000"
+                                    onClick={() => setIsDatePickerOpen(false)}
                                 />
-                                </DatePicker.View>
-                            </DatePicker.Content>
+                            )}
+                            
+                            <DatePicker.Positioner zIndex="1001">
+                                <DatePicker.Content>
+                                    <DatePicker.View view="day">
+                                        <DatePicker.Header/>
+                                        <DatePicker.DayTable/>
+                                        <Input
+                                            type="time"
+                                            value={editTime}
+                                            onChange={(e) => {
+                                                const newTime = e.target.value;
+                                                setEditTime(newTime);
+                                                if (editDate) {
+                                                    const dateStr = editDate.split('T')[0];
+                                                    setEditDate(`${dateStr}T${newTime}:00Z`);
+                                                }
+                                            }}
+                                            mt="2"
+                                        />
+                                    </DatePicker.View>
+                                </DatePicker.Content>
                             </DatePicker.Positioner>
                         </Portal>
-                        </DatePicker.Root>
+                    </DatePicker.Root>
                     : <Text color="gray.600" mt={1} mb={4}>{formatDate(metadata?.meal_date)}</Text>
                 }
                 
