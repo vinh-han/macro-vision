@@ -4,7 +4,7 @@ import {
     // typography components: 
     Heading, Text,  
     // functional components: 
-    Image, Button, IconButton
+    Image, Button, IconButton, useBreakpointValue
 } from "@chakra-ui/react"
 import Logo from "../../assets/images/LogoHorizontal.svg"
 import MealCardMini from "../../components/MealCardMini"
@@ -18,6 +18,7 @@ export default function HomePage() {
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const navigate = useNavigate();
     const location = useLocation(); 
+    const showCarousel = useBreakpointValue({ base: true, md: false });
 
     // ---- Today's Meal Cards State --- 
     const today = new Date()
@@ -173,44 +174,61 @@ export default function HomePage() {
                 <Heading ml={4}>Popular Dishes</Heading>
 
                 <Box centerContent>
-                    <Carousel.Root
-                     align="center"  mx="auto" 
-                     slideCount={popularDishes.length} 
-          
-                    >
-                        <Carousel.ItemGroup overflow="hidden"
+                    {showCarousel ? (
+                        // Carousel for mobile 
+                        <Carousel.Root
+                        align="center"  mx="auto" 
+                        slideCount={popularDishes.length} 
                         >
-                            {popularDishes.map((dish, index) => (
-                                <Carousel.Item 
-                                    m={4}
-                                    px={2}
-                                    key={dish.dish_id} index={index}>
-                                    <DishCard 
-                                    dishName={dish.dish_name}
-                                    dishDescription={dish.description}
-                                    dishCourse={dish.course} 
-                                    dishImage={dish.image}
-                                    dishID={dish.dish_id}/>
-                                </Carousel.Item>
+                            <Carousel.ItemGroup overflow="hidden"
+                            >
+                                {popularDishes.map((dish, index) => (
+                                    <Carousel.Item 
+                                        m={4}
+                                        px={2}
+                                        key={dish.dish_id} index={index}>
+                                        <DishCard 
+                                        dishName={dish.dish_name}
+                                        dishDescription={dish.description}
+                                        dishCourse={dish.course} 
+                                        dishImage={dish.image}
+                                        dishID={dish.dish_id}/>
+                                    </Carousel.Item>
+                                ))}
+                            </Carousel.ItemGroup>
+
+                            <Carousel.Control justifyContent="center" gap="4">
+                                <Carousel.PrevTrigger asChild>
+                                    <IconButton variant="ghost">
+                                        <i className="ri-arrow-left-long-line"></i>
+                                    </IconButton>
+                                </Carousel.PrevTrigger>
+
+                                <Carousel.Indicators/>
+
+                                <Carousel.NextTrigger asChild>
+                                    <IconButton variant="ghost">
+                                        <i className="ri-arrow-right-long-line"></i>
+                                    </IconButton>
+                                </Carousel.NextTrigger>
+                            </Carousel.Control>
+                        </Carousel.Root>
+                    ) : (
+                        // HStack for desktop 
+                        <HStack gap={4} wrap="nowrap" overflowX="auto" px={4} py={3}>
+                            {popularDishes.map((dish) => (
+                            <Box key={dish.dish_id} flexShrink={0}>
+                                <DishCard
+                                dishName={dish.dish_name}
+                                dishDescription={dish.description}
+                                dishCourse={dish.course}
+                                dishImage={dish.image}
+                                dishID={dish.dish_id}
+                                />
+                            </Box>
                             ))}
-                        </Carousel.ItemGroup>
-
-                        <Carousel.Control justifyContent="center" gap="4">
-                            <Carousel.PrevTrigger asChild>
-                                <IconButton variant="ghost">
-                                    <i className="ri-arrow-left-long-line"></i>
-                                </IconButton>
-                            </Carousel.PrevTrigger>
-
-                            <Carousel.Indicators/>
-
-                            <Carousel.NextTrigger asChild>
-                                <IconButton variant="ghost">
-                                    <i className="ri-arrow-right-long-line"></i>
-                                </IconButton>
-                            </Carousel.NextTrigger>
-                        </Carousel.Control>
-                    </Carousel.Root>
+                        </HStack>
+                    )}
                 </Box>
             </Flex>
         </Container>

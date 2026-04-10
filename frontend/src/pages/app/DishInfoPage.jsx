@@ -16,6 +16,7 @@ const NO_IMAGE_PLACEHOLDER_URL ="../../../public/assets/images/No-Image-Placehol
 export default function DishInfoPage() {
     const navigate = useNavigate();
     const location = useLocation();
+
     const {setIsExpired} = useSessionExpireContext();
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const {dishID} = useParams(); 
@@ -90,6 +91,7 @@ export default function DishInfoPage() {
                 const result = await response.json();
                 setData(result); 
                 setDishName(result.dish_name);
+                console.log(result.full_recipe);
 
                 const favResponse = await fetch(`${apiUrl}users/favorites/${dishID}`, {
                     method: 'GET', 
@@ -175,8 +177,8 @@ export default function DishInfoPage() {
  
 
                 {/* Buttons */}
-                <HStack mb={8} mt={5} spacing={4}>
-                    {/* navigate to Add To Meal Plan Page - AN */}
+                <HStack mb={8} mt={5} spacing={4} flexWrap="wrap">
+                    {/* navigate to Add To Meal Plan Page */}
                     <Button rounded="md"
                         onClick={() => {
                             navigate("/app/add-to-meal-plan/new-meal-plan", {
@@ -201,12 +203,13 @@ export default function DishInfoPage() {
                     </Button>
 
                     {/* Print button  */}
-                    <Button 
+                    {/* <Button 
                         variant="outline" rounded="md" 
                         onClick={() => window.print()}
                     >
                         <i class="ri-printer-fill"></i>
-                    </Button>
+                    </Button> */}
+                    
                     {/* Share button  */}
                     <Button 
                         variant="outline" rounded="md"
@@ -220,16 +223,34 @@ export default function DishInfoPage() {
                 <hr/>
 
                 {/* Ingredient list */}
-                <Heading size="md" mb={4} mt={4}>Ingredients</Heading>
+                <Heading size="lg" mb={4} mt={4}>Ingredients</Heading>
                 <Box as="ul" listStyleType="circle" ml={4} mb={4}>
-                    {data?.full_recipe?.split('\n').filter(Boolean).map((ingredient, index) => (
-                        <li key={index}>{ingredient}</li>
-                    ))}
+                    {data?.full_recipe.split('\n').map((line, index) => {
+
+                        const boldMatch = line.match(/---(.+?)---/); 
+
+                        if (boldMatch) {
+                            return (
+                            <Box key={index} 
+                            as="li" 
+                            fontWeight="semibold" 
+                            fontSize="md"
+                            listStyleType="none" mt={index > 0 ? 4 : 0}>
+                                {boldMatch[1]}
+                            </Box>
+                            ); 
+                        } else if (line.trim()) {
+                            return <li key={index} >{line.trim()}</li>
+                        }
+
+                        return null; 
+
+                    })}
                 </Box>
                 <hr/>
 
                 {/* Cooking steps  */}
-                <Heading size="md" mb={4} mt={4}>Steps</Heading>
+                <Heading size="lg" mb={4} mt={4}>Steps</Heading>
                 <Button
                     isDisabled={!data?.source}
                     onClick={() => {window.open(data?.source, "_blank"); }}

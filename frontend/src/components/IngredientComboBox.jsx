@@ -36,6 +36,9 @@ export default function IngredientComboBox({staticIngredList}) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const rawData = formData.get("selected-ingredient")
+    if (!rawData) {
+      return
+    }
     const data = JSON.parse(rawData)
     addIngred([data])
   }
