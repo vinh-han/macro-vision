@@ -74,7 +74,12 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
             boxShadow="0.3rem 0.3rem 0.5rem #0000004d"
             display="flex"
             flexDirection="row"
-            position="relative">
+            position="relative"
+            onClick={() => navigate(`/app/dish/${favoriteCard.dish_id}`, {
+                state: {
+                    from: location.pathname
+                }
+            })}>
             <Image
                 width="30%"
                 rounded="12px"
@@ -115,15 +120,14 @@ export default function FavoriteCard({favoriteCard, removed, setRemoved}) {
                         <i 
                         className={!removed.includes(favoriteCard.dish_id) ? "ri-heart-3-fill" : "ri-heart-3-line"} 
                         style={{fontSize: "1.6rem", lineHeight: 1, color: "#AB3841"}}
-                        onClick={() => editFavorite()}></i>
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            editFavorite();
+                        }}></i>
                         <i 
                         className="ri-arrow-right-long-line" 
                         style={{fontSize: "1.6rem", lineHeight: 1}}
-                        onClick={() => navigate(`/app/dish/${favoriteCard.dish_id}`, {
-                            state: {
-                                from: location.pathname
-                            }
-                        })}></i>
+                        ></i>
                     </Box>
             </Card.Body>
         </Card.Root>

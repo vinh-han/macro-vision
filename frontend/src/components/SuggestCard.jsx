@@ -18,6 +18,11 @@ export default function SuggestCard({dish}) {
         boxShadow="0.3rem 0.3rem 0.5rem #0000004d"
         display="flex"
         flexDirection="column"
+        onClick={() => navigate(`/app/dish/${dish.dish_id}`, {
+            state: {
+                from: location.pathname
+            }
+        })}
         >
             <Image 
                 src={`/assets/images/dishes/${assetNameProcess(dish.dish_name)}.webp`}
@@ -57,7 +62,8 @@ export default function SuggestCard({dish}) {
                             fontWeight="bold"
                             rounded="6px"
                             padding="0.3rem 0.8rem"
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 navigate("../add-to-meal-plan/new-meal-plan", {
                                     state: {
                                         from: location.pathname,

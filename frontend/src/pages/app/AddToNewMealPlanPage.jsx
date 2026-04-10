@@ -78,8 +78,6 @@ export default function AddToNewMealPlanPage() {
             title: mealName.current.value
         }
 
-        console.log(selectedDate.toISOString()); 
-
         fetch(`${baseUrl}meal-cards/`, {
             method: 'POST',
             body: JSON.stringify(mealCardInfo),
@@ -94,7 +92,7 @@ export default function AddToNewMealPlanPage() {
 
             return Promise.reject(response)
         }).then(() => {
-            navigate('../../recipe-suggest')
+            navigate(location.state?.from || "/app")
         }).catch((response) => {
             if (response.status == 401) {
                 setIsExpired(true)
