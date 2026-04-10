@@ -48,9 +48,9 @@ export default function DishCard({dishName, dishDescription, dishCourse, dishID,
                 boxShadow="4px 4px 12px rgba(0, 0, 0, 0.2)"
                 display="flex"
                 h="420px"
-                cursor={onAdd ? "default" : "pointer"}
+                cursor={onAdd || onRemove ? "default" : "pointer"}
                 onClick={() => {
-                    if (onAdd) return; 
+                    if (onAdd) return; // in search dialog 
                     navigate(`/app/dish/${dishID}`, { state: { from: location.pathname } });
                 }}
             >

@@ -26,6 +26,24 @@ export default function MealCardNewPage() {
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     // --- Functions ---
+    // Formatter for display
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    })
+
+    // Format display value
+    const getDisplayValue = () => {
+        if (!date) return "Select date and time";
+        const [year, month, day] = date.split('-');
+        const [hours, minutes] = time.split(':');
+        const dateObj = new Date(year, month - 1, day, hours, minutes);
+        return formatter.format(dateObj);
+    }
+
     const handleAddDish = (dish) => {
         setDishes(prev => [...prev, dish]);
     };
@@ -102,6 +120,7 @@ export default function MealCardNewPage() {
                             placeholder="Meal card title..."
                             fontSize="4xl"
                             fontWeight="bold"
+                            height="50px"
                             borderColor={error ? 'red.400' : undefined}
                         />
                         {error && (
@@ -128,12 +147,18 @@ export default function MealCardNewPage() {
                     onOpenChange={(details) => setIsDatePickerOpen(details.open)}
                 >
                     <DatePicker.Control>
-                        <DatePicker.Input />
-                        <DatePicker.IndicatorGroup>
-                            <DatePicker.Trigger>
+                        <DatePicker.Trigger asChild>
+                            <Button
+                                variant="outline"
+                                width="full"
+                                height="50px"
+                                justifyContent="space-between"
+                                mt={2}
+                            >
+                                {getDisplayValue()}
                                 <i className="ri-calendar-view"></i>
-                            </DatePicker.Trigger>
-                        </DatePicker.IndicatorGroup>
+                            </Button>
+                        </DatePicker.Trigger>
                     </DatePicker.Control>
                     <Portal>
                         <DatePicker.Positioner>
@@ -217,8 +242,13 @@ export default function MealCardNewPage() {
                 />
 
                 {/* --- Action buttons --- */}
-                <HStack mt={4} p={4}>
+                <HStack mt={4} p={4} gap={10} justify="center">
                     <Button
+                        w="90px"
+                        h="50px"
+                        p={5}
+                        bg="gray"
+                        round="md"
                         onClick={() => navigate(location.state?.from || "/app/meal-planner")}
                         disabled={isSaving}
                         opacity={isSaving ? 0.6 : 1}
@@ -226,7 +256,11 @@ export default function MealCardNewPage() {
                         Cancel
                     </Button>
                     <Button
-                        bg="red.500"
+                        w="90px"
+                        h="50px"
+                        p={5}
+                        round="md"
+                        bg="crimsonred.500"
                         onClick={handleCreate}
                         disabled={isSaving}
                         opacity={isSaving ? 0.6 : 1}

@@ -38,13 +38,26 @@ export default function MealCardPage() {
     const [editTime, setEditTime] = useState('07:00');
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-    // Initialize when entering edit mode
-    useEffect(() => {
-    if (isEditing && editDate) {
-        const timeStr = editDate.split('T')[1]?.substring(0, 5) || '07:00';
-        setEditTime(timeStr);
+     // Formatter for display
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    })
+
+    // Format display value
+    const getDisplayValue = () => {
+        if (!editDate) return "Select date and time";
+        
+        // editDate is in ISO format: "2026-04-14T07:00:00Z"
+        const dateStr = editDate.split('T')[0]; // "2026-04-14"
+        const [year, month, day] = dateStr.split('-');
+        const [hours, minutes] = editTime.split(':');
+        const dateObj = new Date(year, month - 1, day, hours, minutes);
+        return formatter.format(dateObj);
     }
-    }, [isEditing]);
         
     // --- Functions ---- 
     // Display mode: Format date for Frontend display 
@@ -55,6 +68,8 @@ export default function MealCardPage() {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
+            hour: "numeric",
+            minute: "2-digit",
         });
     };
     
@@ -243,6 +258,7 @@ export default function MealCardPage() {
                             onChange={e => setEditTitle(e.target.value)}
                             fontSize="4xl"
                             fontWeight="bold"
+                            height="50px"
                         />
                         : <Heading fontSize="4xl">{metadata?.title}</Heading>
                     }
@@ -280,6 +296,10 @@ export default function MealCardPage() {
                                             setEditDate(metadata.meal_date);
                                             setEditTitle(metadata.title); 
                                             setEditDishes([...dishes]); 
+
+                                            // Initialize editTime from metadata.meal_date
+                                            const timeStr = metadata.meal_date.split('T')[1]?.substring(0, 5) || '07:00';
+                                            setEditTime(timeStr);
                                         }}
                                     >
                                         Edit
@@ -320,12 +340,18 @@ export default function MealCardPage() {
                         onOpenChange={(details) => setIsDatePickerOpen(details.open)}
                     >
                         <DatePicker.Control>
-                            <DatePicker.Input />
-                            <DatePicker.IndicatorGroup>
-                                <DatePicker.Trigger>
+                            <DatePicker.Trigger asChild>
+                                <Button
+                                    variant="outline"
+                                    width="full"
+                                    height="50px"
+                                    justifyContent="space-between"
+                                    mt={2}
+                                >
+                                    {getDisplayValue()}
                                     <i className="ri-calendar-view"></i>
-                                </DatePicker.Trigger>
-                            </DatePicker.IndicatorGroup>
+                                </Button>
+                            </DatePicker.Trigger>
                         </DatePicker.Control>
                         
                         <Portal>
@@ -427,8 +453,13 @@ export default function MealCardPage() {
 
                 {/* --- Buttons in Editing mode ---  */}
                 {isEditing && (
-                    <HStack mt={4} p={4}>
+                    <HStack mt={4} p={4} gap={10} justify="center">
                         <Button 
+                            w="90px"
+                            h="50px"
+                            p={5}
+                            bg="gray"
+                            round="md"
                             mt={2} 
                             onClick={() => {
                             setIsEditing(false);
@@ -443,7 +474,11 @@ export default function MealCardPage() {
                         </Button>
                         <Button 
                             mt={2} 
-                            bg="red.500" 
+                            w="90px"
+                            h="50px"
+                            p={5}
+                            round="md"
+                            bg="crimsonred.500"
                             onClick={handleSave}
                             disabled={isSaving}
                             opacity={isSaving ? 0.6 : 1}
