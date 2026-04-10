@@ -17,12 +17,13 @@ export default function MealPlannerPage() {
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
     const navigate = useNavigate();
 
-    // --- Page state -- 
-    const today = new Date()
-    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // --- Page state --     
     const [result, setResult] = useState([])
     const [loading, setLoading] = useState(false); 
     const [error, setError] = useState(null); 
+
+    const today = new Date()
+    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const [date, setDate] = useState(localDate)
     const dayLabel = new Date(date).toLocaleDateString('en-US', {weekday: 'long'});
 
@@ -80,7 +81,7 @@ export default function MealPlannerPage() {
     return (
         <Container maxW="container.xl" centerContent>
             {/* --- Current Day Title & Date Picker ---- */}
-            <VStack mt={3} mb={3} alignItems="flex-start" w={{base:"80%", lg:"55%"}}>
+            <VStack mt={5} mb={3} alignItems="flex-start" w={{base:"80%", md:"80%", lg:"55%"}}>
                 <Heading as="h1" size="3xl"> {dayLabel}'s meal card</Heading>
 
                 {/* Date Picker  */}
@@ -96,7 +97,7 @@ export default function MealPlannerPage() {
                     }
                     }}
                 >
-                    <DatePicker.Label>Date: </DatePicker.Label>
+                    <DatePicker.Label fontWeight="bold">Date: </DatePicker.Label>
                     <DatePicker.Control>
                         <DatePicker.Input />
                         <DatePicker.IndicatorGroup>
@@ -132,17 +133,27 @@ export default function MealPlannerPage() {
 
             {/* --- List of MealCard of the day & Create new MealCard button ---  */}
             <Flex
-                gap="5" w="95%"      
+                gap="5"
+                w="full"
+                maxW={{ base: "350px", md: "750px", lg: "750px" }}
                 mt="2" 
                 wrap="wrap" 
-                justify="center"
+                mx="auto"
+                justifyContent={{ base: "center", md: "space-between" }}
             >
                 
                 {!loading && !error && !result && (
-                <Text color="gray.500">No meal cards created yet for this day.</Text>
+                    <Text 
+                        color="gray.500"  
+                        w="full"
+                        maxW={{ base: "350px", md: "750px", lg: "750px" }}
+                        textAlign="center" 
+                        mx="auto">
+                        No meal cards created yet for this day
+                    </Text>
                 )}
                 {!loading && !error && result && result.map((item) => (
-                <MealCard
+                <MealCard 
                     key={item.card_id}
                     cardId={item.card_id}
                     title={item.title}
@@ -153,8 +164,10 @@ export default function MealPlannerPage() {
                 <Button 
                     variant="ghost" rounded="md"
                     border="2px dashed" borderColor="crimson.500"
-                    w="350px" h="80px"
+                    w="350px"
+                    h="260px"
                     cursor="pointer" 
+                    
                     onClick={() => navigate(`/app/meal-card/new`, { state: { date: date } })}
                 >
                     <i className="ri-add-large-line"></i>

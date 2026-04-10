@@ -34,6 +34,16 @@ export default function MealCardPage() {
     const [editDishes, setEditDishes] = useState([]);
     const [showDishSearch, setShowDishSearch] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+const [editTime, setEditTime] = useState('07:00');
+
+// Initialize when entering edit mode
+useEffect(() => {
+  if (isEditing && editDate) {
+    const timeStr = editDate.split('T')[1]?.substring(0, 5) || '07:00';
+    setEditTime(timeStr);
+  }
+}, [isEditing, editDate]);
         
     // --- Functions ---- 
     // Display mode: Format date for Frontend display 
@@ -50,7 +60,7 @@ export default function MealCardPage() {
     // Save mode: Format date for API 
     const formatDateForAPI = (date) => {
         if (!date) return date;
-        if (date.includes('T')) return date; // already full ISO string
+        if (date.includes('T')) return date; 
         return `${date}T07:00:50Z`; 
     }
 
@@ -86,6 +96,7 @@ export default function MealCardPage() {
                 const result = await response.json(); 
                 setMetadata(result.MealCard); 
                 setDishes(result.Dishes)
+                console.log(result.MealCard)
 
             } catch (err) {
                 if (err.name !== 'AbortError') 
@@ -294,44 +305,96 @@ export default function MealCardPage() {
                 {/* Date */}
                 {isEditing
                     ? <DatePicker.Root
+                        view="day"  // Lock to day view
                         locale="en-GB"
                         timeZone="Asia/Ho_Chi_Minh"
                         defaultValue={editDate ? [parseDate(editDate.split('T')[0])] : undefined}
                         onValueChange={(e) => {
                             if (e.value[0]) {
-                                const { year, month, day, hour, minute } = e.value[0];
-                                setEditDate(
-                                    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+                            const { year, month, day } = e.value[0];
+                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            
+                            // Preserve existing time if it exists, otherwise use current time or default
+                            const existingTime = editDate?.split('T')[1] || editTime || '07:00:00Z';
+                            setEditDate(`${dateStr}T${existingTime}`);
                             }
                         }}
-                    >
+                        >
                         <DatePicker.Control>
                             <DatePicker.Input />
                             <DatePicker.IndicatorGroup>
-                                <DatePicker.Trigger>
-                                    <i className="ri-calendar-view"></i>
-                                </DatePicker.Trigger>
+                            <DatePicker.Trigger>
+                                <i className="ri-calendar-view"></i>
+                            </DatePicker.Trigger>
                             </DatePicker.IndicatorGroup>
                         </DatePicker.Control>
                         <Portal>
                             <DatePicker.Positioner>
-                                <DatePicker.Content>
-                                    <DatePicker.View view="day">
-                                        <DatePicker.Header/>
-                                        <DatePicker.DayTable/>
-                                    </DatePicker.View>
-                                    <DatePicker.View view="month">
-                                        <DatePicker.Header/>
-                                        <DatePicker.MonthTable/>
-                                    </DatePicker.View>
-                                    <DatePicker.View view="year">
-                                        <DatePicker.Header/>
-                                        <DatePicker.YearTable/>
-                                    </DatePicker.View>
-                                </DatePicker.Content>
+                            <DatePicker.Content>
+                                <DatePicker.View view="day">
+                                <DatePicker.Header/>
+                                <DatePicker.DayTable/>
+                                {/*  Custom hour/minute input */}
+                                <HStack p={3} gap={3} bg="gray.50" borderRadius="md">
+                                    <VStack gap={0}>
+                                        <Text fontSize="xs" color="gray.500" fontWeight="medium">Hour</Text>
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            max={23}
+                                            value={editTime.split(':')[0]}
+                                            onChange={(e) => {
+                                                let hour = parseInt(e.target.value) || 0;
+                                                hour = Math.max(0, Math.min(23, hour));
+                                                const minute = editTime.split(':')[1] || '00';
+                                                const newTime = `${String(hour).padStart(2, '0')}:${minute}`;
+                                                setEditTime(newTime);
+                                                if (editDate) {
+                                                    const dateStr = editDate.split('T')[0];
+                                                    setEditDate(`${dateStr}T${newTime}:00Z`);
+                                                }
+                                            }}
+                                            width="80px"
+                                            height="50px"
+                                            textAlign="center"
+                                            fontSize="xl"
+                                            fontWeight="bold"
+                                        />
+                                    </VStack>
+                                    
+                                    <Text fontWeight="bold" fontSize="2xl" pt={5}>:</Text>
+                                    
+                                    <VStack gap={0}>
+                                        <Text fontSize="xs" color="gray.500" fontWeight="medium">Minute</Text>
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            max={59}
+                                            value={editTime.split(':')[1]}
+                                            onChange={(e) => {
+                                                const hour = editTime.split(':')[0] || '00';
+                                                let minute = parseInt(e.target.value) || 0;
+                                                minute = Math.max(0, Math.min(59, minute));
+                                                const newTime = `${hour}:${String(minute).padStart(2, '0')}`;
+                                                setEditTime(newTime);
+                                                if (editDate) {
+                                                    const dateStr = editDate.split('T')[0];
+                                                    setEditDate(`${dateStr}T${newTime}:00Z`);
+                                                }
+                                            }}
+                                            width="80px"
+                                            height="50px"
+                                            textAlign="center"
+                                            fontSize="xl"
+                                            fontWeight="bold"
+                                        />
+                                    </VStack>
+                                </HStack>
+                                </DatePicker.View>
+                            </DatePicker.Content>
                             </DatePicker.Positioner>
                         </Portal>
-                    </DatePicker.Root>
+                        </DatePicker.Root>
                     : <Text color="gray.600" mt={1} mb={4}>{formatDate(metadata?.meal_date)}</Text>
                 }
                 
