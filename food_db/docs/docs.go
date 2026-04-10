@@ -338,6 +338,11 @@ const docTemplate = `{
         },
         "/ingredients/detect": {
             "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
                 "description": "Upload an image file to detect ingredients",
                 "consumes": [
                     "multipart/form-data"
@@ -355,6 +360,13 @@ const docTemplate = `{
                         "description": "Image file",
                         "name": "file",
                         "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "auth",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],

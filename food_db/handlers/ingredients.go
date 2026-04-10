@@ -9,6 +9,7 @@ import (
 	"io"
 	"macro_vision/config"
 	"macro_vision/database"
+	custom_middleware "macro_vision/middleware"
 	ingredients_service "macro_vision/services/ingredients"
 	"mime/multipart"
 	"net/http"
@@ -31,7 +32,9 @@ func IngredientsRouter(api *echo.Group) (err error) {
 	)
 	group.GET("/search", search_ingredients)
 	group.GET("/:ingredient_id", get_ingredient)
-	group.POST("/detect", detect_ingredients)
+	group.POST("/detect", detect_ingredients,
+		middleware.KeyAuthWithConfig(custom_middleware.Auth_config),
+	)
 	return
 }
 
@@ -89,11 +92,13 @@ type DetectIngredientsResponse struct {
 //	@Tags			ingredients
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			file	formData	file						true	"Image file"
-//	@Success		200		{array}		DetectIngredientsResponse	"List of detected ingredients"
-//	@Failure		400		{string}	string						"Bad request"
-//	@Failure		500		{string}	string						"Server error"
+//	@Param			file			formData	file						true	"Image file"
+//	@Param			Authorization	header		string						true	"auth"
+//	@Success		200				{array}		DetectIngredientsResponse	"List of detected ingredients"
+//	@Failure		400				{string}	string						"Bad request"
+//	@Failure		500				{string}	string						"Server error"
 //	@Router			/ingredients/detect [post]
+//	@Security		BasicAuth
 func detect_ingredients(c echo.Context) (err error) {
 	file, err := c.FormFile("img-file")
 	if err != nil {
