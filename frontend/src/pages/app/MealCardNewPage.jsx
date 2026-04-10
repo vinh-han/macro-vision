@@ -14,15 +14,16 @@ export default function MealCardNewPage() {
     const apiUrl = import.meta.env.VITE_BASE_API_URL;
 
     // --- Page state ---
-    // Pre-fill date from MealPlannerPage if passed, otherwise blank
     const [title, setTitle] = useState('');
-    const [date, setDate] = useState(location.state?.date ?? '');
+    const [date, setDate] = useState('');
+    const [time, setTime] = useState('07:00'); // Default time for new cards
     const [dishes, setDishes] = useState([]);
 
     // --- Status state ---
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
     const [showDishSearch, setShowDishSearch] = useState(false);
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     // --- Functions ---
     const handleAddDish = (dish) => {
@@ -33,12 +34,13 @@ export default function MealCardNewPage() {
         setDishes(prev => prev.filter(d => d.dish_id !== dishId));
     };
 
-    const formatDateForAPI = (date) => {
+    const formatDateForAPI = (date, time) => {
         if (!date) return date;
-        if (date.includes('T')) return date;
-        return `${date}T07:00:50Z`;
+        const dateStr = date.split('T')[0];
+        return `${dateStr}T${time}:00Z`;
     }
 
+    // Create new meal card
     const handleCreate = async () => {
         // basic validation before sending to api 
         if (!title.trim()) return setError('Please add a title.');
@@ -56,7 +58,7 @@ export default function MealCardNewPage() {
                 },
                 body: JSON.stringify({
                     title: title.trim(),
-                    meal_date: formatDateForAPI(date),
+                    meal_date: formatDateForAPI(date, time),
                     dishes: dishes.map(d => d.dish_id)
                 })
             });
@@ -95,7 +97,7 @@ export default function MealCardNewPage() {
                             value={title}
                             onChange={e => {
                                 setTitle(e.target.value);
-                                if (error) setError(null); // clear error as user types
+                                if (error) setError(null);
                             }}
                             placeholder="Meal card title..."
                             fontSize="4xl"
@@ -110,19 +112,20 @@ export default function MealCardNewPage() {
                     </Box>
                 </HStack>
 
-                {/* Date picker — initialized from planner date */}
+                {/* Date & Time picker */}
                 <DatePicker.Root
+                    view="day"
                     locale="en-GB"
                     timeZone="Asia/Ho_Chi_Minh"
-                    defaultValue={date ? [parseDate(date)] : undefined}
                     onValueChange={(e) => {
                         if (e.value[0]) {
                             const { year, month, day } = e.value[0];
-                            setDate(
-                                `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                            );
+                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            setDate(dateStr);
                         }
                     }}
+                    open={isDatePickerOpen}
+                    onOpenChange={(details) => setIsDatePickerOpen(details.open)}
                 >
                     <DatePicker.Control>
                         <DatePicker.Input />
@@ -138,19 +141,37 @@ export default function MealCardNewPage() {
                                 <DatePicker.View view="day">
                                     <DatePicker.Header />
                                     <DatePicker.DayTable />
-                                </DatePicker.View>
-                                <DatePicker.View view="month">
-                                    <DatePicker.Header />
-                                    <DatePicker.MonthTable />
-                                </DatePicker.View>
-                                <DatePicker.View view="year">
-                                    <DatePicker.Header />
-                                    <DatePicker.YearTable />
+                                    {/* Time input */}
+                                    <Input
+                                        type="time"
+                                        value={time}
+                                        onChange={(e) => {
+                                            const newTime = e.target.value;
+                                            if (!newTime) return;
+                                            setTime(newTime);
+                                        }}
+                                        mt="2"
+                                    />
                                 </DatePicker.View>
                             </DatePicker.Content>
                         </DatePicker.Positioner>
                     </Portal>
                 </DatePicker.Root>
+
+                {/* Manual backdrop when picker is open */}
+                {isDatePickerOpen && (
+                    <Box
+                        position="fixed"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="blackAlpha.600"
+                        backdropFilter="blur(4px)"
+                        zIndex={999}
+                        onClick={() => setIsDatePickerOpen(false)}
+                    />
+                )}
 
                 {/* Dish count */}
                 <Text fontWeight="bold" fontSize="lg" mb={4} mt={4}>
